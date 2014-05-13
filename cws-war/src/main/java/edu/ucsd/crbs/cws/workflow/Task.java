@@ -3,6 +3,7 @@ package edu.ucsd.crbs.cws.workflow;
 import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
+import com.googlecode.objectify.annotation.Ignore;
 import com.googlecode.objectify.annotation.Index;
 import com.googlecode.objectify.annotation.Load;
 import com.googlecode.objectify.condition.IfFalse;
@@ -16,6 +17,8 @@ import java.util.List;
  */
 @Entity
 public class Task  {
+    
+    public static boolean REFS_ENABLED = true;
     
     /**
      * Your job is in the queue, awaiting completion of your current running or pending job(s). 
@@ -58,6 +61,7 @@ public class Task  {
     
     @Id private Long _id;
     @Load(Task.Everything.class) private Ref<Workflow> _workflow;
+    @Ignore private Workflow _rawWorkflow;
     
     private String _name;
     @Index private String _owner;
@@ -102,12 +106,19 @@ public class Task  {
     public void setWorkflow(Workflow workflow){
         if (workflow == null){
             _workflow = null;
+            _rawWorkflow = null;
             return;
         }
-        _workflow = Ref.create(workflow);
+        if (REFS_ENABLED){
+            _workflow = Ref.create(workflow);
+        }
+        _rawWorkflow = workflow;
     }
     
     public Workflow getWorkflow(){
+        if (REFS_ENABLED == false){
+            return _rawWorkflow;
+        }
         if (_workflow == null){
             return null;
         }
