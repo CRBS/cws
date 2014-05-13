@@ -21,9 +21,9 @@ import javax.ws.rs.core.MediaType;
  * 
  * @author Christopher Churas <churas@ncmir.ucsd.edu>
  */
-@Path("/tasks")
+@Path("/"+Constants.TASKS_PATH)
 public class TaskRestService {
-
+    
     private static final Logger log
             = Logger.getLogger(TaskRestService.class.getName());
 
@@ -52,11 +52,11 @@ public class TaskRestService {
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public List<Task> getTasks(@QueryParam("status") final String status,
-                               @QueryParam("owner") final String owner,
-                               @QueryParam("noparams") final boolean noParams,
-                               @QueryParam("noworkflowparams") final boolean noWorkflowParams,
-                               @QueryParam("notsubmittedtoscheduler") final boolean notSubmitted) {
+    public List<Task> getTasks(@QueryParam(Constants.STATUS_QUERY_PARAM) final String status,
+                               @QueryParam(Constants.OWNER_QUERY_PARAM) final String owner,
+                               @QueryParam(Constants.NOPARAMS_QUERY_PARAM) final boolean noParams,
+                               @QueryParam(Constants.NOWORKFLOWPARAMS_QUERY_PARAM) final boolean noWorkflowParams,
+                               @QueryParam(Constants.NOTSUBMITTED_TO_SCHED_QUERY_PARAM) final boolean notSubmitted) {
         
         try {
             return this._taskDAO.getTasks(owner, status, notSubmitted, noParams, noWorkflowParams);
