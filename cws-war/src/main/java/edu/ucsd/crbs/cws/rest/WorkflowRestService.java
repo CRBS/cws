@@ -22,7 +22,7 @@ import javax.ws.rs.WebApplicationException;
  * 
  * @author Christopher Churas <churas@ncmir.ucsd.edu>
  */
-@Path("/workflows")
+@Path("/"+Constants.WORKFLOWS_PATH)
 public class WorkflowRestService {
 
     
