@@ -106,15 +106,15 @@ public class TaskRestService {
     @Produces(MediaType.APPLICATION_JSON)
 
     public Task updateTask(@PathParam("taskid") final Long taskId,
-            @QueryParam("status") final String status,
-            @QueryParam("estcpu") final long estCpu,
-            @QueryParam("estruntime") final long estRunTime,
-            @QueryParam("estdisk") final long estDisk,
-            @QueryParam("submitdate") final long submitDate,
-            @QueryParam("startdate") final long startDate,
-            @QueryParam("finishdate") final long finishDate,
-            @QueryParam("submittedtosched") final boolean submittedToScheduler,
-            @QueryParam("downloadurl") final String downloadURL) {
+            @QueryParam(Constants.STATUS_QUERY_PARAM) final String status,
+            @QueryParam(Constants.ESTCPU_QUERY_PARAM) final Long estCpu,
+            @QueryParam(Constants.ESTRUNTIME_QUERY_PARAM) final Long estRunTime,
+            @QueryParam(Constants.ESTDISK_QUERY_PARAM) final Long estDisk,
+            @QueryParam(Constants.SUBMITDATE_QUERY_PARAM) final Long submitDate,
+            @QueryParam(Constants.STARTDATE_QUERY_PARAM) final Long startDate,
+            @QueryParam(Constants.FINISHDATE_QUERY_PARAM) final Long finishDate,
+            @QueryParam(Constants.SUBMITTED_TO_SCHED_QUERY_PARAM) final Boolean submittedToScheduler,
+            @QueryParam(Constants.DOWNLOADURL_QUERY_PARAM) final String downloadURL) {
 
         if (taskId != null) {
             log.log(Level.INFO, "task id is: {0}", taskId.toString());
