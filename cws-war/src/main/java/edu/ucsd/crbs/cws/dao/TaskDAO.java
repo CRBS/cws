@@ -54,6 +54,7 @@ public interface TaskDAO {
      * @return
      * @throws Exception 
      */
-    public Task update(long taskId,final String status,long estCpu,long estRunTime,long estDisk,long submitDate,long startDate,
-            long finishDate,boolean submittedToScheduler,final String downloadURL) throws Exception;
+    public Task update(long taskId,final String status,Long estCpu,Long estRunTime,
+            Long estDisk,Long submitDate,Long startDate,Long finishDate,
+            Boolean submittedToScheduler,final String downloadURL) throws Exception;
 }

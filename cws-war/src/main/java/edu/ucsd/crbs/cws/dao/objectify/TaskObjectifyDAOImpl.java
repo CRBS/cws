@@ -94,10 +94,10 @@ public class TaskObjectifyDAOImpl implements TaskDAO {
     }
 
     @Override
-    public Task update(final long taskId, final String status, final long estCpu, 
-            final long estRunTime, final long estDisk, final long submitDate, 
-            final long startDate, final long finishDate, 
-            final boolean submittedToScheduler,final String downloadURL) throws Exception {
+    public Task update(final long taskId, final String status, final Long estCpu, 
+            final Long estRunTime, final Long estDisk, final Long submitDate, 
+            final Long startDate, final Long finishDate, 
+            final Boolean submittedToScheduler,final String downloadURL) throws Exception {
 
         Task resTask;
         resTask = ofy().transact(new Work<Task>() {
@@ -114,33 +114,33 @@ public class TaskObjectifyDAOImpl implements TaskDAO {
                     task.setStatus(status);
                     taskNeedsToBeSaved = true;
                 }
-                if (task.getEstimatedCpuInSeconds() != estCpu) {
+                if (estCpu != null && task.getEstimatedCpuInSeconds() != estCpu) {
                     task.setEstimatedCpuInSeconds(estCpu);
                     taskNeedsToBeSaved = true;
                 }
-                if (task.getEstimatedRunTime() != estRunTime) {
+                if (estRunTime != null && task.getEstimatedRunTime() != estRunTime) {
                     task.setEstimatedRunTime(estRunTime);
                     taskNeedsToBeSaved = true;
                 }
-                if (task.getEstimatedDiskInBytes() != estDisk) {
+                if (estDisk != null && task.getEstimatedDiskInBytes() != estDisk) {
                     task.setEstimatedDiskInBytes(estDisk);
                     taskNeedsToBeSaved = true;
                 }
 
-                if (submitDate != 0) {
+                if (submitDate != null) {
                     task.setSubmitDate(new Date(submitDate));
                     taskNeedsToBeSaved = true;
                 }
-                if (startDate != 0) {
+                if (startDate != null) {
                     task.setStartDate(new Date(startDate));
                     taskNeedsToBeSaved = true;
                 }
-                if (finishDate != 0) {
+                if (finishDate != null) {
                     task.setFinishDate(new Date(finishDate));
                     taskNeedsToBeSaved = true;
                 }
 
-                if (submittedToScheduler != task.getHasJobBeenSubmittedToScheduler()) {
+                if (submittedToScheduler != null && submittedToScheduler != task.getHasJobBeenSubmittedToScheduler()) {
                     task.setHasJobBeenSubmittedToScheduler(submittedToScheduler);
                     taskNeedsToBeSaved = true;
                 }
