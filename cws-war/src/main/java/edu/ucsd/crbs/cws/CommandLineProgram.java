@@ -8,84 +8,130 @@ import com.sun.jersey.core.impl.provider.entity.StringProvider;
 import edu.ucsd.crbs.cws.workflow.Workflow;
 import edu.ucsd.crbs.cws.workflow.WorkflowFromXmlFactory;
 import java.io.BufferedInputStream;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.Enumeration;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import javax.ws.rs.core.MediaType;
+import joptsimple.OptionException;
+import joptsimple.OptionParser;
+import joptsimple.OptionSet;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.ObjectWriter;
 
 /**
  * Command line program that takes a kepler xml file or kar file and generates
- * JSON representation of the workflow parameters to display to the user or
- * to push to the service defined at the URL specified on the command line
- * 
+ * JSON representation of the workflow parameters to display to the user or to
+ * push to the service defined at the URL specified on the command line
+ *
  * @author Christopher Churas <churas@ncmir.ucsd.edu>
  */
 public class CommandLineProgram {
-
+    
     public static final String XML_SUFFIX = ".xml";
-
+    
+    public static final String UPLOAD_WF_ARG = "uploadwf";
+    
+    public static final String SYNC_WITH_CLUSTER_ARG = "syncwithcluster";
+    
+    public static final String HELP_ARG = "h";
+    
+    public static final String URL_ARG = "url";
+    
+    public static final String PARENT_WFID_ARG = "parentwf";
+    
+    public static final String PROGRAM_HELP = "\nCRBS Workflow Service Command Line Tools "+
+            "\n\nThis program provides options to run Workflow Tasks on the local cluster as well"+
+            " as add new Workflows to the CRBS Workflow Service";
+    
     public static void main(String[] args) {
-
-        if (args.length < 1) {
-            System.err.println("Usage: <workflow xml or kar file> (optional <url to post workflow to>)");
-            System.err.println("\nThis program reads a kepler moml file 1.x|2.x and generates a json representation");
-            System.err.println("of the parameters needed to run the workflow.  If the optional <url to post workflow to>");
-            System.err.println("is passed this program will invoke a http POST with the json data to insert the entry");
-            System.exit(1);
-        }
+       
         try {
-            String workflowFile = args[0];
-            String postURL = null;
-            Long parentWfId = null;
-
-            if (args.length >= 2) {
-                postURL = args[1];
-            }
-
-            if (args.length == 3) {
-                parentWfId = new Long(args[2]);
-            }
-
-            WorkflowFromXmlFactory xmlFactory = new WorkflowFromXmlFactory();
-            xmlFactory.setWorkflowXml(new BufferedInputStream(getInputStreamOfWorkflowMoml(workflowFile)));
-
-            Workflow w = xmlFactory.getWorkflow();
-            if (w != null) {
-                ObjectMapper om = new ObjectMapper();
-                if (parentWfId != null) {
-                    w.setId(parentWfId);
+            
+            OptionParser parser = new OptionParser() {
+                {
+                    accepts(UPLOAD_WF_ARG, "Add/Update Workflow").withRequiredArg().ofType(File.class).describedAs(".xml or .kar");
+                    accepts(SYNC_WITH_CLUSTER_ARG, "Submits & Synchronizes Workflow Tasks on local cluster with CRBS Workflow Webservice").withRequiredArg().ofType(String.class).describedAs("URL");
+                    accepts(URL_ARG, "URL to use with --"+UPLOAD_WF_ARG+" flag").withRequiredArg().ofType(String.class).describedAs("URL");
+                    accepts(PARENT_WFID_ARG, "Parent Workflow ID").withRequiredArg().ofType(Long.class).describedAs("Workflow ID");
+                    accepts(HELP_ARG).forHelp();
                 }
-                if (postURL == null) {
-                    System.out.println("\n--- JSON Representation of Workflow ---");
-                    ObjectWriter ow = om.writerWithDefaultPrettyPrinter();
-                    System.out.println(ow.writeValueAsString(w));
-                    System.out.flush();
-                    System.out.println("---------------------------------------");
-
-                } else {
-                    ClientConfig cc = new DefaultClientConfig();
-                    cc.getClasses().add(StringProvider.class);
-                    Client client = Client.create(cc);
-                    client.setFollowRedirects(true);
-                    WebResource resource = client.resource(postURL);
-                    String workflowAsJson = om.writeValueAsString(w);
-
-                    String response = resource.type(MediaType.APPLICATION_JSON_TYPE)
-                            .entity(workflowAsJson)
-                            .post(String.class);
-                    System.out.println("response: " + response);
-
+            };
+            
+            OptionSet optionSet = null;
+            try {
+                optionSet = parser.parse(args);
+            } catch (OptionException oe) {
+                System.err.println("\nThere was an error parsing arguments: " + oe.getMessage() + "\n\n");
+                parser.printHelpOn(System.err);
+                System.exit(1);
+            }
+            
+            if (optionSet.has(HELP_ARG) || 
+                    (!optionSet.has(SYNC_WITH_CLUSTER_ARG) && !optionSet.has(UPLOAD_WF_ARG))) {
+                System.out.println(PROGRAM_HELP+"\n");
+                parser.printHelpOn(System.out);
+                System.exit(0);
+            }
+            
+            if (optionSet.has(SYNC_WITH_CLUSTER_ARG)) {
+                String url = (String) optionSet.valueOf(SYNC_WITH_CLUSTER_ARG);
+                System.out.println("Running sync with cluster");
+                System.exit(0);
+            }
+            
+            Long parentWfId = null;
+            
+            String postURL = null;
+            if (optionSet.has(URL_ARG)) {
+                postURL = (String) optionSet.valueOf(URL_ARG);
+            }
+            
+            if (optionSet.has(PARENT_WFID_ARG)) {
+                parentWfId = (Long) optionSet.valueOf(PARENT_WFID_ARG);
+            }
+            
+            if (optionSet.has(UPLOAD_WF_ARG)) {
+                File workflowFile = (File) optionSet.valueOf(UPLOAD_WF_ARG);
+                WorkflowFromXmlFactory xmlFactory = new WorkflowFromXmlFactory();
+                xmlFactory.setWorkflowXml(new BufferedInputStream(getInputStreamOfWorkflowMoml(workflowFile)));
+                
+                Workflow w = xmlFactory.getWorkflow();
+                if (w != null) {
+                    ObjectMapper om = new ObjectMapper();
+                    if (parentWfId != null) {
+                        w.setId(parentWfId);
+                    }
+                    if (postURL == null) {
+                        System.out.println("\n--- JSON Representation of Workflow ---");
+                        ObjectWriter ow = om.writerWithDefaultPrettyPrinter();
+                        System.out.println(ow.writeValueAsString(w));
+                        System.out.flush();
+                        System.out.println("---------------------------------------");
+                        
+                    } else {
+                        ClientConfig cc = new DefaultClientConfig();
+                        cc.getClasses().add(StringProvider.class);
+                        Client client = Client.create(cc);
+                        client.setFollowRedirects(true);
+                        WebResource resource = client.resource(postURL);
+                        String workflowAsJson = om.writeValueAsString(w);
+                        
+                        String response = resource.type(MediaType.APPLICATION_JSON_TYPE)
+                                .entity(workflowAsJson)
+                                .post(String.class);
+                        System.out.println("response: " + response);
+                        
+                    }
                 }
             }
         } catch (Exception ex) {
-            ex.printStackTrace();
+            System.err.println("Caught Exception: " + ex.getMessage());
             System.exit(2);
         }
-
+        
         System.exit(0);
     }
 
@@ -103,14 +149,14 @@ public class CommandLineProgram {
      * moml file is found
      * @throws Exception
      */
-    public static InputStream getInputStreamOfWorkflowMoml(final String workflowFile) throws Exception {
-
+    public static InputStream getInputStreamOfWorkflowMoml(final File workflowFile) throws Exception {
+        
         if (workflowFile == null) {
             throw new NullPointerException("workflow file is null");
         }
 
         //if the path ends with .xml assume it is a moml file and return a FileInputStream
-        if (workflowFile.endsWith(XML_SUFFIX)) {
+        if (workflowFile.getAbsolutePath().endsWith(XML_SUFFIX)) {
             return new FileInputStream(workflowFile);
         }
 
@@ -119,10 +165,10 @@ public class CommandLineProgram {
         //entries til we find a non zero size entry that is not a directory and
         //ends with .xml
         JarFile jf = new JarFile(workflowFile);
-        JarEntry je = null;
+        JarEntry je;
         for (Enumeration<JarEntry> e = jf.entries(); e.hasMoreElements();) {
             je = e.nextElement();
-
+            
             if (je.isDirectory() == true) {
                 continue;
             }
