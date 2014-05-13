@@ -8,6 +8,7 @@ import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.api.json.JSONConfiguration;
+import com.sun.jersey.core.impl.provider.entity.StringProvider;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
 import edu.ucsd.crbs.cws.dao.TaskDAO;
 import edu.ucsd.crbs.cws.rest.Constants;
@@ -16,14 +17,12 @@ import java.util.List;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 
-
 /**
  * Provides ways to obtain and persist Task objects via REST API calls
  *
  * @author Christopher Churas <churas@ncmir.ucsd.edu>
  */
 public class TaskRestDAOImpl implements TaskDAO {
-
 
     private String _restURL;
 
@@ -77,7 +76,8 @@ public class TaskRestDAOImpl implements TaskDAO {
         String json = resource.queryParams(queryParams).accept(MediaType.APPLICATION_JSON).get(String.class);
         ObjectMapper mapper = new ObjectMapper();
         mapper.registerModule(new ObjectifyJacksonModule());
-        return mapper.readValue(json, new TypeReference<List<Task>>(){});
+        return mapper.readValue(json, new TypeReference<List<Task>>() {
+        });
     }
 
     @Override
@@ -86,11 +86,57 @@ public class TaskRestDAOImpl implements TaskDAO {
     }
 
     @Override
-    public Task update(long taskId, String status, long estCpu, long estRunTime, long estDisk, long submitDate, long startDate, long finishDate, boolean submittedToScheduler, String downloadURL) throws Exception {
-        
-        
-        return null;
-        
+    public Task update(long taskId, final String status, Long estCpu, Long estRunTime,
+            Long estDisk, Long submitDate, Long startDate, Long finishDate,
+            Boolean submittedToScheduler, final String downloadURL) throws Exception {
+        ClientConfig cc = new DefaultClientConfig();
+        cc.getClasses().add(StringProvider.class);
+        Client client = Client.create(cc);
+        client.setFollowRedirects(true);
+        WebResource resource = client.resource(_restURL).path(Constants.REST_PATH).
+                path(Constants.TASKS_PATH).path(Long.toString(taskId));
+
+        MultivaluedMap queryParams = new MultivaluedMapImpl();
+
+        if (status != null) {
+            queryParams.add(Constants.STATUS_QUERY_PARAM, status);
+        }
+        if (estCpu != null){
+            queryParams.add(Constants.ESTCPU_QUERY_PARAM, estCpu);
+        }
+        if (estRunTime != null){
+            queryParams.add(Constants.ESTRUNTIME_QUERY_PARAM, estRunTime);
+        }
+        if (estDisk != null){
+            queryParams.add(Constants.ESTDISK_QUERY_PARAM, estDisk);
+        }
+        if (submitDate != null){
+            queryParams.add(Constants.SUBMITDATE_QUERY_PARAM, submitDate);
+        }
+        if (startDate != null){
+            queryParams.add(Constants.STARTDATE_QUERY_PARAM, startDate);
+        }
+        if (finishDate != null){
+            queryParams.add(Constants.FINISHDATE_QUERY_PARAM, finishDate);
+        }
+        if (submittedToScheduler != null){
+            queryParams.add(Constants.SUBMITTED_TO_SCHED_QUERY_PARAM, submittedToScheduler.toString());
+        }
+
+        if (downloadURL != null) {
+            queryParams.add(Constants.DOWNLOADURL_QUERY_PARAM, downloadURL);
+        }
+
+        String json = resource.queryParams(queryParams)
+                .accept(MediaType.APPLICATION_JSON)
+                .type(MediaType.APPLICATION_JSON_TYPE)
+                .entity("{}")
+                .post(String.class);
+
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new ObjectifyJacksonModule());
+        return mapper.readValue(json, new TypeReference<Task>() {
+        });
     }
 
 }
