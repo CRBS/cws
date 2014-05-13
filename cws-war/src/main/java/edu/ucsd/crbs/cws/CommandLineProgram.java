@@ -1,10 +1,15 @@
 package edu.ucsd.crbs.cws;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
+import com.googlecode.objectify.ObjectifyService;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.core.impl.provider.entity.StringProvider;
+import edu.ucsd.crbs.cws.dao.rest.TaskRestDAOImpl;
+import edu.ucsd.crbs.cws.workflow.Task;
 import edu.ucsd.crbs.cws.workflow.Workflow;
 import edu.ucsd.crbs.cws.workflow.WorkflowFromXmlFactory;
 import java.io.BufferedInputStream;
@@ -12,14 +17,13 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.Enumeration;
+import java.util.List;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import javax.ws.rs.core.MediaType;
 import joptsimple.OptionException;
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.ObjectWriter;
 
 /**
  * Command line program that takes a kepler xml file or kar file and generates
@@ -29,6 +33,7 @@ import org.codehaus.jackson.map.ObjectWriter;
  * @author Christopher Churas <churas@ncmir.ucsd.edu>
  */
 public class CommandLineProgram {
+    
     
     public static final String XML_SUFFIX = ".xml";
     
@@ -47,7 +52,8 @@ public class CommandLineProgram {
             " as add new Workflows to the CRBS Workflow Service";
     
     public static void main(String[] args) {
-       
+        Task.REFS_ENABLED = false;
+        Workflow.REFS_ENABLED = false;
         try {
             
             OptionParser parser = new OptionParser() {
@@ -77,7 +83,22 @@ public class CommandLineProgram {
             }
             
             if (optionSet.has(SYNC_WITH_CLUSTER_ARG)) {
+                ObjectifyService.ofy();
                 String url = (String) optionSet.valueOf(SYNC_WITH_CLUSTER_ARG);
+                TaskRestDAOImpl taskDAO = new TaskRestDAOImpl();
+                taskDAO.setRestURL(url);
+                
+                List<Task> tasks = taskDAO.getTasks(null, null,false,false, false);
+                if (tasks != null){
+                    System.out.println("tasks is not null");
+                    System.out.println("there are "+tasks.size()+" tasks");
+                    for (Task t : tasks){
+                        System.out.println("Task: "+t.getId()+" named: "+t.getName());
+                    }
+                }
+                else {
+                    System.out.println("tasks is null");
+                }
                 System.out.println("Running sync with cluster");
                 System.exit(0);
             }
@@ -128,7 +149,9 @@ public class CommandLineProgram {
                 }
             }
         } catch (Exception ex) {
+            ex.printStackTrace();
             System.err.println("Caught Exception: " + ex.getMessage());
+            
             System.exit(2);
         }
         
