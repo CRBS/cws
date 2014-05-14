@@ -33,39 +33,41 @@ import joptsimple.OptionSet;
  * @author Christopher Churas <churas@ncmir.ucsd.edu>
  */
 public class CommandLineProgram {
-    
-    
+
     public static final String XML_SUFFIX = ".xml";
-    
+
     public static final String UPLOAD_WF_ARG = "uploadwf";
-    
+
     public static final String SYNC_WITH_CLUSTER_ARG = "syncwithcluster";
-    
+
     public static final String HELP_ARG = "h";
-    
+
     public static final String URL_ARG = "url";
-    
+
     public static final String PARENT_WFID_ARG = "parentwf";
-    
-    public static final String PROGRAM_HELP = "\nCRBS Workflow Service Command Line Tools "+
-            "\n\nThis program provides options to run Workflow Tasks on the local cluster as well"+
-            " as add new Workflows to the CRBS Workflow Service";
-    
+
+    public static final String EXAMPLE_JSON_ARG = "examplejson";
+
+    public static final String PROGRAM_HELP = "\nCRBS Workflow Service Command Line Tools "
+            + "\n\nThis program provides options to run Workflow Tasks on the local cluster as well"
+            + " as add new Workflows to the CRBS Workflow Service";
+
     public static void main(String[] args) {
         Task.REFS_ENABLED = false;
         Workflow.REFS_ENABLED = false;
         try {
-            
+
             OptionParser parser = new OptionParser() {
                 {
                     accepts(UPLOAD_WF_ARG, "Add/Update Workflow").withRequiredArg().ofType(File.class).describedAs(".xml or .kar");
                     accepts(SYNC_WITH_CLUSTER_ARG, "Submits & Synchronizes Workflow Tasks on local cluster with CRBS Workflow Webservice").withRequiredArg().ofType(String.class).describedAs("URL");
-                    accepts(URL_ARG, "URL to use with --"+UPLOAD_WF_ARG+" flag").withRequiredArg().ofType(String.class).describedAs("URL");
+                    accepts(URL_ARG, "URL to use with --" + UPLOAD_WF_ARG + " flag").withRequiredArg().ofType(String.class).describedAs("URL");
                     accepts(PARENT_WFID_ARG, "Parent Workflow ID").withRequiredArg().ofType(Long.class).describedAs("Workflow ID");
+                    accepts(EXAMPLE_JSON_ARG, "Outputs JSON of Task & Workflow objects");
                     accepts(HELP_ARG).forHelp();
                 }
             };
-            
+
             OptionSet optionSet = null;
             try {
                 optionSet = parser.parse(args);
@@ -74,51 +76,74 @@ public class CommandLineProgram {
                 parser.printHelpOn(System.err);
                 System.exit(1);
             }
-            
-            if (optionSet.has(HELP_ARG) || 
-                    (!optionSet.has(SYNC_WITH_CLUSTER_ARG) && !optionSet.has(UPLOAD_WF_ARG))) {
-                System.out.println(PROGRAM_HELP+"\n");
+
+            if (optionSet.has(HELP_ARG)
+                    || (!optionSet.has(SYNC_WITH_CLUSTER_ARG) && !optionSet.has(UPLOAD_WF_ARG))) {
+                System.out.println(PROGRAM_HELP + "\n");
                 parser.printHelpOn(System.out);
                 System.exit(0);
             }
-            
+
+            if (optionSet.has(EXAMPLE_JSON_ARG)) {
+                System.out.println("Json for Workflow");
+                System.out.println("-----------------------");
+                ObjectMapper om = new ObjectMapper();
+                ObjectWriter ow = om.writerWithDefaultPrettyPrinter();
+                System.out.println(ow.writeValueAsString(new Workflow()));
+                System.out.flush();
+                System.out.println("-----------------------\n\n");
+                System.out.println("Json for Task");
+                System.out.println("-----------------------");
+                System.out.println(ow.writeValueAsString(new Task()));
+                System.out.flush();
+
+                System.exit(0);
+            }
+
             if (optionSet.has(SYNC_WITH_CLUSTER_ARG)) {
                 ObjectifyService.ofy();
                 String url = (String) optionSet.valueOf(SYNC_WITH_CLUSTER_ARG);
                 TaskRestDAOImpl taskDAO = new TaskRestDAOImpl();
                 taskDAO.setRestURL(url);
-                
-                List<Task> tasks = taskDAO.getTasks(null, null,false,false, false);
-                if (tasks != null){
+
+                List<Task> tasks = taskDAO.getTasks(null, null, false, false, false);
+                if (tasks != null) {
                     System.out.println("tasks is not null");
-                    System.out.println("there are "+tasks.size()+" tasks");
-                    for (Task t : tasks){
-                        System.out.println("Task: "+t.getId()+" named: "+t.getName());
+                    System.out.println("there are " + tasks.size() + " tasks");
+                    for (Task t : tasks) {
+                        System.out.println("Task: " + t.getId() + " named: " + t.getName() + " status: " + t.getStatus());
+                        taskDAO.update(t.getId(), "hello", null, null, null, null, null, null, true, url);
                     }
-                }
-                else {
+                    tasks = taskDAO.getTasks(null, null, false, false, false);
+                    if (tasks != null) {
+                        for (Task t : tasks) {
+                            System.out.println("Updated Task: " + t.getId() + " named: " + t.getName() + " status: " + t.getStatus());
+
+                        }
+                    }
+                } else {
                     System.out.println("tasks is null");
                 }
                 System.out.println("Running sync with cluster");
                 System.exit(0);
             }
-            
+
             Long parentWfId = null;
-            
+
             String postURL = null;
             if (optionSet.has(URL_ARG)) {
                 postURL = (String) optionSet.valueOf(URL_ARG);
             }
-            
+
             if (optionSet.has(PARENT_WFID_ARG)) {
                 parentWfId = (Long) optionSet.valueOf(PARENT_WFID_ARG);
             }
-            
+
             if (optionSet.has(UPLOAD_WF_ARG)) {
                 File workflowFile = (File) optionSet.valueOf(UPLOAD_WF_ARG);
                 WorkflowFromXmlFactory xmlFactory = new WorkflowFromXmlFactory();
                 xmlFactory.setWorkflowXml(new BufferedInputStream(getInputStreamOfWorkflowMoml(workflowFile)));
-                
+
                 Workflow w = xmlFactory.getWorkflow();
                 if (w != null) {
                     ObjectMapper om = new ObjectMapper();
@@ -131,7 +156,7 @@ public class CommandLineProgram {
                         System.out.println(ow.writeValueAsString(w));
                         System.out.flush();
                         System.out.println("---------------------------------------");
-                        
+
                     } else {
                         ClientConfig cc = new DefaultClientConfig();
                         cc.getClasses().add(StringProvider.class);
@@ -139,22 +164,22 @@ public class CommandLineProgram {
                         client.setFollowRedirects(true);
                         WebResource resource = client.resource(postURL);
                         String workflowAsJson = om.writeValueAsString(w);
-                        
+
                         String response = resource.type(MediaType.APPLICATION_JSON_TYPE)
                                 .entity(workflowAsJson)
                                 .post(String.class);
                         System.out.println("response: " + response);
-                        
+
                     }
                 }
             }
         } catch (Exception ex) {
             ex.printStackTrace();
             System.err.println("Caught Exception: " + ex.getMessage());
-            
+
             System.exit(2);
         }
-        
+
         System.exit(0);
     }
 
@@ -173,7 +198,7 @@ public class CommandLineProgram {
      * @throws Exception
      */
     public static InputStream getInputStreamOfWorkflowMoml(final File workflowFile) throws Exception {
-        
+
         if (workflowFile == null) {
             throw new NullPointerException("workflow file is null");
         }
@@ -191,7 +216,7 @@ public class CommandLineProgram {
         JarEntry je;
         for (Enumeration<JarEntry> e = jf.entries(); e.hasMoreElements();) {
             je = e.nextElement();
-            
+
             if (je.isDirectory() == true) {
                 continue;
             }
