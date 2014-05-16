@@ -97,7 +97,8 @@ public class TaskObjectifyDAOImpl implements TaskDAO {
     public Task update(final long taskId, final String status, final Long estCpu, 
             final Long estRunTime, final Long estDisk, final Long submitDate, 
             final Long startDate, final Long finishDate, 
-            final Boolean submittedToScheduler,final String downloadURL) throws Exception {
+            final Boolean submittedToScheduler,final String downloadURL,
+            final String jobId) throws Exception {
 
         Task resTask;
         resTask = ofy().transact(new Work<Task>() {
@@ -147,6 +148,12 @@ public class TaskObjectifyDAOImpl implements TaskDAO {
                 if (downloadURL != null) {
                     if (task.getDownloadURL() == null || !task.getDownloadURL().equals(downloadURL)) {
                         task.setDownloadURL(downloadURL);
+                        taskNeedsToBeSaved = true;
+                    }
+                }
+                if (jobId != null){
+                    if (task.getJobId() == null || !task.getJobId().equals(jobId)){
+                        task.setJobId(jobId);
                         taskNeedsToBeSaved = true;
                     }
                 }

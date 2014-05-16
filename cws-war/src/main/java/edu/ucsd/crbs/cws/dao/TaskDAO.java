@@ -51,10 +51,12 @@ public interface TaskDAO {
      * @param finishDate
      * @param submittedToScheduler
      * @param downloadURL
+     * @param jobId
      * @return
      * @throws Exception 
      */
     public Task update(long taskId,final String status,Long estCpu,Long estRunTime,
             Long estDisk,Long submitDate,Long startDate,Long finishDate,
-            Boolean submittedToScheduler,final String downloadURL) throws Exception;
+            Boolean submittedToScheduler,final String downloadURL,
+            final String jobId) throws Exception;
 }
