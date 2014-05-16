@@ -1,5 +1,6 @@
 package edu.ucsd.crbs.cws.workflow;
 
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
@@ -16,6 +17,8 @@ import java.util.List;
  * @author Christopher Churas <churas@ncmir.ucsd.edu>
  */
 @Entity
+@JsonPropertyOrder(value={ "id","name","owner","status","createDate","submitDate","startDate","finishDate"},alphabetic=true)
+
 public class Task  {
     
     public static boolean REFS_ENABLED = true;
@@ -67,6 +70,7 @@ public class Task  {
     @Index private String _owner;
     @Index private String _status;
     @Index({IfFalse.class}) private boolean _hasJobBeenSubmittedToScheduler;
+    private String _jobId;
     private long _estimatedCpuInSeconds;
     private long _estimatedRunTimeInSeconds;
     private long _estimatedDiskInBytes;
@@ -147,6 +151,14 @@ public class Task  {
     
     public String getStatus(){
         return _status;
+    }
+    
+    public void setJobId(final String jobId){
+        _jobId = jobId;
+    }
+    
+    public String getJobId(){
+        return _jobId;
     }
     
     public void setEstimatedCpuInSeconds(long val){
