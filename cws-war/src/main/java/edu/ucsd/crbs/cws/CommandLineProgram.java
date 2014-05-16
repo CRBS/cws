@@ -8,14 +8,19 @@ import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.core.impl.provider.entity.StringProvider;
+import edu.ucsd.crbs.cws.cluster.TaskSubmitter;
 import edu.ucsd.crbs.cws.dao.rest.TaskRestDAOImpl;
+import edu.ucsd.crbs.cws.workflow.Parameter;
 import edu.ucsd.crbs.cws.workflow.Task;
 import edu.ucsd.crbs.cws.workflow.Workflow;
 import edu.ucsd.crbs.cws.workflow.WorkflowFromXmlFactory;
+import edu.ucsd.crbs.cws.workflow.WorkflowParameter;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.jar.JarEntry;
@@ -78,53 +83,41 @@ public class CommandLineProgram {
             }
 
             if (optionSet.has(HELP_ARG)
-                    || (!optionSet.has(SYNC_WITH_CLUSTER_ARG) && !optionSet.has(UPLOAD_WF_ARG))) {
+                    || (!optionSet.has(SYNC_WITH_CLUSTER_ARG) && !optionSet.has(UPLOAD_WF_ARG))
+                    && !optionSet.has(EXAMPLE_JSON_ARG)) {
                 System.out.println(PROGRAM_HELP + "\n");
                 parser.printHelpOn(System.out);
                 System.exit(0);
             }
 
             if (optionSet.has(EXAMPLE_JSON_ARG)) {
-                System.out.println("Json for Workflow");
-                System.out.println("-----------------------");
-                ObjectMapper om = new ObjectMapper();
-                ObjectWriter ow = om.writerWithDefaultPrettyPrinter();
-                System.out.println(ow.writeValueAsString(new Workflow()));
-                System.out.flush();
-                System.out.println("-----------------------\n\n");
-                System.out.println("Json for Task");
-                System.out.println("-----------------------");
-                System.out.println(ow.writeValueAsString(new Task()));
-                System.out.flush();
 
+                renderExampleWorkflowsAndTasksAsJson();
                 System.exit(0);
             }
 
             if (optionSet.has(SYNC_WITH_CLUSTER_ARG)) {
+
                 ObjectifyService.ofy();
                 String url = (String) optionSet.valueOf(SYNC_WITH_CLUSTER_ARG);
                 TaskRestDAOImpl taskDAO = new TaskRestDAOImpl();
                 taskDAO.setRestURL(url);
+                System.out.println("Running sync with cluster");
 
-                List<Task> tasks = taskDAO.getTasks(null, null, false, false, false);
+                TaskSubmitter submitter = new TaskSubmitter();
+
+                List<Task> tasks = taskDAO.getTasks(null, null, true, false, false);
                 if (tasks != null) {
-                    System.out.println("tasks is not null");
                     System.out.println("there are " + tasks.size() + " tasks");
                     for (Task t : tasks) {
                         System.out.println("Task: " + t.getId() + " named: " + t.getName() + " status: " + t.getStatus());
-                        taskDAO.update(t.getId(), "hello", null, null, null, null, null, null, true, url);
-                    }
-                    tasks = taskDAO.getTasks(null, null, false, false, false);
-                    if (tasks != null) {
-                        for (Task t : tasks) {
-                            System.out.println("Updated Task: " + t.getId() + " named: " + t.getName() + " status: " + t.getStatus());
-
-                        }
+                        submitter.submitTask(t);
+                        taskDAO.update(t.getId(), "hello", null, null, null, null, null, null, true, url, t.getJobId());
                     }
                 } else {
                     System.out.println("tasks is null");
                 }
-                System.out.println("Running sync with cluster");
+
                 System.exit(0);
             }
 
@@ -168,7 +161,10 @@ public class CommandLineProgram {
                         String response = resource.type(MediaType.APPLICATION_JSON_TYPE)
                                 .entity(workflowAsJson)
                                 .post(String.class);
-                        System.out.println("response: " + response);
+                        Object json = om.readValue(response, Object.class);
+                        ObjectWriter ow = om.writerWithDefaultPrettyPrinter();
+                        System.out.println(ow.writeValueAsString(json));
+                        //System.out.println("response: " + response);
 
                     }
                 }
@@ -230,5 +226,103 @@ public class CommandLineProgram {
         }
         //didn't find anything just return null
         return null;
+    }
+
+    public static void renderExampleWorkflowsAndTasksAsJson() throws Exception {
+        
+        ObjectMapper om = new ObjectMapper();
+        ObjectWriter ow = om.writerWithDefaultPrettyPrinter();
+        
+        System.out.println("Json for Empty Workflow");
+        System.out.println("-----------------------");
+        System.out.println(ow.writeValueAsString(getWorkflowWithNoParameters()));
+        System.out.flush();
+        System.out.println("-----------------------\n\n");
+
+        System.out.println("Json for Workflow with Parameters");
+        System.out.println("-----------------------");
+
+        System.out.println(ow.writeValueAsString(getWorkflowWithParameters()));
+        System.out.flush();
+        System.out.println("-----------------------\n\n");
+
+        System.out.println("Json for Task with 2 parameters and workflow");
+        System.out.println("-----------------------");
+        System.out.println(ow.writeValueAsString(getTaskWithParametersAndWorkflow()));
+        System.out.flush();
+
+    }
+    
+    public static Task getTaskWithParametersAndWorkflow(){
+        Task t = new Task();
+        t.setCreateDate(new Date());
+        t.setDownloadURL("http://foo.com/asdflkj");
+        t.setEstimatedCpuInSeconds(5345);
+        t.setEstimatedDiskInBytes(234234234L);
+        t.setEstimatedRunTime(334343);
+        t.setFinishDate(new Date());
+        t.setStatus(Task.RUNNING_STATUS);
+        t.setJobId("12322");
+        t.setName("some task");
+        t.setOwner("someuser");
+        t.setStartDate(new Date());
+        t.setSubmitDate(new Date());
+        
+        Parameter p = new Parameter();
+        p.setName("param1");
+        p.setValue("some value");
+        
+        List<Parameter> params = new ArrayList<>();
+        params.add(p);
+        t.setParameters(params);
+        t.setWorkflow(getWorkflowWithNoParameters());
+        return t;
+    }
+    
+
+    public static Workflow getWorkflowWithNoParameters() {
+        Workflow w = new Workflow();
+        w.setId(new Long(10));
+        w.setName("workflowname");
+        w.setDescription("Contains description of workflow displayable to the user");
+        w.setCreateDate(new Date());
+        w.setReleaseNotes("Contains release notes for this release of Workflow");
+        w.setVersion(2);
+        return w;
+    }
+
+    public static Workflow getWorkflowWithParameters() {
+        Workflow w = getWorkflowWithNoParameters();
+
+        WorkflowParameter wp = new WorkflowParameter();
+        wp.setType("text");
+        wp.setValue("initial value to put in text field");
+        wp.setName("foo");
+        wp.setDisplayName("Example text field parameter");
+        wp.setHelp("Tooltip information goes here.\n"
+                + "This Parameter is a basic html text field.\n"
+                + "DisplayName is the label that should be shown\n"
+                + "to the user\n"
+                + "");
+        wp.setMaxLength(50);
+        wp.setValidationHelp("Text to display to user if validation fails");
+        wp.setValidationType("string");
+        wp.setValidationRegex("^cheese|wine$");
+        
+        List<WorkflowParameter> params = new ArrayList<>();
+        params.add(wp);
+
+        wp = new WorkflowParameter();
+        wp.setType("number");
+        wp.setValue("7");
+        wp.setName("bar");
+        wp.setDisplayName("Bar");
+        wp.setMaxValue(100);
+        wp.setMinValue(0);
+
+        wp.setHelp("Tooltip goes here.  This is just a number field");
+        params.add(wp);
+        w.setParameters(params);
+        return w;
     }
 }
