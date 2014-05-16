@@ -6,10 +6,19 @@ package edu.ucsd.crbs.cws.rest;
  */
 public class Constants {
     
+    /**
+     * REST URL path for Tasks
+     */
     public static final String TASKS_PATH = "tasks";
     
+    /**
+     * REST URL path for Workflows
+     */
     public static final String WORKFLOWS_PATH = "workflows";
     
+    /**
+     * REST path added at end of address like so:  IE https://blah.com/rest/
+     */
     public static final String REST_PATH = "rest";
     
     public static final String STATUS_QUERY_PARAM = "status";
@@ -25,7 +34,13 @@ public class Constants {
     public static final String STARTDATE_QUERY_PARAM = "startdate";
     public static final String FINISHDATE_QUERY_PARAM = "finishdate";
     public static final String SUBMITTED_TO_SCHED_QUERY_PARAM = "submittedtosched";
+    public static final String JOB_ID_QUERY_PARAM = "jobid";
     public static final String DOWNLOADURL_QUERY_PARAM = "downloadurl";
     
+    /**
+     * outputs Directory where Tasks should write output
+     */
+    public static final String OUTPUTS_DIR_NAME = "outputs";
 
+    
 }
