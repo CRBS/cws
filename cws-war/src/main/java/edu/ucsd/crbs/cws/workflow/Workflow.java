@@ -1,6 +1,7 @@
 package edu.ucsd.crbs.cws.workflow;
 
 
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.googlecode.objectify.Ref;
 import java.util.List;
 
@@ -10,7 +11,6 @@ import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Ignore;
 import com.googlecode.objectify.annotation.Load;
 import java.util.Date;
-import org.codehaus.jackson.annotate.JsonPropertyOrder;
 
 
 /**
@@ -18,7 +18,7 @@ import org.codehaus.jackson.annotate.JsonPropertyOrder;
  * @author Christopher Churas <churas@ncmir.ucsd.edu>
  */
 @Entity
-@JsonPropertyOrder(value={ "id","name","description","createDate" },alphabetic=true)
+@JsonPropertyOrder(value={ "id","name","createDate","version","description","releaseNotes"},alphabetic=true)
 public class Workflow {
     
     public static boolean REFS_ENABLED = true;
