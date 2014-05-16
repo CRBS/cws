@@ -98,6 +98,7 @@ public class TaskRestService {
      * @param estDisk
      * @param finishDate
      * @param submittedToScheduler
+     * @param jobId
      * @return 
      */
     @POST
@@ -114,7 +115,8 @@ public class TaskRestService {
             @QueryParam(Constants.STARTDATE_QUERY_PARAM) final Long startDate,
             @QueryParam(Constants.FINISHDATE_QUERY_PARAM) final Long finishDate,
             @QueryParam(Constants.SUBMITTED_TO_SCHED_QUERY_PARAM) final Boolean submittedToScheduler,
-            @QueryParam(Constants.DOWNLOADURL_QUERY_PARAM) final String downloadURL) {
+            @QueryParam(Constants.DOWNLOADURL_QUERY_PARAM) final String downloadURL,
+            @QueryParam(Constants.JOB_ID_QUERY_PARAM)final String jobId) {
 
         if (taskId != null) {
             log.log(Level.INFO, "task id is: {0}", taskId.toString());
@@ -126,7 +128,7 @@ public class TaskRestService {
         try {
             return _taskDAO.update(taskId, status, estCpu, estRunTime, estDisk, 
                     submitDate, startDate, finishDate, submittedToScheduler, 
-                    downloadURL);
+                    downloadURL,jobId);
         }
         catch(Exception ex){
             throw new WebApplicationException(ex);
