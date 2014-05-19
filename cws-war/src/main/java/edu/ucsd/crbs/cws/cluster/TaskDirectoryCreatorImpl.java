@@ -11,10 +11,6 @@ import java.io.File;
 public class TaskDirectoryCreatorImpl implements TaskDirectoryCreator{
 
     private String _baseExecDir;
-   
-    public TaskDirectoryCreatorImpl(){
-        
-    }
     
     public TaskDirectoryCreatorImpl(final String baseTaskExecutionDirectory){
         _baseExecDir = baseTaskExecutionDirectory;
@@ -41,8 +37,9 @@ public class TaskDirectoryCreatorImpl implements TaskDirectoryCreator{
             throw new NullPointerException("Base Task Execution directory is null");
         }
         
-        File dirToCreate = new File(_baseExecDir+File.separator+id.toString()+
-                File.separator+Constants.OUTPUTS_DIR_NAME);
+        File dirToCreate = new File(_baseExecDir+File.separator+t.getOwner()+
+                File.separator+id.toString()+File.separator+
+                Constants.OUTPUTS_DIR_NAME);
         
         if (dirToCreate.mkdirs() == false){
             throw new Exception("Unable to create directory: "+dirToCreate.getAbsolutePath());
