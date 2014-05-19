@@ -110,6 +110,14 @@
             <artifactId>objectify</artifactId>
             <version>5.0.2</version>
         </dependency>
+        
+        <!-- only used by the command line program -->
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>2.4</version>
+        </dependency>
+        
         <!-- Test Dependencies -->
         <dependency>
             <groupId>com.google.appengine</groupId>
