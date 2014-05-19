@@ -1,0 +1,47 @@
+#!/bin/bash
+# This script invokes kepler
+
+#
+# function called when USR2 signal is caught
+#
+on_usr2() {
+ echo "Caught USR2 signal killing children processes"
+ for Y in `ps -o pid,cmd --ppid $$ | grep "java" | grep -v "grep" | sed "s/^ //" | sed "s/ .*//"` ; do
+    echo "Killing $Y"
+    kill $Y
+ done
+ echo "endtime: $endTime" >> $jobLogFile 2>&1
+ echo "exitcode: 100"  >> $jobLogFile 2>&1
+ exit 100
+}
+
+trap 'on_usr2' USR2
+
+
+declare jobLogFile="../job.${JOB_ID}.${SGE_TASK_ID}.log"
+touch $jobLogFile > /dev/null 2>&1
+
+if [ $? != 0 ] ; then
+  jobLogFile="/dev/null"
+fi
+
+declare startTime=`date +%s 2>&1`
+
+echo "sgejobid: $JOB_ID" >> $jobLogFile 2>&1
+echo "sgejobname: $JOB_NAME" >> $jobLogFile 2>&1
+echo "sgetaskid: $SGE_TASK_ID" >> $jobLogFile 2>&1
+echo "starttime: $startTime" >> $jobLogFile 2>&1
+echo "Arguments: @@TASK_ARGS@@" >> $jobLogFile 2>&1
+
+export PATH="${PATH}:/usr/java/latest/bin:/usr/java/default/bin"
+ 
+@@KEPLER_SH@@ @@TASK_ARGS@@ 
+
+declare jobExitCode=$?
+declare endTime=`date +%s 2>&1`
+
+echo "endtime: $endTime" >> $jobLogFile 2>&1
+echo "exitcode: $jobExitCode"  >> $jobLogFile 2>&1
+
+exit $jobExitCode
+
