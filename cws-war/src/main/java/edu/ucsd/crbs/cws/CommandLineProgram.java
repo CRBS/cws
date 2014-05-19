@@ -48,7 +48,13 @@ public class CommandLineProgram {
     public static final String HELP_ARG = "h";
 
     public static final String URL_ARG = "url";
+    
+    public static final String WF_EXEC_DIR = "execdir";
 
+    public static final String WF_DIR = "wfdir";
+
+    public static final String KEPLER_SCRIPT = "kepler";
+    
     public static final String PARENT_WFID_ARG = "parentwf";
 
     public static final String EXAMPLE_JSON_ARG = "examplejson";
@@ -69,6 +75,9 @@ public class CommandLineProgram {
                     accepts(URL_ARG, "URL to use with --" + UPLOAD_WF_ARG + " flag").withRequiredArg().ofType(String.class).describedAs("URL");
                     accepts(PARENT_WFID_ARG, "Parent Workflow ID").withRequiredArg().ofType(Long.class).describedAs("Workflow ID");
                     accepts(EXAMPLE_JSON_ARG, "Outputs JSON of Task & Workflow objects");
+                    accepts(WF_EXEC_DIR,"Workflow Execution Directory").withRequiredArg().ofType(File.class).describedAs("Directory");
+                    accepts(WF_DIR,"Workflows Directory").withRequiredArg().ofType(File.class).describedAs("Directory");
+                    accepts(KEPLER_SCRIPT,"Kepler").withRequiredArg().ofType(File.class).describedAs("Script");
                     accepts(HELP_ARG).forHelp();
                 }
             };
@@ -97,14 +106,32 @@ public class CommandLineProgram {
             }
 
             if (optionSet.has(SYNC_WITH_CLUSTER_ARG)) {
-
+                if (!optionSet.has(WF_EXEC_DIR)){
+                    System.err.println("-"+WF_EXEC_DIR+" is required with -"+SYNC_WITH_CLUSTER_ARG+" flag");
+                    System.exit(2);
+                }
+                if (!optionSet.has(WF_DIR)){
+                    System.err.println("-"+WF_DIR+" is required with -"+SYNC_WITH_CLUSTER_ARG+" flag");
+                    System.exit(3);
+                }
+                if (!optionSet.has(KEPLER_SCRIPT)){
+                    System.err.println("-"+KEPLER_SCRIPT+" is required with -"+SYNC_WITH_CLUSTER_ARG+" flag");
+                    System.exit(4);
+                }
+                
+                File wfExecDir = (File)optionSet.valueOf(WF_EXEC_DIR);
+                File wfDir = (File)optionSet.valueOf(WF_DIR);
+                File keplerScript = (File)optionSet.valueOf(KEPLER_SCRIPT);
+                
                 ObjectifyService.ofy();
                 String url = (String) optionSet.valueOf(SYNC_WITH_CLUSTER_ARG);
                 TaskRestDAOImpl taskDAO = new TaskRestDAOImpl();
                 taskDAO.setRestURL(url);
                 System.out.println("Running sync with cluster");
 
-                TaskSubmitter submitter = new TaskSubmitter();
+                TaskSubmitter submitter = new TaskSubmitter(wfExecDir.getAbsolutePath(),
+                        wfDir.getAbsolutePath(),
+                        keplerScript.getAbsolutePath());
 
                 List<Task> tasks = taskDAO.getTasks(null, null, true, false, false);
                 if (tasks != null) {
