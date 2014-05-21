@@ -112,13 +112,13 @@ public class TaskRestDAOImpl implements TaskDAO {
             queryParams.add(Constants.ESTDISK_QUERY_PARAM, estDisk);
         }
         if (submitDate != null){
-            queryParams.add(Constants.SUBMITDATE_QUERY_PARAM, submitDate);
+            queryParams.add(Constants.SUBMITDATE_QUERY_PARAM, submitDate.toString());
         }
         if (startDate != null){
-            queryParams.add(Constants.STARTDATE_QUERY_PARAM, startDate);
+            queryParams.add(Constants.STARTDATE_QUERY_PARAM, startDate.toString());
         }
         if (finishDate != null){
-            queryParams.add(Constants.FINISHDATE_QUERY_PARAM, finishDate);
+            queryParams.add(Constants.FINISHDATE_QUERY_PARAM, finishDate.toString());
         }
         if (submittedToScheduler != null){
             queryParams.add(Constants.SUBMITTED_TO_SCHED_QUERY_PARAM, submittedToScheduler.toString());
