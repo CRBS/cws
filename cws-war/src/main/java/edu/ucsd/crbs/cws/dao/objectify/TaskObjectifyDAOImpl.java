@@ -7,24 +7,26 @@ import edu.ucsd.crbs.cws.dao.TaskDAO;
 import static edu.ucsd.crbs.cws.dao.objectify.OfyService.ofy;
 import edu.ucsd.crbs.cws.workflow.Task;
 import edu.ucsd.crbs.cws.workflow.Workflow;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
 /**
- * Implements TaskDAO interface which provides means to load and
- * save Task objects to Google NoSQL data store via Objectify.
- * 
+ * Implements TaskDAO interface which provides means to load and save Task
+ * objects to Google NoSQL data store via Objectify.
+ *
  * @author Christopher Churas <churas@ncmir.ucsd.edu>
  */
 public class TaskObjectifyDAOImpl implements TaskDAO {
+
+    private static final String COMMA = ",";
 
     @Override
     public Task getTaskById(final String taskId) throws Exception {
         long taskIdAsLong;
         try {
             taskIdAsLong = Long.parseLong(taskId);
-        }
-        catch(NumberFormatException nfe){
+        } catch (NumberFormatException nfe) {
             throw new Exception(nfe);
         }
         return ofy().load().type(Task.class).id(taskIdAsLong).now();
@@ -33,29 +35,29 @@ public class TaskObjectifyDAOImpl implements TaskDAO {
     @Override
     public List<Task> getTasks(String owner, String status, Boolean notSubmittedToScheduler, boolean noParams, boolean noWorkflowParams) throws Exception {
         Query<Task> q = ofy().load().type(Task.class);
-        
-        if (status != null){
-            q = q.filter("_status",status);
+
+        if (status != null) {
+            q = q.filter("_status in ", generateListFromCommaSeparatedString(status));
         }
-        if (owner != null){
-            q = q.filter("_owner",owner);
+        if (owner != null) {
+            q = q.filter("_owner", owner);
         }
-        if (notSubmittedToScheduler == true){
-            q = q.filter("_hasJobBeenSubmittedToScheduler",false);
+        if (notSubmittedToScheduler == true) {
+            q = q.filter("_hasJobBeenSubmittedToScheduler", false);
         }
-        
-        if (noParams == false && noWorkflowParams == false){
+
+        if (noParams == false && noWorkflowParams == false) {
             return q.list();
         }
-        
+
         List<Task> tasks = q.list();
-        for (Task t : tasks){
-            if (noParams == true){
+        for (Task t : tasks) {
+            if (noParams == true) {
                 t.setParameters(null);
             }
-            if (noWorkflowParams == true){
+            if (noWorkflowParams == true) {
                 Workflow w = t.getWorkflow();
-                if (w != null){
+                if (w != null) {
                     w.setParameters(null);
                     w.setParentWorkflow(null);
                 }
@@ -66,16 +68,17 @@ public class TaskObjectifyDAOImpl implements TaskDAO {
 
     /**
      * Creates a new Task in the data store
+     *
      * @param task Task to insert
      * @return Task object with id updated
-     * @throws Exception 
+     * @throws Exception
      */
     @Override
     public Task insert(Task task) throws Exception {
-        if (task == null){
+        if (task == null) {
             throw new NullPointerException("Task is null");
         }
-           if (task.getCreateDate() == null) {
+        if (task.getCreateDate() == null) {
             task.setCreateDate(new Date());
         }
 
@@ -83,7 +86,7 @@ public class TaskObjectifyDAOImpl implements TaskDAO {
             throw new Exception("Task Workflow cannot be null");
         }
 
-        if (task.getWorkflow().getId() == null || task.getWorkflow().getId().longValue() <= 0) {
+        if (task.getWorkflow().getId() == null || task.getWorkflow().getId() <= 0) {
             throw new Exception("Task Workflow id is either null or 0 or less which is not valid");
         }
 
@@ -93,22 +96,21 @@ public class TaskObjectifyDAOImpl implements TaskDAO {
         if (wf == null) {
             throw new Exception("Unable to load Workflow for Task");
         }
-        
-        /**
-         * @TODO Need to verify the Task Parameters match the Workflow parameters
-         * and that valid values are set for each of those parameters
-         */
 
+        /**
+         * @TODO Need to verify the Task Parameters match the Workflow
+         * parameters and that valid values are set for each of those parameters
+         */
         Key<Task> tKey = ofy().save().entity(task).now();
-        
+
         return task;
     }
 
     @Override
-    public Task update(final long taskId, final String status, final Long estCpu, 
-            final Long estRunTime, final Long estDisk, final Long submitDate, 
-            final Long startDate, final Long finishDate, 
-            final Boolean submittedToScheduler,final String downloadURL,
+    public Task update(final long taskId, final String status, final Long estCpu,
+            final Long estRunTime, final Long estDisk, final Long submitDate,
+            final Long startDate, final Long finishDate,
+            final Boolean submittedToScheduler, final String downloadURL,
             final String jobId) throws Exception {
 
         Task resTask;
@@ -162,8 +164,8 @@ public class TaskObjectifyDAOImpl implements TaskDAO {
                         taskNeedsToBeSaved = true;
                     }
                 }
-                if (jobId != null){
-                    if (task.getJobId() == null || !task.getJobId().equals(jobId)){
+                if (jobId != null) {
+                    if (task.getJobId() == null || !task.getJobId().equals(jobId)) {
                         task.setJobId(jobId);
                         taskNeedsToBeSaved = true;
                     }
@@ -175,10 +177,13 @@ public class TaskObjectifyDAOImpl implements TaskDAO {
                 return task;
             }
         });
-        if (resTask == null){
+        if (resTask == null) {
             throw new Exception("There was a problem updating the Task");
         }
         return resTask;
     }
 
+    private List<String> generateListFromCommaSeparatedString(final String val) {
+        return Arrays.asList(val.split(COMMA));
+    }
 }
