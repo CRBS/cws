@@ -12,6 +12,14 @@ import java.io.InputStreamReader;
  */
 public class TaskCmdScriptSubmitterImpl implements TaskCmdScriptSubmitter {
 
+    private String _panfishCast;
+    private String _queue;
+    
+    public TaskCmdScriptSubmitterImpl(final String panfishCast,final String queue){
+        _panfishCast = panfishCast;
+        _queue = queue;
+    }
+    
     /**
      * Submits {@link Task} cmdScript which runs Task represented by t to Panfish
      * for processing. 
@@ -26,8 +34,8 @@ public class TaskCmdScriptSubmitterImpl implements TaskCmdScriptSubmitter {
 
         String outputDir = new File(cmdScript).getParentFile().getAbsolutePath();
 
-        ProcessBuilder pb = new ProcessBuilder("/usr/local/bin/panfishcast",
-                "-q", "coleslaw_shadow.q",
+        ProcessBuilder pb = new ProcessBuilder(_panfishCast,
+                "-q", _queue,
                 "-N", getJobName(t),
                 "-o", outputDir + File.separator + "stdout",
                 "-e", outputDir + File.separator + "stderr",
@@ -49,8 +57,8 @@ public class TaskCmdScriptSubmitterImpl implements TaskCmdScriptSubmitter {
             line = reader.readLine();
         }
         reader.close();
-
-        if (p.exitValue() != 0){
+        
+        if (p.waitFor() != 0){
             throw new Exception("Non zero exit code received from Panfish: "+sb.toString());
         }
         
