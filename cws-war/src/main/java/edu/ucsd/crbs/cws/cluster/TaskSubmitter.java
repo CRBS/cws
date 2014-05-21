@@ -19,10 +19,12 @@ public class TaskSubmitter {
      * @param workflowsDir Directory where workflows are stored
      * @param keplerScript  Full path to Kepler program
      */
-    public TaskSubmitter(final String workflowExecDir,final String workflowsDir,final String keplerScript){
+    public TaskSubmitter(final String workflowExecDir,final String workflowsDir,
+            final String keplerScript,final String panfishCast,
+            final String queue){
         _directoryCreator = new TaskDirectoryCreatorImpl(workflowExecDir);
         _cmdScriptCreator = new TaskCmdScriptCreatorImpl(workflowsDir,keplerScript);
-        _cmdScriptSubmitter = new TaskCmdScriptSubmitterImpl();
+        _cmdScriptSubmitter = new TaskCmdScriptSubmitterImpl(panfishCast,queue);
     }
     
     /**
