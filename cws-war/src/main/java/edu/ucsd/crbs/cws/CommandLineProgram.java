@@ -59,6 +59,10 @@ public class CommandLineProgram {
 
     public static final String EXAMPLE_JSON_ARG = "examplejson";
 
+    public static final String QUEUE = "queue";
+    
+    public static final String CAST = "panfishcast";
+    
     public static final String PROGRAM_HELP = "\nCRBS Workflow Service Command Line Tools "
             + "\n\nThis program provides options to run Workflow Tasks on the local cluster as well"
             + " as add new Workflows to the CRBS Workflow Service";
@@ -78,6 +82,8 @@ public class CommandLineProgram {
                     accepts(WF_EXEC_DIR,"Workflow Execution Directory").withRequiredArg().ofType(File.class).describedAs("Directory");
                     accepts(WF_DIR,"Workflows Directory").withRequiredArg().ofType(File.class).describedAs("Directory");
                     accepts(KEPLER_SCRIPT,"Kepler").withRequiredArg().ofType(File.class).describedAs("Script");
+                    accepts(QUEUE,"SGE Queue").withRequiredArg().ofType(String.class).describedAs("Queue");
+                    accepts(CAST,"Panfishcast binary").withRequiredArg().ofType(File.class).describedAs("panfishcast");
                     accepts(HELP_ARG).forHelp();
                 }
             };
@@ -119,6 +125,21 @@ public class CommandLineProgram {
                     System.exit(4);
                 }
                 
+                if (!optionSet.has(CAST)){
+                    System.err.println("-"+CAST+" is required with -"+SYNC_WITH_CLUSTER_ARG+" flag");
+                    System.exit(5);
+                }
+                
+                if (!optionSet.has(QUEUE)){
+                    System.err.println("-"+QUEUE+" is required with -"+SYNC_WITH_CLUSTER_ARG+" flag");
+                    System.exit(6);
+                }
+
+                File castFile = (File)optionSet.valueOf(CAST);
+                String castPath = castFile.getAbsolutePath();
+                
+                String queue = (String)optionSet.valueOf(QUEUE);
+                
                 File wfExecDir = (File)optionSet.valueOf(WF_EXEC_DIR);
                 File wfDir = (File)optionSet.valueOf(WF_DIR);
                 File keplerScript = (File)optionSet.valueOf(KEPLER_SCRIPT);
@@ -131,7 +152,7 @@ public class CommandLineProgram {
 
                 TaskSubmitter submitter = new TaskSubmitter(wfExecDir.getAbsolutePath(),
                         wfDir.getAbsolutePath(),
-                        keplerScript.getAbsolutePath());
+                        keplerScript.getAbsolutePath(),castPath,queue);
 
                 List<Task> tasks = taskDAO.getTasks(null, null, true, false, false);
                 if (tasks != null) {
