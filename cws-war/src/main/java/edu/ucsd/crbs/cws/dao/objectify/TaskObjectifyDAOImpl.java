@@ -64,6 +64,12 @@ public class TaskObjectifyDAOImpl implements TaskDAO {
         return tasks;
     }
 
+    /**
+     * Creates a new Task in the data store
+     * @param task Task to insert
+     * @return Task object with id updated
+     * @throws Exception 
+     */
     @Override
     public Task insert(Task task) throws Exception {
         if (task == null){
@@ -87,6 +93,11 @@ public class TaskObjectifyDAOImpl implements TaskDAO {
         if (wf == null) {
             throw new Exception("Unable to load Workflow for Task");
         }
+        
+        /**
+         * @TODO Need to verify the Task Parameters match the Workflow parameters
+         * and that valid values are set for each of those parameters
+         */
 
         Key<Task> tKey = ofy().save().entity(task).now();
         
