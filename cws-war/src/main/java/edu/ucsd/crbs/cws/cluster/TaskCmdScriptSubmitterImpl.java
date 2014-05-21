@@ -4,6 +4,7 @@ import edu.ucsd.crbs.cws.workflow.Task;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStreamReader;
+import java.util.Date;
 
 /**
  * Submits Workflow Task Command Script to Panfish for processing
@@ -51,8 +52,14 @@ public class TaskCmdScriptSubmitterImpl implements TaskCmdScriptSubmitter {
         StringBuilder sb = new StringBuilder();
 
         String line = reader.readLine();
-
+        boolean firstLine = true;
+        String jobId = null;
         while (line != null) {
+            if (firstLine == true){
+                // @TODO replace this with a grouping call so its just a single replaceAll
+                jobId = line.replaceAll("^Your job ","").replaceAll(" .*","");
+                firstLine = false;
+            }
             sb.append(line).append("\n");
             line = reader.readLine();
         }
@@ -61,6 +68,11 @@ public class TaskCmdScriptSubmitterImpl implements TaskCmdScriptSubmitter {
         if (p.waitFor() != 0){
             throw new Exception("Non zero exit code received from Panfish: "+sb.toString());
         }
+        
+        //set the submit date
+        t.setSubmitDate(new Date());
+        
+        t.setJobId(jobId);
         
         return sb.toString();
     }
