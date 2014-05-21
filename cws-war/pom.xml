@@ -185,7 +185,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>edu.ucsd.crbs.cws.CommandLineProgram</mainClass>
+                            <mainClass>edu.ucsd.crbs.cws.App</mainClass>
                         </manifest>
                     </archive>
                     <descriptorRefs>
