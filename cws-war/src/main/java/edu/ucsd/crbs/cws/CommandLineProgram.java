@@ -138,7 +138,10 @@ public class CommandLineProgram {
                     System.out.println("there are " + tasks.size() + " tasks");
                     for (Task t : tasks) {
                         System.out.println("Task: " + t.getId() + " named: " + t.getName() + " status: " + t.getStatus());
-                        submitter.submitTask(t);
+                        String res = submitter.submitTask(t);
+                        if (res != null){
+                            System.out.println(res);
+                        }
                         taskDAO.update(t.getId(), "hello", null, null, null, null, null, null, true, url, t.getJobId());
                     }
                 } else {
