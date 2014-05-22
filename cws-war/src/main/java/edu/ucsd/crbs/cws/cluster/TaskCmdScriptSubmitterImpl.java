@@ -13,8 +13,8 @@ import java.util.Date;
  */
 public class TaskCmdScriptSubmitterImpl implements TaskCmdScriptSubmitter {
 
-    private String _panfishCast;
-    private String _queue;
+    private final String _panfishCast;
+    private final String _queue;
     
     public TaskCmdScriptSubmitterImpl(final String panfishCast,final String queue){
         _panfishCast = panfishCast;
