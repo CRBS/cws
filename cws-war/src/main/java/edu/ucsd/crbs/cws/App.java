@@ -8,6 +8,7 @@ import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.core.impl.provider.entity.StringProvider;
+import edu.ucsd.crbs.cws.cluster.TaskStatusUpdater;
 import edu.ucsd.crbs.cws.cluster.TaskSubmitter;
 import edu.ucsd.crbs.cws.dao.rest.TaskRestDAOImpl;
 import edu.ucsd.crbs.cws.workflow.Parameter;
@@ -63,6 +64,10 @@ public class App {
     
     public static final String CAST = "panfishcast";
     
+    public static final String STAT = "panfishstat";
+    
+    //public static final String LOAD_TEST = "loadtest";
+    
     public static final String PROGRAM_HELP = "\nCRBS Workflow Service Command Line Tools "
             + "\n\nThis program provides options to run Workflow Tasks on the local cluster as well"
             + " as add new Workflows to the CRBS Workflow Service";
@@ -81,6 +86,7 @@ public class App {
             OptionParser parser = new OptionParser() {
                 {
                     accepts(UPLOAD_WF_ARG, "Add/Update Workflow").withRequiredArg().ofType(File.class).describedAs(".xml or .kar");
+                    //accepts(LOAD_TEST,"creates lots of workflows and tasks");
                     accepts(SYNC_WITH_CLUSTER_ARG, "Submits & Synchronizes Workflow Tasks on local cluster with CRBS Workflow Webservice").withRequiredArg().ofType(String.class).describedAs("URL");
                     accepts(URL_ARG, "URL to use with --" + UPLOAD_WF_ARG + " flag").withRequiredArg().ofType(String.class).describedAs("URL");
                     accepts(PARENT_WFID_ARG, "Parent Workflow ID").withRequiredArg().ofType(Long.class).describedAs("Workflow ID");
@@ -90,6 +96,7 @@ public class App {
                     accepts(KEPLER_SCRIPT,"Kepler").withRequiredArg().ofType(File.class).describedAs("Script");
                     accepts(QUEUE,"SGE Queue").withRequiredArg().ofType(String.class).describedAs("Queue");
                     accepts(CAST,"Panfishcast binary").withRequiredArg().ofType(File.class).describedAs("panfishcast");
+                    accepts(STAT,"Panfishstat binary").withRequiredArg().ofType(File.class).describedAs("panfishstat");
                     accepts(HELP_ARG).forHelp();
                 }
             };
@@ -118,6 +125,7 @@ public class App {
             }
 
             if (optionSet.has(SYNC_WITH_CLUSTER_ARG)) {
+                // @TODO NEED TO MAKE JOPT DO THIS REQUIRED FLAG CHECKING STUFF
                 if (!optionSet.has(WF_EXEC_DIR)){
                     System.err.println("-"+WF_EXEC_DIR+" is required with -"+SYNC_WITH_CLUSTER_ARG+" flag");
                     System.exit(2);
@@ -136,13 +144,21 @@ public class App {
                     System.exit(5);
                 }
                 
+                if (!optionSet.has(STAT)){
+                    System.err.println("-"+STAT+" is required with -"+SYNC_WITH_CLUSTER_ARG+" flag");
+                    System.exit(6);
+                }
+                
                 if (!optionSet.has(QUEUE)){
                     System.err.println("-"+QUEUE+" is required with -"+SYNC_WITH_CLUSTER_ARG+" flag");
-                    System.exit(6);
+                    System.exit(7);
                 }
 
                 File castFile = (File)optionSet.valueOf(CAST);
                 String castPath = castFile.getAbsolutePath();
+                
+                File statFile = (File)optionSet.valueOf(STAT);
+                String statPath = statFile.getAbsolutePath();
                 
                 String queue = (String)optionSet.valueOf(QUEUE);
                 
@@ -156,39 +172,16 @@ public class App {
                 taskDAO.setRestURL(url);
                 System.out.println("Running sync with cluster");
 
-                TaskSubmitter submitter = new TaskSubmitter(wfExecDir.getAbsolutePath(),
+                // Submit tasks to scheduler
+                TaskSubmitter submitter = new TaskSubmitter(taskDAO,
+                        wfExecDir.getAbsolutePath(),
                         wfDir.getAbsolutePath(),
                         keplerScript.getAbsolutePath(),castPath,queue);
-
-                System.out.print("Looking for new tasks to submit...");
-                List<Task> tasks = taskDAO.getTasks(null, null, true, false, false);
-                if (tasks != null) {
-                    System.out.println(" found " + tasks.size() + " tasks need to be submitted");
-                    for (Task t : tasks) {
-                        System.out.println("\tSubmitting Task: (" + t.getId() + ") " + t.getName());
-                        String res = submitter.submitTask(t);
-                        if (res != null){
-                            System.out.println(res);
-                        }
-                        taskDAO.update(t.getId(),Task.PENDING_STATUS, null, null, null,
-                                t.getSubmitDate().getTime(), null, null, true,null, 
-                                t.getJobId());
-                    }
-                } else {
-                    System.out.println(" no tasks need to be submitted");
-                }
-
-                System.out.print("Updating status for uncompleted tasks...");
-                tasks = taskDAO.getTasks(null, NOT_COMPLETED_STATUSES, false, false, false);
-                if (tasks != null) {
-                    System.out.println(" found "+tasks.size() + " tasks to possibly update");
-                    for (Task t : tasks){
-                        System.out.println("\tTask: (" + t.getId() + ") " + t.getName()+" old status: "+t.getStatus());
-                    }
-                }
-                else {
-                    System.out.println(" no tasks to update");
-                }
+                submitter.submitTasks();
+                
+                // Update task status
+                TaskStatusUpdater updater = new TaskStatusUpdater(taskDAO,statPath);
+                updater.updateTasks();
                 
                 System.exit(0);
             }
