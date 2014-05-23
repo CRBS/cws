@@ -13,87 +13,93 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import edu.ucsd.crbs.cws.dao.objectify.WorkflowObjectifyDAOImpl;
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.WebApplicationException;
-
+import javax.ws.rs.core.Context;
 
 /**
  * REST Service that allows caller to create, modify, and retrieve Workflow
- * objects.  
- * 
+ * objects.
+ *
  * @author Christopher Churas <churas@ncmir.ucsd.edu>
  */
-@Path("/"+Constants.WORKFLOWS_PATH)
+@Path("/" + Constants.WORKFLOWS_PATH)
 public class WorkflowRestService {
 
-    
-    private static final Logger log =
-      Logger.getLogger(WorkflowRestService.class.getName());
+    private static final Logger log
+            = Logger.getLogger(WorkflowRestService.class.getName());
 
     WorkflowDAO _workflowDAO;
-    
+
     /**
      * Constructor that by default creates Objectify DAO objects
      */
-    public WorkflowRestService(){
+    public WorkflowRestService() {
         log.info("In constructor of Workflows() rest service");
-        
+
         _workflowDAO = new WorkflowObjectifyDAOImpl();
     }
-    
+
     /**
-     * HTTP GET request on /workflows URI that returns a list of all Workflow 
-     * objects from WorkflowDAO.  If none are found an empty list is returned.  
-     * If there is an error a 500 response is returned
-     * 
+     * HTTP GET request on /workflows URI that returns a list of all Workflow
+     * objects from WorkflowDAO. If none are found an empty list is returned. If
+     * there is an error a 500 response is returned
+     *
      * @return List of Workflow objects in JSON format
      */
-     @GET
-     @Produces(MediaType.APPLICATION_JSON)
-     public List<Workflow> getWorkflows(){
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<Workflow> getWorkflows(@Context HttpServletRequest request) {
         List<Workflow> workflows = null;
         try {
+            TaskRestService.logRequest(request);
+
             workflows = _workflowDAO.getAllWorkflows(true);
-        }
-        catch(Exception ex){
+        } catch (Exception ex) {
             throw new WebApplicationException(ex);
         }
         return workflows;
-     }
-     
-  /**
-   * Gets a specific Workflow by id
-   * @param wfid
-   * @return 
-   */
-  @GET
-  @Path("/{wfid}")
-  @Produces(MediaType.APPLICATION_JSON)
-  public Workflow getWorkflow(@PathParam("wfid") String wfid) {
-      
-      Workflow wf = null;
-      try {
-        wf = _workflowDAO.getWorkflowById(wfid);
-      }
-      catch(Exception ex){
-          throw new WebApplicationException(ex);
-      }
-      return wf;
-  }
-  
-  /**
-   * Creates a new workflow by consuming JSON version of Workflow object
-   * @param w
-   * @return 
-   */
-  @POST
-  @Consumes(MediaType.APPLICATION_JSON)
-  @Produces(MediaType.APPLICATION_JSON)
-  public Workflow createWorkflow(Workflow w){
-      try {
-          return _workflowDAO.insert(w);
-      }
-      catch (Exception ex){
-          throw new WebApplicationException(ex);
-      }
-  }
+    }
+
+    /**
+     * Gets a specific Workflow by id
+     *
+     * @param wfid
+     * @return
+     */
+    @GET
+    @Path("/{wfid}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Workflow getWorkflow(@PathParam("wfid") String wfid,
+            @Context HttpServletRequest request) {
+
+        Workflow wf = null;
+        try {
+            TaskRestService.logRequest(request);
+
+            wf = _workflowDAO.getWorkflowById(wfid);
+        } catch (Exception ex) {
+            throw new WebApplicationException(ex);
+        }
+        return wf;
+    }
+
+    /**
+     * Creates a new workflow by consuming JSON version of Workflow object
+     *
+     * @param w
+     * @return
+     */
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Workflow createWorkflow(Workflow w,
+            @Context HttpServletRequest request) {
+        try {
+            TaskRestService.logRequest(request);
+            return _workflowDAO.insert(w);
+        } catch (Exception ex) {
+            throw new WebApplicationException(ex);
+        }
+    }
 }
