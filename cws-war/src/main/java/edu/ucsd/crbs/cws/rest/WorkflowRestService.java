@@ -1,5 +1,8 @@
 package edu.ucsd.crbs.cws.rest;
 
+import com.google.appengine.api.blobstore.UploadOptions.Builder;
+import com.google.appengine.api.blobstore.BlobstoreService;
+import com.google.appengine.api.blobstore.BlobstoreServiceFactory;
 import edu.ucsd.crbs.cws.dao.WorkflowDAO;
 import edu.ucsd.crbs.cws.workflow.Workflow;
 import java.util.List;
@@ -13,6 +16,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import edu.ucsd.crbs.cws.dao.objectify.WorkflowObjectifyDAOImpl;
+import edu.ucsd.crbs.cws.servlet.WorkflowFile;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
@@ -97,7 +101,14 @@ public class WorkflowRestService {
             @Context HttpServletRequest request) {
         try {
             TaskRestService.logRequest(request);
-            return _workflowDAO.insert(w);
+            Workflow insertedWorkflow = _workflowDAO.insert(w);
+
+            //build upload URL and add it to workflow
+            BlobstoreService blobstoreService = BlobstoreServiceFactory.getBlobstoreService();
+            insertedWorkflow.setWorkflowFileUploadURL(blobstoreService.createUploadUrl("/workflowfile",
+                    Builder.withGoogleStorageBucketName(WorkflowFile.CLOUD_BUCKET)));
+            return insertedWorkflow;
+            
         } catch (Exception ex) {
             throw new WebApplicationException(ex);
         }
