@@ -44,6 +44,9 @@ public class WorkflowFile extends HttpServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         _log.info("in get");
         
+        String remoteIp = req.getRemoteAddr();
+        
+        
         if (req.getParameter(WFID) != null){
             String fileName = req.getParameter(WFID);
             if (fileName == null || fileName.trim().isEmpty()){
@@ -53,12 +56,17 @@ public class WorkflowFile extends HttpServlet {
             BlobstoreService blobstoreService = BlobstoreServiceFactory.getBlobstoreService();
             BlobKey blobKey = blobstoreService.createGsBlobKey(
             CLOUD_BUCKET + fileName);
+            resp.setContentType("application/x-download");
+            resp.setHeader("Content-Disposition", "attachment; filename="+fileName);
             blobstoreService.serve(blobKey, resp);
             return;
         }
         resp.setContentType("text/plain");
         resp.getWriter().println("Hello, this is a testing servlet. \n\n");
-
+        if (remoteIp != null){
+            resp.getWriter().println("Your ip is: "+remoteIp);
+        }
+        
         Enumeration e = req.getHeaderNames();
         String header = null;
         if (e != null) {
