@@ -34,6 +34,7 @@ public class Workflow {
     private List<WorkflowParameter> _parameters;
     private @Load(Workflow.Everything.class) Ref<Workflow> _parent;
     @Ignore private Workflow _rawParent;
+    @Ignore private String _workflowFileUploadURL;
     
     public Workflow(){
         
@@ -115,5 +116,13 @@ public class Workflow {
     
     public String getDescription(){
         return _description;
+    }
+    
+    public void setWorkflowFileUploadURL(final String url){
+        _workflowFileUploadURL = url;
+    }
+    
+    public String getWorkflowFileUploadURL(){
+        return _workflowFileUploadURL;
     }
 }
