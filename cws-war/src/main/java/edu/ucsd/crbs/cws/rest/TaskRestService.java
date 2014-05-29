@@ -167,7 +167,7 @@ public class TaskRestService {
         if (request != null) {
             String requestorIp = request.getRemoteAddr();
             if (requestorIp != null) {
-                log.log(Level.INFO, "requestor ip: {}", requestorIp);
+                log.log(Level.INFO, "requestor ip: {0}", requestorIp);
             }
 
             Enumeration e = request.getHeaderNames();
