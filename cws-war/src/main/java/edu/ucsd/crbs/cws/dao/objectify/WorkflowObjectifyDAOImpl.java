@@ -1,8 +1,10 @@
 package edu.ucsd.crbs.cws.dao.objectify;
 
 import com.googlecode.objectify.Key;
+import com.googlecode.objectify.Work;
 import edu.ucsd.crbs.cws.dao.WorkflowDAO;
 import static edu.ucsd.crbs.cws.dao.objectify.OfyService.ofy;
+import edu.ucsd.crbs.cws.workflow.Task;
 import edu.ucsd.crbs.cws.workflow.Workflow;
 import java.util.Date;
 import java.util.List;
@@ -104,4 +106,35 @@ public class WorkflowObjectifyDAOImpl implements WorkflowDAO {
         return ofy().load().type(Workflow.class).id(wfId).now();
     }
 
+    
+    @Override
+    public Workflow updateBlobKey(final long workflowId,final String key) throws Exception {
+        Workflow resWorkflow;
+        resWorkflow = ofy().transact(new Work<Workflow>() {
+            @Override
+            public Workflow run() {
+                Workflow w = ofy().load().type(Workflow.class).id(workflowId).now();
+
+                if (w == null) {
+                    return null;
+                }
+                
+                if (w.getBlobKey() == null && key == null){
+                   return w;
+                }
+                
+                if (w.getBlobKey() != null && key != null && 
+                        w.getBlobKey().equals(key)){
+                    return w;
+                }
+                w.setBlobKey(key);
+                Key<Workflow> wKey = ofy().save().entity(w).now();
+                return w;
+            }
+        });
+        if (resWorkflow == null){
+            throw new Exception("There was a problem updating the workflow");
+        }
+        return resWorkflow;
+    }
 }

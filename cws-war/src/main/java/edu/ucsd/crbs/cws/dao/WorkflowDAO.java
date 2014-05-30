@@ -37,4 +37,13 @@ public interface WorkflowDAO {
      */
     public Workflow insert(Workflow w) throws Exception;
     
+    /**
+     * Updates BlobKey for Given Workflow
+     * @param worklfowId
+     * @param key
+     * @return
+     * @throws Exception 
+     */
+    public Workflow updateBlobKey(long workflowId,final String key) throws Exception;
+    
 }
