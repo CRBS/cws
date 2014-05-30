@@ -8,6 +8,9 @@ import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.core.impl.provider.entity.StringProvider;
+import com.sun.jersey.multipart.FormDataMultiPart;
+import com.sun.jersey.multipart.file.FileDataBodyPart;
+import com.sun.jersey.multipart.impl.MultiPartWriter;
 import edu.ucsd.crbs.cws.cluster.TaskStatusUpdater;
 import edu.ucsd.crbs.cws.cluster.TaskSubmitter;
 import edu.ucsd.crbs.cws.dao.rest.TaskRestDAOImpl;
@@ -17,9 +20,11 @@ import edu.ucsd.crbs.cws.workflow.Workflow;
 import edu.ucsd.crbs.cws.workflow.WorkflowFromXmlFactory;
 import edu.ucsd.crbs.cws.workflow.WorkflowParameter;
 import java.io.BufferedInputStream;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Enumeration;
@@ -218,6 +223,7 @@ public class App {
                     } else {
                         ClientConfig cc = new DefaultClientConfig();
                         cc.getClasses().add(StringProvider.class);
+                        cc.getClasses().add(MultiPartWriter.class);
                         Client client = Client.create(cc);
                         client.setFollowRedirects(true);
                         WebResource resource = client.resource(postURL);
@@ -226,11 +232,40 @@ public class App {
                         String response = resource.type(MediaType.APPLICATION_JSON_TYPE)
                                 .entity(workflowAsJson)
                                 .post(String.class);
-                        Object json = om.readValue(response, Object.class);
+                        Workflow workflowRes = om.readValue(response, Workflow.class);
                         ObjectWriter ow = om.writerWithDefaultPrettyPrinter();
-                        System.out.println(ow.writeValueAsString(json));
-                        //System.out.println("response: " + response);
+                        //System.out.println(ow.writeValueAsString(workflowRes));
+                        
+                        if (workflowRes.getWorkflowFileUploadURL() == null){
+                            throw new Exception("No upload url found for workflow!!!"+
+                                    ow.writeValueAsString(workflowRes));
+                        }
+                        
+                       
 
+                        
+                        // TODO FIX THIS
+                        // I gave up trying to get the jersey client to post the
+                        // file so as a backup I'm just calling curl
+                        uploadWorkflowFile(workflowRes,workflowFile);
+                        
+                        /* TODO GET THIS WORKING!!!! Keep getting
+                           No MessageBodyWriter for body part of type 'java.io.File' and media type 'application/octet-stream'
+                        client = Client.create(cc);
+                        client.setFollowRedirects(true);
+                        resource = client.resource(workflowRes.getWorkflowFileUploadURL());
+                        FormDataMultiPart formDataMultiPart = new FormDataMultiPart();
+                        formDataMultiPart.field("filename",workflowRes.getId().toString()+".kar");
+                        
+                        FileDataBodyPart fdp = new FileDataBodyPart("file",workflowFile);
+                        formDataMultiPart.bodyPart(fdp);
+                        
+                        String res = resource.type(MediaType.MULTIPART_FORM_DATA).
+                                accept(MediaType.TEXT_HTML).post(String.class,formDataMultiPart);
+                        
+                        System.out.println(res);
+                        */
+                        
                     }
                 }
             }
@@ -242,6 +277,43 @@ public class App {
         }
 
         System.exit(0);
+    }
+    
+    public static void uploadWorkflowFile(Workflow w,File workflowFile) throws Exception {
+        
+         System.out.println("TODO SWITCH THIS TO USE JERSEY CLIENT!!!\nAttempting to run this command: curl -i -X POST --form '"+
+                                w.getId().toString()+"=@"+workflowFile.getAbsolutePath()+"' "+
+                                w.getWorkflowFileUploadURL());
+             ProcessBuilder pb = new ProcessBuilder("curl",
+                "-i","-X","POST","--form",
+                w.getId().toString()+"=@"+workflowFile.getAbsolutePath(),
+                w.getWorkflowFileUploadURL());
+
+        pb.redirectErrorStream(true);
+
+        Process p = pb.start();
+
+        BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
+
+        StringBuilder sb = new StringBuilder();
+
+        String line = reader.readLine();
+        boolean firstLine = true;
+        String jobId = null;
+        while (line != null) {
+            sb.append(line).append("\n");
+            line = reader.readLine();
+        }
+        reader.close();
+        
+        if (p.waitFor() != 0){
+            throw new Exception("Non zero exit code from curl: "+sb.toString());
+        }
+        System.out.println("\n");
+        System.out.println("--------------- OUTPUT FROM CURL ----------------");
+        System.out.println(sb.toString());
+        System.out.println("--------------- END OF OUTPUT FROM CURL ---------");
+
     }
 
     /**
