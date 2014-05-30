@@ -4,7 +4,6 @@ import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Work;
 import edu.ucsd.crbs.cws.dao.WorkflowDAO;
 import static edu.ucsd.crbs.cws.dao.objectify.OfyService.ofy;
-import edu.ucsd.crbs.cws.workflow.Task;
 import edu.ucsd.crbs.cws.workflow.Workflow;
 import java.util.Date;
 import java.util.List;
