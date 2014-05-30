@@ -1,6 +1,7 @@
 package edu.ucsd.crbs.cws.workflow;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.googlecode.objectify.Ref;
 import java.util.List;
@@ -35,6 +36,7 @@ public class Workflow {
     private @Load(Workflow.Everything.class) Ref<Workflow> _parent;
     @Ignore private Workflow _rawParent;
     @Ignore private String _workflowFileUploadURL;
+    private String _blobKey;
     
     public Workflow(){
         
@@ -125,4 +127,15 @@ public class Workflow {
     public String getWorkflowFileUploadURL(){
         return _workflowFileUploadURL;
     }
+    
+    @JsonIgnore
+    public void setBlobKey(String key){
+        _blobKey = key;
+    }
+    
+    @JsonIgnore
+    public String getBlobKey(){
+        return _blobKey;
+    }
 }
+
