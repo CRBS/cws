@@ -6,6 +6,9 @@ package edu.ucsd.crbs.cws.rest;
  */
 public class Constants {
     
+    
+    public static final String WORKFLOW_SUFFIX = ".kar";
+    
     /**
      * REST URL path for Tasks
      */
