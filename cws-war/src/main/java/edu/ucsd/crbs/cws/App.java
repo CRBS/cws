@@ -8,8 +8,6 @@ import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.core.impl.provider.entity.StringProvider;
-import com.sun.jersey.multipart.FormDataMultiPart;
-import com.sun.jersey.multipart.file.FileDataBodyPart;
 import com.sun.jersey.multipart.impl.MultiPartWriter;
 import edu.ucsd.crbs.cws.cluster.TaskStatusUpdater;
 import edu.ucsd.crbs.cws.cluster.TaskSubmitter;
@@ -181,7 +179,7 @@ public class App {
                 TaskSubmitter submitter = new TaskSubmitter(taskDAO,
                         wfExecDir.getAbsolutePath(),
                         wfDir.getAbsolutePath(),
-                        keplerScript.getAbsolutePath(),castPath,queue);
+                        keplerScript.getAbsolutePath(),castPath,queue,url);
                 submitter.submitTasks();
                 
                 // Update task status
