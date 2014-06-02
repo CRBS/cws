@@ -31,11 +31,11 @@ public class TaskSubmitter {
      */
     public TaskSubmitter(TaskDAO taskDAO, final String workflowExecDir, final String workflowsDir,
             final String keplerScript, final String panfishCast,
-            final String queue) {
+            final String queue,final String url) {
         _directoryCreator = new TaskDirectoryCreatorImpl(workflowExecDir);
         _cmdScriptCreator = new TaskCmdScriptCreatorImpl(workflowsDir, keplerScript);
         _cmdScriptSubmitter = new TaskCmdScriptSubmitterImpl(panfishCast, queue);
-        _workflowSync = new SyncWorkflowFileToFileSystemImpl();
+        _workflowSync = new SyncWorkflowFileToFileSystemImpl(workflowsDir,url);
         _taskDAO = taskDAO;
     }
 
@@ -71,7 +71,7 @@ public class TaskSubmitter {
     }
 
     private void submitTask(Task t) throws Exception {
-        //this._workflowSync.sync(t.getWorkflow());
+        _workflowSync.sync(t.getWorkflow());
         String taskDir = _directoryCreator.create(t);
         String cmdScript = _cmdScriptCreator.create(taskDir, t);
         _cmdScriptSubmitter.submit(cmdScript, t);
