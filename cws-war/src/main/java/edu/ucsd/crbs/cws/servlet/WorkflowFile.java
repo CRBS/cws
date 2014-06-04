@@ -3,6 +3,10 @@ package edu.ucsd.crbs.cws.servlet;
 import com.google.appengine.api.blobstore.BlobKey;
 import com.google.appengine.api.blobstore.BlobstoreService;
 import com.google.appengine.api.blobstore.BlobstoreServiceFactory;
+import edu.ucsd.crbs.cws.auth.Authenticator;
+import edu.ucsd.crbs.cws.auth.AuthenticatorImpl;
+import edu.ucsd.crbs.cws.auth.Permission;
+import edu.ucsd.crbs.cws.auth.User;
 import edu.ucsd.crbs.cws.dao.WorkflowDAO;
 import edu.ucsd.crbs.cws.dao.objectify.WorkflowObjectifyDAOImpl;
 import edu.ucsd.crbs.cws.workflow.Workflow;
@@ -30,6 +34,8 @@ public class WorkflowFile extends HttpServlet {
     public static final String WFID = "wfid";
 
     WorkflowDAO _workflowDAO;
+    
+    static Authenticator _authenticator = new AuthenticatorImpl();
     /**
      * This is the service from which all requests are initiated. The retry and
      * exponential backoff settings are configured here.
@@ -43,9 +49,14 @@ public class WorkflowFile extends HttpServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         _log.info("in get");
 
-
+        try {
         if (req.getParameter(WFID) != null) {
-           
+
+            User user = _authenticator.authenticate(req);
+            if (!user.isAuthorizedTo(Permission.DOWNLOAD_ALL_WORKFLOWS)){
+                resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Not authorized");
+            }
+            
             String wfid = req.getParameter(WFID);
             if (wfid == null || wfid.trim().isEmpty()) {
                 _log.warning("wfid is null or empty string");
@@ -55,13 +66,9 @@ public class WorkflowFile extends HttpServlet {
              _log.log(Level.INFO, "Got a wfid of: {0}", wfid);
 
             Workflow w = null;
-            try {
+            
                 w = this._workflowDAO.getWorkflowById(wfid);
-            }
-            catch(Exception ex){
-                _log.log(Level.SEVERE, "unable to load workflow",ex);
-                resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR," Error retreiving workflow file: "+ex.getMessage());
-            }
+                
             if (w == null){
                 _log.log(Level.SEVERE,"Workflow returned by data store is null");
                 resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR," No workflow matching id found: "+w.getId());
@@ -81,6 +88,11 @@ public class WorkflowFile extends HttpServlet {
             blobstoreService.serve(blobKey, resp);
             return;
         }
+        }
+            catch(Exception ex){
+                _log.log(Level.SEVERE, "unable to load workflow",ex);
+                resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR," Error retreiving workflow file: "+ex.getMessage());
+            }
         
         resp.setContentType("text/plain");
         resp.getWriter().println("Hello, this is a testing servlet. \n\n");
@@ -97,7 +109,7 @@ public class WorkflowFile extends HttpServlet {
 
         BlobstoreService blobstoreService = BlobstoreServiceFactory.getBlobstoreService();
         Map<String, List<BlobKey>> blobMap = blobstoreService.getUploads(req);
-
+        
         if (blobMap != null) {
             for (String key : blobMap.keySet()) {
                 List<BlobKey> bkList = blobMap.get(key);
