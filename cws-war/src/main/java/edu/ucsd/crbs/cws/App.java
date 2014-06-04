@@ -55,29 +55,28 @@ public class App {
     public static final String HELP_ARG = "h";
 
     public static final String URL_ARG = "url";
-    
+
     public static final String WF_EXEC_DIR = "execdir";
 
     public static final String WF_DIR = "wfdir";
 
     public static final String KEPLER_SCRIPT = "kepler";
-    
+
     public static final String PARENT_WFID_ARG = "parentwf";
 
     public static final String EXAMPLE_JSON_ARG = "examplejson";
 
     public static final String QUEUE = "queue";
-    
+
     public static final String CAST = "panfishcast";
-    
+
     public static final String STAT = "panfishstat";
-    
+
     public static final String LOGIN = "login";
-    
+
     public static final String TOKEN = "token";
-    
+
     //public static final String LOAD_TEST = "loadtest";
-    
     public static final String PROGRAM_HELP = "\nCRBS Workflow Service Command Line Tools "
             + "\n\nThis program provides options to run Workflow Tasks on the local cluster as well"
             + " as add new Workflows to the CRBS Workflow Service";
@@ -85,9 +84,9 @@ public class App {
     /**
      * CSV string of statuses for jobs that have not completed or failed
      */
-    public static final String NOT_COMPLETED_STATUSES = Task.IN_QUEUE_STATUS+","+
-            Task.PAUSED_STATUS+","+Task.PENDING_STATUS+","+Task.RUNNING_STATUS;
-    
+    public static final String NOT_COMPLETED_STATUSES = Task.IN_QUEUE_STATUS + ","
+            + Task.PAUSED_STATUS + "," + Task.PENDING_STATUS + "," + Task.RUNNING_STATUS;
+
     public static void main(String[] args) {
         Task.REFS_ENABLED = false;
         Workflow.REFS_ENABLED = false;
@@ -101,14 +100,14 @@ public class App {
                     accepts(URL_ARG, "URL to use with --" + UPLOAD_WF_ARG + " flag").withRequiredArg().ofType(String.class).describedAs("URL");
                     accepts(PARENT_WFID_ARG, "Parent Workflow ID").withRequiredArg().ofType(Long.class).describedAs("Workflow ID");
                     accepts(EXAMPLE_JSON_ARG, "Outputs JSON of Task & Workflow objects");
-                    accepts(WF_EXEC_DIR,"Workflow Execution Directory").withRequiredArg().ofType(File.class).describedAs("Directory");
-                    accepts(WF_DIR,"Workflows Directory").withRequiredArg().ofType(File.class).describedAs("Directory");
-                    accepts(KEPLER_SCRIPT,"Kepler").withRequiredArg().ofType(File.class).describedAs("Script");
-                    accepts(QUEUE,"SGE Queue").withRequiredArg().ofType(String.class).describedAs("Queue");
-                    accepts(CAST,"Panfishcast binary").withRequiredArg().ofType(File.class).describedAs("panfishcast");
-                    accepts(STAT,"Panfishstat binary").withRequiredArg().ofType(File.class).describedAs("panfishstat");
-                    accepts(LOGIN,"User Login").withRequiredArg().ofType(String.class).describedAs("username");
-                    accepts(TOKEN,"User Token").withRequiredArg().ofType(String.class).describedAs("token");
+                    accepts(WF_EXEC_DIR, "Workflow Execution Directory").withRequiredArg().ofType(File.class).describedAs("Directory");
+                    accepts(WF_DIR, "Workflows Directory").withRequiredArg().ofType(File.class).describedAs("Directory");
+                    accepts(KEPLER_SCRIPT, "Kepler").withRequiredArg().ofType(File.class).describedAs("Script");
+                    accepts(QUEUE, "SGE Queue").withRequiredArg().ofType(String.class).describedAs("Queue");
+                    accepts(CAST, "Panfishcast binary").withRequiredArg().ofType(File.class).describedAs("panfishcast");
+                    accepts(STAT, "Panfishstat binary").withRequiredArg().ofType(File.class).describedAs("panfishstat");
+                    accepts(LOGIN, "User Login").withRequiredArg().ofType(String.class).describedAs("username");
+                    accepts(TOKEN, "User Token").withRequiredArg().ofType(String.class).describedAs("token");
                     accepts(HELP_ARG).forHelp();
                 }
             };
@@ -138,82 +137,104 @@ public class App {
 
             if (optionSet.has(SYNC_WITH_CLUSTER_ARG)) {
                 // @TODO NEED TO MAKE JOPT DO THIS REQUIRED FLAG CHECKING STUFF
-                if (!optionSet.has(WF_EXEC_DIR)){
-                    System.err.println("-"+WF_EXEC_DIR+" is required with -"+SYNC_WITH_CLUSTER_ARG+" flag");
+                if (!optionSet.has(WF_EXEC_DIR)) {
+                    System.err.println("-" + WF_EXEC_DIR + " is required with -" + SYNC_WITH_CLUSTER_ARG + " flag");
                     System.exit(2);
                 }
-                if (!optionSet.has(WF_DIR)){
-                    System.err.println("-"+WF_DIR+" is required with -"+SYNC_WITH_CLUSTER_ARG+" flag");
+                if (!optionSet.has(WF_DIR)) {
+                    System.err.println("-" + WF_DIR + " is required with -" + SYNC_WITH_CLUSTER_ARG + " flag");
                     System.exit(3);
                 }
-                if (!optionSet.has(KEPLER_SCRIPT)){
-                    System.err.println("-"+KEPLER_SCRIPT+" is required with -"+SYNC_WITH_CLUSTER_ARG+" flag");
+                if (!optionSet.has(KEPLER_SCRIPT)) {
+                    System.err.println("-" + KEPLER_SCRIPT + " is required with -" + SYNC_WITH_CLUSTER_ARG + " flag");
                     System.exit(4);
                 }
-                
-                if (!optionSet.has(CAST)){
-                    System.err.println("-"+CAST+" is required with -"+SYNC_WITH_CLUSTER_ARG+" flag");
+
+                if (!optionSet.has(CAST)) {
+                    System.err.println("-" + CAST + " is required with -" + SYNC_WITH_CLUSTER_ARG + " flag");
                     System.exit(5);
                 }
-                
-                if (!optionSet.has(STAT)){
-                    System.err.println("-"+STAT+" is required with -"+SYNC_WITH_CLUSTER_ARG+" flag");
+
+                if (!optionSet.has(STAT)) {
+                    System.err.println("-" + STAT + " is required with -" + SYNC_WITH_CLUSTER_ARG + " flag");
                     System.exit(6);
                 }
-                
-                if (!optionSet.has(QUEUE)){
-                    System.err.println("-"+QUEUE+" is required with -"+SYNC_WITH_CLUSTER_ARG+" flag");
+
+                if (!optionSet.has(QUEUE)) {
+                    System.err.println("-" + QUEUE + " is required with -" + SYNC_WITH_CLUSTER_ARG + " flag");
                     System.exit(7);
                 }
 
-                File castFile = (File)optionSet.valueOf(CAST);
+                if (!optionSet.has(LOGIN)) {
+                    System.err.println("-" + LOGIN + " is required with -" + SYNC_WITH_CLUSTER_ARG + " flag");
+                    System.exit(8);
+                }
+                if (!optionSet.has(TOKEN)) {
+                    System.err.println("-" + TOKEN + " is required with -" + SYNC_WITH_CLUSTER_ARG + " flag");
+                    System.exit(9);
+                }
+
+                File castFile = (File) optionSet.valueOf(CAST);
                 String castPath = castFile.getAbsolutePath();
-                
-                File statFile = (File)optionSet.valueOf(STAT);
+
+                File statFile = (File) optionSet.valueOf(STAT);
                 String statPath = statFile.getAbsolutePath();
-                
-                String queue = (String)optionSet.valueOf(QUEUE);
-                
-                File wfExecDir = (File)optionSet.valueOf(WF_EXEC_DIR);
-                File wfDir = (File)optionSet.valueOf(WF_DIR);
-                File keplerScript = (File)optionSet.valueOf(KEPLER_SCRIPT);
-                
+
+                String queue = (String) optionSet.valueOf(QUEUE);
+
+                File wfExecDir = (File) optionSet.valueOf(WF_EXEC_DIR);
+                File wfDir = (File) optionSet.valueOf(WF_DIR);
+                File keplerScript = (File) optionSet.valueOf(KEPLER_SCRIPT);
+
                 ObjectifyService.ofy();
                 String url = (String) optionSet.valueOf(SYNC_WITH_CLUSTER_ARG);
                 TaskRestDAOImpl taskDAO = new TaskRestDAOImpl();
                 taskDAO.setRestURL(url);
-                taskDAO.setLogin( (String)optionSet.valueOf(LOGIN));
-                taskDAO.setToken( (String)optionSet.valueOf(TOKEN));
-                
+                taskDAO.setLogin((String) optionSet.valueOf(LOGIN));
+                taskDAO.setToken((String) optionSet.valueOf(TOKEN));
+
                 System.out.println("Running sync with cluster");
 
                 // Submit tasks to scheduler
                 TaskSubmitter submitter = new TaskSubmitter(taskDAO,
                         wfExecDir.getAbsolutePath(),
                         wfDir.getAbsolutePath(),
-                        keplerScript.getAbsolutePath(),castPath,queue,queue,url);
-                
+                        keplerScript.getAbsolutePath(),
+                        castPath, queue,
+                        (String) optionSet.valueOf(LOGIN),
+                        (String) optionSet.valueOf(TOKEN),
+                        url);
+
                 submitter.submitTasks();
-                
+
                 // Update task status
-                TaskStatusUpdater updater = new TaskStatusUpdater(taskDAO,statPath);
+                TaskStatusUpdater updater = new TaskStatusUpdater(taskDAO, statPath);
                 updater.updateTasks();
-                
+
                 System.exit(0);
             }
 
-            Long parentWfId = null;
-
-            String postURL = null;
-            if (optionSet.has(URL_ARG)) {
-                postURL = (String) optionSet.valueOf(URL_ARG);
-            }
-
-            if (optionSet.has(PARENT_WFID_ARG)) {
-                parentWfId = (Long) optionSet.valueOf(PARENT_WFID_ARG);
-            }
-
             if (optionSet.has(UPLOAD_WF_ARG)) {
+
+                Long parentWfId = null;
+
+                String postURL = null;
+                if (optionSet.has(URL_ARG)) {
+                    postURL = (String) optionSet.valueOf(URL_ARG);
+                    if (!optionSet.has(LOGIN)) {
+                        System.err.println("-" + LOGIN + " is required with -" + UPLOAD_WF_ARG + " and -"+URL_ARG+" flag");
+                        System.exit(10);
+                    }
+                    if (!optionSet.has(TOKEN)) {
+                        System.err.println("-" + TOKEN + " is required with -" + UPLOAD_WF_ARG + " and -"+URL_ARG+" flag");
+                        System.exit(11);
+                    }
+                }
+
+                if (optionSet.has(PARENT_WFID_ARG)) {
+                    parentWfId = (Long) optionSet.valueOf(PARENT_WFID_ARG);
+                }
+
                 File workflowFile = (File) optionSet.valueOf(UPLOAD_WF_ARG);
                 WorkflowFromXmlFactory xmlFactory = new WorkflowFromXmlFactory();
                 xmlFactory.setWorkflowXml(new BufferedInputStream(getInputStreamOfWorkflowMoml(workflowFile)));
@@ -243,46 +264,42 @@ public class App {
                         MultivaluedMap queryParams = new MultivaluedMapImpl();
 
                         //add authentication tokens
-                        queryParams.add(Constants.USER_LOGIN_PARAM, (String)optionSet.valueOf(LOGIN));
-                        queryParams.add(Constants.USER_TOKEN_PARAM, (String)optionSet.valueOf(TOKEN));
-                        
+                        queryParams.add(Constants.USER_LOGIN_PARAM, (String) optionSet.valueOf(LOGIN));
+                        queryParams.add(Constants.USER_TOKEN_PARAM, (String) optionSet.valueOf(TOKEN));
+
                         String response = resource.queryParams(queryParams).type(MediaType.APPLICATION_JSON_TYPE)
                                 .entity(workflowAsJson)
                                 .post(String.class);
                         Workflow workflowRes = om.readValue(response, Workflow.class);
                         ObjectWriter ow = om.writerWithDefaultPrettyPrinter();
                         //System.out.println(ow.writeValueAsString(workflowRes));
-                        
-                        if (workflowRes.getWorkflowFileUploadURL() == null){
-                            throw new Exception("No upload url found for workflow!!!"+
-                                    ow.writeValueAsString(workflowRes));
-                        }
-                        
-                       
 
-                        
+                        if (workflowRes.getWorkflowFileUploadURL() == null) {
+                            throw new Exception("No upload url found for workflow!!!"
+                                    + ow.writeValueAsString(workflowRes));
+                        }
+
                         // TODO FIX THIS
                         // I gave up trying to get the jersey client to post the
                         // file so as a backup I'm just calling curl
-                        uploadWorkflowFile(workflowRes,workflowFile);
-                        
+                        uploadWorkflowFile(workflowRes, workflowFile);
+
                         /* TODO GET THIS WORKING!!!! Keep getting
-                           No MessageBodyWriter for body part of type 'java.io.File' and media type 'application/octet-stream'
-                        client = Client.create(cc);
-                        client.setFollowRedirects(true);
-                        resource = client.resource(workflowRes.getWorkflowFileUploadURL());
-                        FormDataMultiPart formDataMultiPart = new FormDataMultiPart();
-                        formDataMultiPart.field("filename",workflowRes.getId().toString()+".kar");
+                         No MessageBodyWriter for body part of type 'java.io.File' and media type 'application/octet-stream'
+                         client = Client.create(cc);
+                         client.setFollowRedirects(true);
+                         resource = client.resource(workflowRes.getWorkflowFileUploadURL());
+                         FormDataMultiPart formDataMultiPart = new FormDataMultiPart();
+                         formDataMultiPart.field("filename",workflowRes.getId().toString()+".kar");
                         
-                        FileDataBodyPart fdp = new FileDataBodyPart("file",workflowFile);
-                        formDataMultiPart.bodyPart(fdp);
+                         FileDataBodyPart fdp = new FileDataBodyPart("file",workflowFile);
+                         formDataMultiPart.bodyPart(fdp);
                         
-                        String res = resource.type(MediaType.MULTIPART_FORM_DATA).
-                                accept(MediaType.TEXT_HTML).post(String.class,formDataMultiPart);
+                         String res = resource.type(MediaType.MULTIPART_FORM_DATA).
+                         accept(MediaType.TEXT_HTML).post(String.class,formDataMultiPart);
                         
-                        System.out.println(res);
-                        */
-                        
+                         System.out.println(res);
+                         */
                     }
                 }
             }
@@ -295,15 +312,15 @@ public class App {
 
         System.exit(0);
     }
-    
-    public static void uploadWorkflowFile(Workflow w,File workflowFile) throws Exception {
-        
-         System.out.println("TODO SWITCH THIS TO USE JERSEY CLIENT!!!\nAttempting to run this command: curl -i -X POST --form '"+
-                                w.getId().toString()+"=@"+workflowFile.getAbsolutePath()+"' "+
-                                w.getWorkflowFileUploadURL());
-             ProcessBuilder pb = new ProcessBuilder("curl",
-                "-i","-X","POST","--form",
-                w.getId().toString()+"=@"+workflowFile.getAbsolutePath(),
+
+    public static void uploadWorkflowFile(Workflow w, File workflowFile) throws Exception {
+
+        System.out.println("TODO SWITCH THIS TO USE JERSEY CLIENT!!!\nAttempting to run this command: curl -i -X POST --form '"
+                + w.getId().toString() + "=@" + workflowFile.getAbsolutePath() + "' "
+                + w.getWorkflowFileUploadURL());
+        ProcessBuilder pb = new ProcessBuilder("curl",
+                "-i", "-X", "POST", "--form",
+                w.getId().toString() + "=@" + workflowFile.getAbsolutePath(),
                 w.getWorkflowFileUploadURL());
 
         pb.redirectErrorStream(true);
@@ -322,9 +339,9 @@ public class App {
             line = reader.readLine();
         }
         reader.close();
-        
-        if (p.waitFor() != 0){
-            throw new Exception("Non zero exit code from curl: "+sb.toString());
+
+        if (p.waitFor() != 0) {
+            throw new Exception("Non zero exit code from curl: " + sb.toString());
         }
         System.out.println("\n");
         System.out.println("--------------- OUTPUT FROM CURL ----------------");
@@ -383,10 +400,10 @@ public class App {
     }
 
     public static void renderExampleWorkflowsAndTasksAsJson() throws Exception {
-        
+
         ObjectMapper om = new ObjectMapper();
         ObjectWriter ow = om.writerWithDefaultPrettyPrinter();
-        
+
         System.out.println("Json for Empty Workflow");
         System.out.println("-----------------------");
         System.out.println(ow.writeValueAsString(getWorkflowWithNoParameters()));
@@ -406,8 +423,8 @@ public class App {
         System.out.flush();
 
     }
-    
-    public static Task getTaskWithParametersAndWorkflow(){
+
+    public static Task getTaskWithParametersAndWorkflow() {
         Task t = new Task();
         t.setCreateDate(new Date());
         t.setDownloadURL("http://foo.com/asdflkj");
@@ -421,18 +438,17 @@ public class App {
         t.setOwner("someuser");
         t.setStartDate(new Date());
         t.setSubmitDate(new Date());
-        
+
         Parameter p = new Parameter();
         p.setName("param1");
         p.setValue("some value");
-        
+
         List<Parameter> params = new ArrayList<>();
         params.add(p);
         t.setParameters(params);
         t.setWorkflow(getWorkflowWithNoParameters());
         return t;
     }
-    
 
     public static Workflow getWorkflowWithNoParameters() {
         Workflow w = new Workflow();
@@ -462,7 +478,7 @@ public class App {
         wp.setValidationHelp("Text to display to user if validation fails");
         wp.setValidationType("string");
         wp.setValidationRegex("^cheese|wine$");
-        
+
         List<WorkflowParameter> params = new ArrayList<>();
         params.add(wp);
 
