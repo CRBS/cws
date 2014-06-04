@@ -34,66 +34,71 @@ public class WorkflowFile extends HttpServlet {
     public static final String WFID = "wfid";
 
     WorkflowDAO _workflowDAO;
-    
+
     static Authenticator _authenticator = new AuthenticatorImpl();
+
     /**
      * This is the service from which all requests are initiated. The retry and
      * exponential backoff settings are configured here.
      */
 
-    public WorkflowFile(){
+    public WorkflowFile() {
         _workflowDAO = new WorkflowObjectifyDAOImpl();
     }
-    
+
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         _log.info("in get");
 
         try {
-        if (req.getParameter(WFID) != null) {
+            if (req.getParameter(WFID) != null) {
 
-            User user = _authenticator.authenticate(req);
-            if (!user.isAuthorizedTo(Permission.DOWNLOAD_ALL_WORKFLOWS)){
-                resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Not authorized");
-            }
-            
-            String wfid = req.getParameter(WFID);
-            if (wfid == null || wfid.trim().isEmpty()) {
-                _log.warning("wfid is null or empty string");
-                resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Invalid file specified to download");
+                User user = _authenticator.authenticate(req);
+                if (!user.isAuthorizedTo(Permission.DOWNLOAD_ALL_WORKFLOWS)) {
+                    _log.warning("Not authorized");
+                    resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Not authorized");
+                    return;
+                }
+
+                String wfid = req.getParameter(WFID);
+                if (wfid == null || wfid.trim().isEmpty()) {
+                    _log.warning("wfid is null or empty string");
+                    resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Invalid file specified to download");
+                    return;
+                }
+                _log.log(Level.INFO, "Got a wfid of: {0}", wfid);
+
+                Workflow w = null;
+
+                w = this._workflowDAO.getWorkflowById(wfid);
+
+                if (w == null) {
+                    _log.log(Level.SEVERE, "Workflow returned by data store is null");
+                    resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, " No workflow matching id found: " + w.getId());
+                    return;
+                }
+
+                if (w.getBlobKey() == null) {
+                    _log.log(Level.SEVERE, "blob key is null");
+                    resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, " Key to workflow file not found for workflow: " + w.getId());
+                    return;
+                }
+
+                BlobstoreService blobstoreService = BlobstoreServiceFactory.getBlobstoreService();
+
+                BlobKey blobKey = new BlobKey(w.getBlobKey());
+                resp.setContentType("application/x-download");
+                resp.setHeader("Content-Disposition", "attachment; filename=" + wfid + ".kar");
+                _log.log(Level.INFO, "attempting to serve blob with key: {0}", blobKey.getKeyString());
+                blobstoreService.serve(blobKey, resp);
                 return;
             }
-             _log.log(Level.INFO, "Got a wfid of: {0}", wfid);
-
-            Workflow w = null;
-            
-                w = this._workflowDAO.getWorkflowById(wfid);
-                
-            if (w == null){
-                _log.log(Level.SEVERE,"Workflow returned by data store is null");
-                resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR," No workflow matching id found: "+w.getId());
-            }
-            
-            if (w.getBlobKey() == null){
-                _log.log(Level.SEVERE,"blob key is null");
-                resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR," Key to workflow file not found for workflow: "+w.getId());
-            }
-            
-            BlobstoreService blobstoreService = BlobstoreServiceFactory.getBlobstoreService();
-
-            BlobKey blobKey = new BlobKey(w.getBlobKey());
-            resp.setContentType("application/x-download");
-            resp.setHeader("Content-Disposition", "attachment; filename=" + wfid+".kar");
-            _log.log(Level.INFO, "attempting to serve blob with key: {0}", blobKey.getKeyString());
-            blobstoreService.serve(blobKey, resp);
+        } catch (Exception ex) {
+            _log.log(Level.SEVERE, "unable to load workflow", ex);
+            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, " Error retreiving workflow file: " + ex.getMessage());
             return;
         }
-        }
-            catch(Exception ex){
-                _log.log(Level.SEVERE, "unable to load workflow",ex);
-                resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR," Error retreiving workflow file: "+ex.getMessage());
-            }
-        
+
         resp.setContentType("text/plain");
         resp.getWriter().println("Hello, this is a testing servlet. \n\n");
         String remoteIp = req.getRemoteAddr();
@@ -109,7 +114,7 @@ public class WorkflowFile extends HttpServlet {
 
         BlobstoreService blobstoreService = BlobstoreServiceFactory.getBlobstoreService();
         Map<String, List<BlobKey>> blobMap = blobstoreService.getUploads(req);
-        
+
         if (blobMap != null) {
             for (String key : blobMap.keySet()) {
                 List<BlobKey> bkList = blobMap.get(key);
@@ -119,15 +124,14 @@ public class WorkflowFile extends HttpServlet {
                     res = Integer.toString(bkList.size());
                     keyVal = bkList.get(0).getKeyString();
                 }
-                
+
                 resp.getWriter().println("Key " + key + " ==> (" + res + ") " + keyVal);
                 try {
-                    this._workflowDAO.updateBlobKey(Long.parseLong(key),keyVal);
-                }
-                catch(Exception ex){
-                    _log.log(Level.SEVERE, "Unable to update workflow with id: "+key, ex);
-                    resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR," Unable to update workflow with id: "+key+" : "+
-                            ex.getMessage());
+                    this._workflowDAO.updateBlobKey(Long.parseLong(key), keyVal);
+                } catch (Exception ex) {
+                    _log.log(Level.SEVERE, "Unable to update workflow with id: " + key, ex);
+                    resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, " Unable to update workflow with id: " + key + " : "
+                            + ex.getMessage());
                 }
             }
         }
