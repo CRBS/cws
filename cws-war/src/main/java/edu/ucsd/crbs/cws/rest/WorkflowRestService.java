@@ -3,6 +3,10 @@ package edu.ucsd.crbs.cws.rest;
 import com.google.appengine.api.blobstore.UploadOptions.Builder;
 import com.google.appengine.api.blobstore.BlobstoreService;
 import com.google.appengine.api.blobstore.BlobstoreServiceFactory;
+import edu.ucsd.crbs.cws.auth.User;
+import edu.ucsd.crbs.cws.auth.Authenticator;
+import edu.ucsd.crbs.cws.auth.AuthenticatorImpl;
+import edu.ucsd.crbs.cws.auth.Permission;
 import edu.ucsd.crbs.cws.dao.WorkflowDAO;
 import edu.ucsd.crbs.cws.workflow.Workflow;
 import java.util.List;
@@ -18,6 +22,7 @@ import javax.ws.rs.core.MediaType;
 import edu.ucsd.crbs.cws.dao.objectify.WorkflowObjectifyDAOImpl;
 import edu.ucsd.crbs.cws.servlet.WorkflowFile;
 import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 
@@ -35,6 +40,7 @@ public class WorkflowRestService {
 
     WorkflowDAO _workflowDAO;
 
+     static Authenticator _authenticator = new AuthenticatorImpl();
     /**
      * Constructor that by default creates Objectify DAO objects
      */
@@ -53,16 +59,20 @@ public class WorkflowRestService {
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public List<Workflow> getWorkflows(@Context HttpServletRequest request) {
+    public List<Workflow> getWorkflows(@QueryParam(Constants.USER_LOGIN_PARAM) final String userLogin,
+                                       @QueryParam(Constants.USER_TOKEN_PARAM) final String userToken,
+                                       @Context HttpServletRequest request) {
         List<Workflow> workflows = null;
         try {
             TaskRestService.logRequest(request);
-
-            workflows = _workflowDAO.getAllWorkflows(true);
+            User user = _authenticator.authenticate(request,userLogin,userToken);
+            if (user.isAuthorizedTo(Permission.LIST_ALL_WORKFLOWS)){
+                return _workflowDAO.getAllWorkflows(true);
+            }
+            throw new Exception("Not authorized");
         } catch (Exception ex) {
             throw new WebApplicationException(ex);
         }
-        return workflows;
     }
 
     /**
@@ -75,17 +85,21 @@ public class WorkflowRestService {
     @Path("/{wfid}")
     @Produces(MediaType.APPLICATION_JSON)
     public Workflow getWorkflow(@PathParam("wfid") String wfid,
+            @QueryParam(Constants.USER_LOGIN_PARAM) final String userLogin,
+            @QueryParam(Constants.USER_TOKEN_PARAM) final String userToken,
             @Context HttpServletRequest request) {
 
         Workflow wf = null;
         try {
             TaskRestService.logRequest(request);
-
-            wf = _workflowDAO.getWorkflowById(wfid);
+            User user = _authenticator.authenticate(request,userLogin,userToken);
+            if (user.isAuthorizedTo(Permission.LIST_ALL_WORKFLOWS)){
+                return _workflowDAO.getWorkflowById(wfid);
+            }
+            throw new Exception("Not authorized");
         } catch (Exception ex) {
             throw new WebApplicationException(ex);
         }
-        return wf;
     }
 
     /**
@@ -98,9 +112,16 @@ public class WorkflowRestService {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Workflow createWorkflow(Workflow w,
+            @QueryParam(Constants.USER_LOGIN_PARAM) final String userLogin,
+            @QueryParam(Constants.USER_TOKEN_PARAM) final String userToken,
             @Context HttpServletRequest request) {
         try {
             TaskRestService.logRequest(request);
+            User user = _authenticator.authenticate(request,userLogin,userToken);
+            if (! user.isAuthorizedTo(Permission.CREATE_WORKFLOW)){
+                throw new Exception("Not authorized");
+            }
+            
             Workflow insertedWorkflow = _workflowDAO.insert(w);
 
             //build upload URL and add it to workflow
