@@ -24,6 +24,9 @@ public class Constants {
      */
     public static final String REST_PATH = "rest";
     
+    public static final String USER_LOGIN_PARAM = "userlogin";
+    public static final String USER_TOKEN_PARAM = "usertoken";
+    
     public static final String STATUS_QUERY_PARAM = "status";
     public static final String OWNER_QUERY_PARAM = "owner";
     public static final String NOPARAMS_QUERY_PARAM = "noparams";
