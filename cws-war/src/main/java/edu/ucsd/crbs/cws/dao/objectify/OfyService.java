@@ -3,6 +3,7 @@ package edu.ucsd.crbs.cws.dao.objectify;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.ObjectifyService;
 import com.googlecode.objectify.Objectify;
+import edu.ucsd.crbs.cws.auth.User;
 import edu.ucsd.crbs.cws.workflow.Task;
 import edu.ucsd.crbs.cws.workflow.Workflow;
 
@@ -22,6 +23,7 @@ public class OfyService {
     static {
         factory().register(Workflow.class);
         factory().register(Task.class);
+        factory().register(User.class);
     }
 
     /**
