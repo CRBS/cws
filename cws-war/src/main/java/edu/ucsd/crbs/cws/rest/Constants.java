@@ -24,8 +24,23 @@ public class Constants {
      */
     public static final String REST_PATH = "rest";
     
+    /**
+     * User login query parameter name.  This should be passed to all
+     * rest calls
+     */
     public static final String USER_LOGIN_PARAM = "userlogin";
+    
+    /**
+     * User token query parameter name.  This should be passed to all
+     * rest calls
+     */
     public static final String USER_TOKEN_PARAM = "usertoken";
+    
+    /**
+     * workflow id query parameter name which is passed to {@link WorkflowFile}
+     * servlet
+     */
+    public static final String WFID_PARAM = "wfid";
     
     public static final String STATUS_QUERY_PARAM = "status";
     public static final String OWNER_QUERY_PARAM = "owner";
