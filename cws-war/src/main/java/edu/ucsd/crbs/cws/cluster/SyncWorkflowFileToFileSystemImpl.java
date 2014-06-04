@@ -24,11 +24,16 @@ public class SyncWorkflowFileToFileSystemImpl implements SyncWorkflowFileToFileS
     
     private final String _workflowsDir;
     private final String _getURL;
+    private final String _userLogin;
+    private final String _token;
     
     public SyncWorkflowFileToFileSystemImpl(final String workflowsDir,
-            final String url){
+            final String url,final String userLogin,final String token){
         _workflowsDir = workflowsDir;
         _getURL = url;
+        _userLogin = userLogin;
+        _token = token;
+        
     }
     
     /**
@@ -53,10 +58,13 @@ public class SyncWorkflowFileToFileSystemImpl implements SyncWorkflowFileToFileS
         Client client = Client.create(cc);
         client.setFollowRedirects(true);
         WebResource resource = client.resource(_getURL).path("workflowfile").
-                queryParam("wfid", w.getId().toString());
+                queryParam(Constants.WFID_PARAM, w.getId().toString()).
+                queryParam(Constants.USER_LOGIN_PARAM, _userLogin).
+                queryParam(Constants.USER_TOKEN_PARAM,_token);
         
         ClientResponse cr = resource.get(ClientResponse.class);
-        _log.log(Level.INFO,"Status: "+cr.getStatus()+" Reason: "+cr.getStatusInfo().getReasonPhrase());
+        _log.log(Level.INFO, "Status: {0} Reason: {1}", new Object[]{cr.getStatus(), 
+            cr.getStatusInfo().getReasonPhrase()});
         
         // @TODO MOVE 200 to constant
         //try one more time
@@ -79,7 +87,7 @@ public class SyncWorkflowFileToFileSystemImpl implements SyncWorkflowFileToFileS
         //make the directory for the workflow
         File wfDir = new File(getWorkflowDirectory(w));
         if (wfDir.isDirectory() == false){
-            _log.log(Level.FINER,"Creating directories: "+wfDir.getAbsolutePath());
+            _log.log(Level.INFO, "Creating directories: {0}", wfDir.getAbsolutePath());
             if (wfDir.mkdirs() == false){
                 throw new Exception("Unable to create directory: "+wfDir.getAbsolutePath());
             }
