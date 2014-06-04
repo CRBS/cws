@@ -25,17 +25,29 @@ public class TaskSubmitter {
     /**
      * Constructor
      *
+     * @param taskDAO
      * @param workflowExecDir Directory under where workflow Tasks should be run
      * @param workflowsDir Directory where workflows are stored
      * @param keplerScript Full path to Kepler program
+     * @param panfishCast
+     * @param queue
+     * @param login
+     * @param token
+     * @param url
      */
-    public TaskSubmitter(TaskDAO taskDAO, final String workflowExecDir, final String workflowsDir,
-            final String keplerScript, final String panfishCast,
-            final String queue,final String url) {
+    public TaskSubmitter(TaskDAO taskDAO, 
+                         final String workflowExecDir, 
+                         final String workflowsDir,
+                         final String keplerScript, 
+                         final String panfishCast,
+                         final String queue,
+                         final String login,
+                         final String token,
+                         final String url) {
         _directoryCreator = new TaskDirectoryCreatorImpl(workflowExecDir);
         _cmdScriptCreator = new TaskCmdScriptCreatorImpl(workflowsDir, keplerScript);
         _cmdScriptSubmitter = new TaskCmdScriptSubmitterImpl(panfishCast, queue);
-        _workflowSync = new SyncWorkflowFileToFileSystemImpl(workflowsDir,url);
+        _workflowSync = new SyncWorkflowFileToFileSystemImpl(workflowsDir,url,login,token);
         _taskDAO = taskDAO;
     }
 
@@ -44,8 +56,6 @@ public class TaskSubmitter {
      * files and directories. This method will then update the jobId value in
      * the Task and set the status to correct state.
      *
-     * @param t Task to submit
-     * @return SGE Job id
      * @throws Exception If there was a problem creating or submitting the Task
      */
     public void submitTasks() throws Exception {
