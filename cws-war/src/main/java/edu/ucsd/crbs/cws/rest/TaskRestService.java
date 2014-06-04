@@ -7,7 +7,6 @@ import edu.ucsd.crbs.cws.auth.Permission;
 import edu.ucsd.crbs.cws.dao.TaskDAO;
 import edu.ucsd.crbs.cws.dao.objectify.TaskObjectifyDAOImpl;
 import edu.ucsd.crbs.cws.workflow.Task;
-import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.logging.Level;
@@ -61,6 +60,9 @@ public class TaskRestService {
      * objects within Task objects returned (?noworkflowparams=)
      * @param notSubmitted Only Tasks that have not been submitted to scheduler
      * are returned (?notsubmittedtoscheduler=)
+     * @param userLogin
+     * @param userToken
+     * @param request
      *
      * @return List of Task objects in JSON format with media type set to
      * {@link MediaType.APPLICATION_JSON}
@@ -95,6 +97,9 @@ public class TaskRestService {
      * Gets a specific Task by id
      *
      * @param taskid Path parameter that denotes id of task to retrieve
+     * @param userLogin
+     * @param userToken
+     * @param request
      * @return
      */
     @GET
@@ -133,6 +138,9 @@ public class TaskRestService {
      * @param finishDate
      * @param submittedToScheduler
      * @param jobId
+     * @param userLogin
+     * @param userToken
+     * @param request
      * @return
      */
     @POST
@@ -180,6 +188,11 @@ public class TaskRestService {
 
     /**
      * Creates a new task by consuming JSON version of Task object
+     * @param t
+     * @param userLogin
+     * @param userToken
+     * @param request
+     * @return 
      */
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
@@ -203,10 +216,11 @@ public class TaskRestService {
     public static void logRequest(HttpServletRequest request) {
         if (request != null) {
             String requestorIp = request.getRemoteAddr();
-            if (requestorIp != null) {
-                log.log(Level.INFO, "requestor ip: {0}", requestorIp);
+            if (requestorIp == null) {
+                requestorIp = "Unknown";
             }
 
+            StringBuilder sb = new StringBuilder();
             Enumeration e = request.getHeaderNames();
             String header = null;
             if (e != null) {
@@ -214,10 +228,11 @@ public class TaskRestService {
                     header = (String) e.nextElement();
                     String val = request.getHeader(header);
                     if (val != null) {
-                        log.log(Level.INFO, "Header: " + header + " == " + val);
+                        sb.append("[ ").append(header).append(" = ").append(val).append(" ] ");
                     }
                 }
             }
+            log.log(Level.INFO,("ip: "+requestorIp+" -- "+sb.toString()));
         }
     }
 
