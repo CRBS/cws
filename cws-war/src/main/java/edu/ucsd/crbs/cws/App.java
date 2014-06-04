@@ -8,10 +8,12 @@ import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.core.impl.provider.entity.StringProvider;
+import com.sun.jersey.core.util.MultivaluedMapImpl;
 import com.sun.jersey.multipart.impl.MultiPartWriter;
 import edu.ucsd.crbs.cws.cluster.TaskStatusUpdater;
 import edu.ucsd.crbs.cws.cluster.TaskSubmitter;
 import edu.ucsd.crbs.cws.dao.rest.TaskRestDAOImpl;
+import edu.ucsd.crbs.cws.rest.Constants;
 import edu.ucsd.crbs.cws.workflow.Parameter;
 import edu.ucsd.crbs.cws.workflow.Task;
 import edu.ucsd.crbs.cws.workflow.Workflow;
@@ -30,6 +32,7 @@ import java.util.List;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedMap;
 import joptsimple.OptionException;
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
@@ -69,6 +72,10 @@ public class App {
     
     public static final String STAT = "panfishstat";
     
+    public static final String LOGIN = "login";
+    
+    public static final String TOKEN = "token";
+    
     //public static final String LOAD_TEST = "loadtest";
     
     public static final String PROGRAM_HELP = "\nCRBS Workflow Service Command Line Tools "
@@ -100,6 +107,8 @@ public class App {
                     accepts(QUEUE,"SGE Queue").withRequiredArg().ofType(String.class).describedAs("Queue");
                     accepts(CAST,"Panfishcast binary").withRequiredArg().ofType(File.class).describedAs("panfishcast");
                     accepts(STAT,"Panfishstat binary").withRequiredArg().ofType(File.class).describedAs("panfishstat");
+                    accepts(LOGIN,"User Login").withRequiredArg().ofType(String.class).describedAs("username");
+                    accepts(TOKEN,"User Token").withRequiredArg().ofType(String.class).describedAs("token");
                     accepts(HELP_ARG).forHelp();
                 }
             };
@@ -173,13 +182,17 @@ public class App {
                 String url = (String) optionSet.valueOf(SYNC_WITH_CLUSTER_ARG);
                 TaskRestDAOImpl taskDAO = new TaskRestDAOImpl();
                 taskDAO.setRestURL(url);
+                taskDAO.setLogin( (String)optionSet.valueOf(LOGIN));
+                taskDAO.setToken( (String)optionSet.valueOf(TOKEN));
+                
                 System.out.println("Running sync with cluster");
 
                 // Submit tasks to scheduler
                 TaskSubmitter submitter = new TaskSubmitter(taskDAO,
                         wfExecDir.getAbsolutePath(),
                         wfDir.getAbsolutePath(),
-                        keplerScript.getAbsolutePath(),castPath,queue,url);
+                        keplerScript.getAbsolutePath(),castPath,queue,queue,url);
+                
                 submitter.submitTasks();
                 
                 // Update task status
@@ -227,7 +240,13 @@ public class App {
                         WebResource resource = client.resource(postURL);
                         String workflowAsJson = om.writeValueAsString(w);
 
-                        String response = resource.type(MediaType.APPLICATION_JSON_TYPE)
+                        MultivaluedMap queryParams = new MultivaluedMapImpl();
+
+                        //add authentication tokens
+                        queryParams.add(Constants.USER_LOGIN_PARAM, (String)optionSet.valueOf(LOGIN));
+                        queryParams.add(Constants.USER_TOKEN_PARAM, (String)optionSet.valueOf(TOKEN));
+                        
+                        String response = resource.queryParams(queryParams).type(MediaType.APPLICATION_JSON_TYPE)
                                 .entity(workflowAsJson)
                                 .post(String.class);
                         Workflow workflowRes = om.readValue(response, Workflow.class);
