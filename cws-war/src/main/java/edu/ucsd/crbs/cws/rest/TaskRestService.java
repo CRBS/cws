@@ -1,8 +1,13 @@
 package edu.ucsd.crbs.cws.rest;
 
+import edu.ucsd.crbs.cws.auth.User;
+import edu.ucsd.crbs.cws.auth.Authenticator;
+import edu.ucsd.crbs.cws.auth.AuthenticatorImpl;
+import edu.ucsd.crbs.cws.auth.Permission;
 import edu.ucsd.crbs.cws.dao.TaskDAO;
 import edu.ucsd.crbs.cws.dao.objectify.TaskObjectifyDAOImpl;
 import edu.ucsd.crbs.cws.workflow.Task;
+import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.logging.Level;
@@ -32,8 +37,9 @@ public class TaskRestService {
 
     TaskDAO _taskDAO;
 
+    static Authenticator _authenticator = new AuthenticatorImpl();
+    
     public TaskRestService() {
-        log.info("In constructor of Tasks() rest service");
         _taskDAO = new TaskObjectifyDAOImpl();
     }
 
@@ -66,11 +72,20 @@ public class TaskRestService {
             @QueryParam(Constants.NOPARAMS_QUERY_PARAM) final boolean noParams,
             @QueryParam(Constants.NOWORKFLOWPARAMS_QUERY_PARAM) final boolean noWorkflowParams,
             @QueryParam(Constants.NOTSUBMITTED_TO_SCHED_QUERY_PARAM) final boolean notSubmitted,
+            @QueryParam(Constants.USER_LOGIN_PARAM) final String userLogin,
+            @QueryParam(Constants.USER_TOKEN_PARAM) final String userToken,
             @Context HttpServletRequest request) {
 
         try {
+            User user = _authenticator.authenticate(request,userLogin,userToken);
             logRequest(request);
-            return this._taskDAO.getTasks(owner, status, notSubmitted, noParams, noWorkflowParams);
+           
+            // user can list everything  
+            if (user.isAuthorizedTo(Permission.LIST_ALL_TASKS)){
+                return this._taskDAO.getTasks(owner, status, notSubmitted, noParams, noWorkflowParams);
+            }
+            throw new Exception("Not Authorized");
+            
         } catch (Exception ex) {
             throw new WebApplicationException(ex);
         }
@@ -86,10 +101,17 @@ public class TaskRestService {
     @Path("/{taskid}")
     @Produces(MediaType.APPLICATION_JSON)
     public Task getTask(@PathParam("taskid") String taskid,
+            @QueryParam(Constants.USER_LOGIN_PARAM) final String userLogin,
+            @QueryParam(Constants.USER_TOKEN_PARAM) final String userToken,
             @Context HttpServletRequest request) {
         try {
+            User user = _authenticator.authenticate(request,userLogin,userToken);
             logRequest(request);
-            return _taskDAO.getTaskById(taskid);
+            
+            if (user.isAuthorizedTo(Permission.LIST_ALL_TASKS)){
+                return _taskDAO.getTaskById(taskid);
+            }
+            throw new Exception("Not authorized");
         } catch (Exception ex) {
             throw new WebApplicationException(ex);
         }
@@ -129,6 +151,8 @@ public class TaskRestService {
             @QueryParam(Constants.SUBMITTED_TO_SCHED_QUERY_PARAM) final Boolean submittedToScheduler,
             @QueryParam(Constants.DOWNLOADURL_QUERY_PARAM) final String downloadURL,
             @QueryParam(Constants.JOB_ID_QUERY_PARAM) final String jobId,
+            @QueryParam(Constants.USER_LOGIN_PARAM) final String userLogin,
+            @QueryParam(Constants.USER_TOKEN_PARAM) final String userToken,
             @Context HttpServletRequest request) {
 
         logRequest(request);
@@ -138,11 +162,17 @@ public class TaskRestService {
             log.info("task id is null.  wtf");
             throw new WebApplicationException();
         }
-
+            
         try {
-            return _taskDAO.update(taskId, status, estCpu, estRunTime, estDisk,
-                    submitDate, startDate, finishDate, submittedToScheduler,
-                    downloadURL, jobId);
+             User user = _authenticator.authenticate(request,userLogin,userToken);
+            logRequest(request);
+            if (user.isAuthorizedTo(Permission.UPDATE_ALL_TASKS)){
+                return _taskDAO.update(taskId, status, estCpu, estRunTime, estDisk,
+                        submitDate, startDate, finishDate, submittedToScheduler,    
+                        downloadURL, jobId);
+            }
+            
+            throw new Exception("Not Authorized");
         } catch (Exception ex) {
             throw new WebApplicationException(ex);
         }
@@ -154,10 +184,17 @@ public class TaskRestService {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Task createTask(Task t, @Context HttpServletRequest request) {
+    public Task createTask(Task t,
+           @QueryParam(Constants.USER_LOGIN_PARAM) final String userLogin,
+           @QueryParam(Constants.USER_TOKEN_PARAM) final String userToken,
+           @Context HttpServletRequest request) {
         try {
+             User user = _authenticator.authenticate(request,userLogin,userToken);
             logRequest(request);
-            return _taskDAO.insert(t);
+            if (user.isAuthorizedTo(Permission.CREATE_TASK)){
+                return _taskDAO.insert(t);
+            }
+            throw new Exception("Not Authorized");
         } catch (Exception ex) {
             throw new WebApplicationException(ex);
         }
