@@ -25,6 +25,8 @@ import javax.ws.rs.core.MultivaluedMap;
 public class TaskRestDAOImpl implements TaskDAO {
 
     private String _restURL;
+    private String _login;
+    private String _token;
 
     public TaskRestDAOImpl() {
 
@@ -39,6 +41,15 @@ public class TaskRestDAOImpl implements TaskDAO {
         _restURL = url;
     }
 
+    
+    public void setLogin(final String login){
+        _login = login;
+    }
+    
+    public void setToken(final String token){
+        _token = token;
+    }
+    
     @Override
     public Task getTaskById(String taskId) throws Exception {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
@@ -53,6 +64,10 @@ public class TaskRestDAOImpl implements TaskDAO {
         WebResource resource = client.resource(_restURL).path(Constants.REST_PATH).path(Constants.TASKS_PATH);
         MultivaluedMap queryParams = new MultivaluedMapImpl();
 
+        //add authentication tokens
+        queryParams.add(Constants.USER_LOGIN_PARAM, _login);
+        queryParams.add(Constants.USER_TOKEN_PARAM, _token);
+        
         if (owner != null) {
             queryParams.add(Constants.OWNER_QUERY_PARAM, owner);
         }
@@ -99,6 +114,11 @@ public class TaskRestDAOImpl implements TaskDAO {
 
         MultivaluedMap queryParams = new MultivaluedMapImpl();
 
+        
+         //add authentication tokens
+        queryParams.add(Constants.USER_LOGIN_PARAM, _login);
+        queryParams.add(Constants.USER_TOKEN_PARAM, _token);
+        
         if (status != null) {
             queryParams.add(Constants.STATUS_QUERY_PARAM, status);
         }
