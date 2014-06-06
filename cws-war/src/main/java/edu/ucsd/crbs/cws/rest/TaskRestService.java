@@ -4,10 +4,14 @@ import edu.ucsd.crbs.cws.auth.User;
 import edu.ucsd.crbs.cws.auth.Authenticator;
 import edu.ucsd.crbs.cws.auth.AuthenticatorImpl;
 import edu.ucsd.crbs.cws.auth.Permission;
+import edu.ucsd.crbs.cws.dao.EventDAO;
 import edu.ucsd.crbs.cws.dao.TaskDAO;
+import edu.ucsd.crbs.cws.dao.objectify.EventObjectifyDAOImpl;
 import edu.ucsd.crbs.cws.dao.objectify.TaskObjectifyDAOImpl;
+import edu.ucsd.crbs.cws.log.Event;
+import edu.ucsd.crbs.cws.log.EventBuilder;
+import edu.ucsd.crbs.cws.log.EventBuilderImpl;
 import edu.ucsd.crbs.cws.workflow.Task;
-import java.util.Enumeration;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -31,16 +35,17 @@ import javax.ws.rs.core.MediaType;
 @Path("/" + Constants.TASKS_PATH)
 public class TaskRestService {
 
-    private static final Logger log
+    
+    private static final Logger _log
             = Logger.getLogger(TaskRestService.class.getName());
 
-    TaskDAO _taskDAO;
+    static TaskDAO _taskDAO = new TaskObjectifyDAOImpl();
+    
+    static EventDAO _eventDAO = new EventObjectifyDAOImpl();
 
     static Authenticator _authenticator = new AuthenticatorImpl();
-    
-    public TaskRestService() {
-        _taskDAO = new TaskObjectifyDAOImpl();
-    }
+
+    static EventBuilder _eventBuilder = new EventBuilderImpl();
 
     /**
      * HTTP GET call that gets a list of all tasks. The list can be filtered
@@ -79,16 +84,18 @@ public class TaskRestService {
             @Context HttpServletRequest request) {
 
         try {
-            User user = _authenticator.authenticate(request,userLogin,userToken);
-            logRequest(request);
-           
+            User user = _authenticator.authenticate(request, userLogin, userToken);
+             Event event = _eventBuilder.createEvent(request, user);
+            _log.info(event.getStringOfLocationData());
+            
             // user can list everything  
-            if (user.isAuthorizedTo(Permission.LIST_ALL_TASKS)){
-                return this._taskDAO.getTasks(owner, status, notSubmitted, noParams, noWorkflowParams);
+            if (user.isAuthorizedTo(Permission.LIST_ALL_TASKS)) {
+                return _taskDAO.getTasks(owner, status, notSubmitted, noParams, noWorkflowParams);
             }
             throw new Exception("Not Authorized");
-            
+
         } catch (Exception ex) {
+            _log.log(Level.SEVERE,"Caught Exception",ex);
             throw new WebApplicationException(ex);
         }
     }
@@ -110,14 +117,16 @@ public class TaskRestService {
             @QueryParam(Constants.USER_TOKEN_PARAM) final String userToken,
             @Context HttpServletRequest request) {
         try {
-            User user = _authenticator.authenticate(request,userLogin,userToken);
-            logRequest(request);
-            
-            if (user.isAuthorizedTo(Permission.LIST_ALL_TASKS)){
+            User user = _authenticator.authenticate(request, userLogin, userToken);
+             Event event = _eventBuilder.createEvent(request, user);
+            _log.info(event.getStringOfLocationData());
+
+            if (user.isAuthorizedTo(Permission.LIST_ALL_TASKS)) {
                 return _taskDAO.getTaskById(taskid);
             }
             throw new Exception("Not authorized");
         } catch (Exception ex) {
+            _log.log(Level.SEVERE,"Caught Exception",ex);
             throw new WebApplicationException(ex);
         }
     }
@@ -163,77 +172,71 @@ public class TaskRestService {
             @QueryParam(Constants.USER_TOKEN_PARAM) final String userToken,
             @Context HttpServletRequest request) {
 
-        logRequest(request);
-        if (taskId != null) {
-            log.log(Level.INFO, "task id is: {0}", taskId.toString());
-        } else {
-            log.info("task id is null.  wtf");
-            throw new WebApplicationException();
-        }
-            
         try {
-             User user = _authenticator.authenticate(request,userLogin,userToken);
-            logRequest(request);
-            if (user.isAuthorizedTo(Permission.UPDATE_ALL_TASKS)){
+            User user = _authenticator.authenticate(request, userLogin, userToken);
+            Event event = _eventBuilder.createEvent(request, user);
+            _log.info(event.getStringOfLocationData());
+            if (taskId != null) {
+                _log.log(Level.INFO, "task id is: {0}", taskId.toString());
+            } else {
+                _log.info("task id is null.  wtf");
+                throw new WebApplicationException();
+            }
+
+            if (user.isAuthorizedTo(Permission.UPDATE_ALL_TASKS)) {
                 return _taskDAO.update(taskId, status, estCpu, estRunTime, estDisk,
-                        submitDate, startDate, finishDate, submittedToScheduler,    
+                        submitDate, startDate, finishDate, submittedToScheduler,
                         downloadURL, jobId);
             }
-            
+
             throw new Exception("Not Authorized");
         } catch (Exception ex) {
+            _log.log(Level.SEVERE,"Caught Exception",ex);
             throw new WebApplicationException(ex);
         }
     }
 
     /**
      * Creates a new task by consuming JSON version of Task object
+     *
      * @param t
      * @param userLogin
      * @param userToken
      * @param request
-     * @return 
+     * @return
      */
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Task createTask(Task t,
-           @QueryParam(Constants.USER_LOGIN_PARAM) final String userLogin,
-           @QueryParam(Constants.USER_TOKEN_PARAM) final String userToken,
-           @Context HttpServletRequest request) {
+            @QueryParam(Constants.USER_LOGIN_PARAM) final String userLogin,
+            @QueryParam(Constants.USER_TOKEN_PARAM) final String userToken,
+            @Context HttpServletRequest request) {
         try {
-             User user = _authenticator.authenticate(request,userLogin,userToken);
-            logRequest(request);
-            if (user.isAuthorizedTo(Permission.CREATE_TASK)){
-                return _taskDAO.insert(t);
+            User user = _authenticator.authenticate(request, userLogin, userToken);
+            Event event = _eventBuilder.createEvent(request, user);
+            _log.info(event.getStringOfLocationData());
+            
+            if (user.isAuthorizedTo(Permission.CREATE_TASK)) {
+                Task task = _taskDAO.insert(t);
+                
+                saveEvent(_eventBuilder.setAsCreateTaskEvent(event, task));
+                
+                return task;
             }
             throw new Exception("Not Authorized");
         } catch (Exception ex) {
+            _log.log(Level.SEVERE,"Caught Exception",ex);
             throw new WebApplicationException(ex);
         }
     }
-
-    public static void logRequest(HttpServletRequest request) {
-        if (request != null) {
-            String requestorIp = request.getRemoteAddr();
-            if (requestorIp == null) {
-                requestorIp = "Unknown";
-            }
-
-            StringBuilder sb = new StringBuilder();
-            Enumeration e = request.getHeaderNames();
-            String header = null;
-            if (e != null) {
-                for (; e.hasMoreElements();) {
-                    header = (String) e.nextElement();
-                    String val = request.getHeader(header);
-                    if (val != null) {
-                        sb.append("[ ").append(header).append(" = ").append(val).append(" ] ");
-                    }
-                }
-            }
-            log.log(Level.INFO,("ip: "+requestorIp+" -- "+sb.toString()));
+    
+    private void saveEvent(Event event){
+        try {
+           _eventDAO.insert(event);
+        }
+        catch(Exception ex){
+            _log.log(Level.WARNING, "Unable to save Event", ex);
         }
     }
-
 }
