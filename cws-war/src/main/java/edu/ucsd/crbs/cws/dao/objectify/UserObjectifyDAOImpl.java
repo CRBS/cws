@@ -7,6 +7,7 @@ import edu.ucsd.crbs.cws.dao.UserDAO;
 import static edu.ucsd.crbs.cws.dao.objectify.OfyService.ofy;
 import java.util.Date;
 import java.util.List;
+import java.util.logging.Logger;
 
 /**
  *
@@ -14,6 +15,8 @@ import java.util.List;
  */
 public class UserObjectifyDAOImpl implements UserDAO {
 
+    private static final Logger _log = Logger.getLogger(UserObjectifyDAOImpl.class.getName());
+    
     @Override
     public User insert(User u) throws Exception {
         if (u == null){
@@ -31,6 +34,7 @@ public class UserObjectifyDAOImpl implements UserDAO {
     @Override
     public User getUserByLoginAndToken(String login, String token) throws Exception {
         if (login == null && token == null){
+            _log.warning("Login and Token are null");
             return null;
         }
         Query<User> q = ofy().load().type(User.class);
