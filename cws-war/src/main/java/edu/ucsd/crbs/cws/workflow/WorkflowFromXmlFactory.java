@@ -174,7 +174,7 @@ public class WorkflowFromXmlFactory {
             if (e == null){
                return null;
             }
-            return e.getAttributeValue("value");
+            return e.getAttributeValue(ATTRIBUTE_VALUE_KEY);
     }
     
     private void addReleaseNotes(Workflow workflow,Document doc) throws Exception {
@@ -207,7 +207,7 @@ public class WorkflowFromXmlFactory {
                     wParam.setType(WorkflowParameter.Type.TEXT);
                     break;
                 case KEPLER_PARAMETER_NUMBER:
-                    wParam.setType(WorkflowParameter.Type.NUMBER);
+                    wParam.setType(WorkflowParameter.Type.TEXT);
                     break;
                 case KEPLER_PARAMETER_FILE:
                     wParam.setType(WorkflowParameter.Type.FILE);
@@ -247,7 +247,7 @@ public class WorkflowFromXmlFactory {
     }
     
     private void setKeplerParameterAttributes(Element element,WorkflowParameter wParam) throws Exception{
-         List<Element> subPropElements = element.getChildren("property");
+         List<Element> subPropElements = element.getChildren(ELEMENT_PROPERTY_KEY);
         for (Element subEl : subPropElements) {
             if (subEl.getAttributeValue(ATTRIBUTE_NAME_KEY).equalsIgnoreCase("hidden")) {
                 String hiddenVal = subEl.getAttributeValue(ATTRIBUTE_VALUE_KEY);
