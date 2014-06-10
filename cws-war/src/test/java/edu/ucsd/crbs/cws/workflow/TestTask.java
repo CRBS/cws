@@ -73,7 +73,7 @@ public class TestTask {
         t.setStartDate(startDate);
         Date finishDate = new Date();
         t.setFinishDate(finishDate);
-        List<Parameter> params = new ArrayList<Parameter>();
+        List<Parameter> params = new ArrayList<>();
         t.setParameters(params);
         t.setHasJobBeenSubmittedToScheduler(true);
         t.setDownloadURL("download");
