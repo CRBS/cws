@@ -62,6 +62,8 @@ public class TestWorkflowParameter {
         assertTrue(wp.getValidationRegex() == null);
         assertTrue(wp.getMaxFileSize() == 0L);
         assertTrue(wp.getValueMap() == null);
+        assertTrue(wp.getRows() == 0L);
+        assertTrue(wp.getColumns() == 0L);
         
         wp.setName("name");
         wp.setDisplayName("display");
@@ -88,6 +90,8 @@ public class TestWorkflowParameter {
         wp.setValidationRegex("regex");
         wp.setMaxFileSize(2L);
         wp.setValueMap(new HashMap<String,String>());
+        wp.setRows(50L);
+        wp.setColumns(75L);
         
         assertTrue(wp.getName().equals("name"));
         assertTrue(wp.getDisplayName().equals("display"));
@@ -103,7 +107,8 @@ public class TestWorkflowParameter {
         assertTrue(wp.getValidationRegex().equals("regex"));
         assertTrue(wp.getMaxFileSize() == 2L);
         assertTrue(wp.getValueMap().isEmpty());
-        
+        assertTrue(wp.getRows() == 50L);
+        assertTrue(wp.getColumns() == 75L);
         
     }
     

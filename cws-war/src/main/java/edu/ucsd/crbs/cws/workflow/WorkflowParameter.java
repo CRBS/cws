@@ -28,9 +28,9 @@ public class WorkflowParameter {
         public static final String TEXT = "text";
         
         /**
-         * Number field same as in HTML
+         * Text field same as in HTML
          */
-        public static final String NUMBER = "number";
+        public static final String TEXT_AREA = "textarea";
         
         /**
          * File field same as in HTML
@@ -60,9 +60,9 @@ public class WorkflowParameter {
             
             return type.equalsIgnoreCase(HIDDEN) ||
                     type.equalsIgnoreCase(TEXT) ||
-                    type.equalsIgnoreCase(NUMBER) ||
                     type.equalsIgnoreCase(FILE) ||
-                    type.equalsIgnoreCase(CHECK_BOX);
+                    type.equalsIgnoreCase(CHECK_BOX) ||
+                    type.equalsIgnoreCase(TEXT_AREA);
         }
     }
 
@@ -77,15 +77,10 @@ public class WorkflowParameter {
         public static final String NUMBER = "number";
         
         /**
-         * Allows only positive digits to be entered (1,2,3,123), but not (-23, 23.1, 12/32)
-         */
-        public static final String DIGITS = "digits";
-        
-        /**
          * Allow only digits that are whole numbers ie (1,2,3,34,-1,-10). 
          * A (-) at the start is allowed to denote negative numbers
          */
-        public static final String SIGNEDINTEGER = "signedinteger";
+        public static final String DIGITS = "digits";
         
         /**
          * Allows any ASCII characters
@@ -103,6 +98,8 @@ public class WorkflowParameter {
     private boolean _isAdvanced;
     private boolean _isRequired;
     private String _delimiterValue;
+    private long _rows;
+    private long _columns;
     private String _validationType;  //formerly inputType
     private String _validationHelp; //formerly inputTypeHelp
     private double _maxValue;
@@ -337,6 +334,43 @@ public class WorkflowParameter {
         return _maxLength;
     }
     
+    /**
+     * Sets number of rows allowed for textarea parameter.  Used to indicate dimension
+     * of textarea to display to user.
+     * @param rows 
+     */
+    public void setRows(long rows){
+        _rows = rows;
+    }
+    
+    /**
+     * Gets number of rows allowed for textarea parameter.  Used to indicate dimension
+     * of textarea to display to user.
+     * @return 
+     */
+    public long getRows(){
+        return _rows;
+    }
+    
+
+    /**
+     * Sets number of columns allowed for textarea parameter.  Used to indicate dimension
+     * of textarea to display to user.
+     * @param columns
+     */
+    public void setColumns(long columns){
+        _columns = columns;
+    }
+    
+    /**
+     * Gets number of columns allowed for textarea parameter.  Used to indicate dimension
+     * of textarea to display to user.
+     * @return 
+     */
+    public long getColumns(){
+        return _columns;
+    }
+
     
     /**
      * Sets validation regular expression for Parameter.  Used in Validation for 
