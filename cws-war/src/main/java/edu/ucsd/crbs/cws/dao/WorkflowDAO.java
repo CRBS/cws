@@ -1,5 +1,6 @@
 package edu.ucsd.crbs.cws.dao;
 
+import edu.ucsd.crbs.cws.auth.User;
 import edu.ucsd.crbs.cws.workflow.Workflow;
 import java.util.List;
 
@@ -13,10 +14,13 @@ public interface WorkflowDAO {
     /**
      * Queries data store to retrieve workflow identified by workflowId
      * @param workflowId
+     * @param user
+     * @param userName
      * @return Workflow object upon success or null if none is found
      * @throws Exception If the workflowId is invalid, null, or there is a problem in parsing
      */
-    public Workflow getWorkflowById(final String workflowId) throws Exception;
+    public Workflow getWorkflowById(final String workflowId,
+            User user) throws Exception;
     
     /**
      * Gets all workflows from data store
