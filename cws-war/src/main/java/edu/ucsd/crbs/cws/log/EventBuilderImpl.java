@@ -59,10 +59,10 @@ public class EventBuilderImpl implements EventBuilder {
 
     /**
      * Creates a new Event by parsing parameters out of HttpServletRequest and User
-     * objects passed in
+     * objects passed in.  
      * @param request
      * @param user
-     * @return New Event with location data and if possible user information set
+     * @return New Event with location data and if possible user information set, note Id is NOT set
      */
     @Override
     public Event createEvent(HttpServletRequest request, User user) {
@@ -76,12 +76,14 @@ public class EventBuilderImpl implements EventBuilder {
             _log.warning("User object is null");
         }
         
-        event.setUserAgent(request.getHeader(USER_AGENT_HEADER));
-        event.setHost(request.getHeader(HOST_HEADER));
-        event.setCity(request.getHeader(CITY_HEADER));
-        event.setRegion(request.getHeader(REGION_HEADER));
-        event.setCountry(request.getHeader(COUNTRY_HEADER));
-        event.setCityLatLong(request.getHeader(CITY_LAT_LONG_HEADER));
+        if (request != null){
+            event.setUserAgent(request.getHeader(USER_AGENT_HEADER));
+            event.setHost(request.getHeader(HOST_HEADER));
+            event.setCity(request.getHeader(CITY_HEADER));
+            event.setRegion(request.getHeader(REGION_HEADER));
+            event.setCountry(request.getHeader(COUNTRY_HEADER));
+            event.setCityLatLong(request.getHeader(CITY_LAT_LONG_HEADER));
+        }
         
         return event;
     }
@@ -110,6 +112,7 @@ public class EventBuilderImpl implements EventBuilder {
     public Event setAsCreateWorkflowEvent(Event event, Workflow workflow) {
         if (anyOfTheseObjectsNull(event,workflow) == true){
             _log.log(Level.WARNING,"One or more parameters passed in is null.  Unable to log event.");
+            return null;
         }
 
         event.setWorkflowId(workflow.getId());
