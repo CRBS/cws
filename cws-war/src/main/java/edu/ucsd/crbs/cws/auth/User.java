@@ -2,6 +2,7 @@ package edu.ucsd.crbs.cws.auth;
 
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
+import com.googlecode.objectify.annotation.Ignore;
 import com.googlecode.objectify.annotation.Index;
 import java.util.Date;
 
@@ -19,6 +20,8 @@ public class User {
     @Index private String _token;
     private Date _createDate;
     private int _permissions;
+    @Ignore private String _loginToRunTaskAs;
+    
     
     public User(){
         
@@ -75,6 +78,14 @@ public class User {
     
     public void setLogin(final String login){
         _login = login;
+    }
+    
+    public String getLoginToRunTaskAs(){
+        return _loginToRunTaskAs;
+    }
+    
+    public void setLoginToRunTaskAs(final String login){
+        _loginToRunTaskAs = login;
     }
     
     public boolean isAuthorizedTo(int requestedPermission){
