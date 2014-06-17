@@ -273,9 +273,13 @@ public class WorkflowFromXmlFactory {
                     throw new Exception(theType+" is not a valid WorkflowParameter.Type");
                 }
             }
-            if (subEl.getAttributeValue(ATTRIBUTE_NAME_KEY).equalsIgnoreCase("delimitervalue")) {
-                wParam.setDelimiterValue(subEl.getAttributeValue(ATTRIBUTE_VALUE_KEY));
+            if (subEl.getAttributeValue(ATTRIBUTE_NAME_KEY).equalsIgnoreCase("namevaluedelimiter")) {
+                wParam.setNameValueDelimiter(subEl.getAttributeValue(ATTRIBUTE_VALUE_KEY));
             }
+            if (subEl.getAttributeValue(ATTRIBUTE_NAME_KEY).equalsIgnoreCase("linedelimiter")) {
+                wParam.setLineDelimiter(subEl.getAttributeValue(ATTRIBUTE_VALUE_KEY));
+            }
+            
             if (subEl.getAttributeValue(ATTRIBUTE_NAME_KEY).equalsIgnoreCase("advanced")) {
                 String advVal = subEl.getAttributeValue(ATTRIBUTE_VALUE_KEY);
                 if (advVal != null) {

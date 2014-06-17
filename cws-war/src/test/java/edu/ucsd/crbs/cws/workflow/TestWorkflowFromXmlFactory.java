@@ -91,7 +91,7 @@ public class TestWorkflowFromXmlFactory {
         assertTrue(wp != null);
         assertTrue(wp != null);
         assertTrue(wp.getDisplayName().equals("Example File Param"));
-        assertTrue(wp.getDelimiterValue() == null);
+        assertTrue(wp.getNameValueDelimiter() == null);
         assertTrue(wp.getHelp().equals("Query sequence(s) in fasta format to be used for a BLAST seach."));
         assertTrue(wp.getIsAdvanced() == false);
         assertTrue(wp.getIsRequired() == true);
@@ -113,7 +113,7 @@ public class TestWorkflowFromXmlFactory {
         wp = paramHash.get("examplestringparam");
         assertTrue(wp != null);
         assertTrue(wp.getDisplayName().equals("Example String Param"));
-        assertTrue(wp.getDelimiterValue() == null);
+        assertTrue(wp.getNameValueDelimiter() == null);
         assertTrue(wp.getHelp().startsWith("With this option set to true you can cut and paste"));
         assertTrue(wp.getIsAdvanced() == false);
         assertTrue(wp.getIsRequired() == false);
@@ -135,7 +135,7 @@ public class TestWorkflowFromXmlFactory {
         wp = paramHash.get("examplenumberparam");
         assertTrue(wp != null);
         assertTrue(wp.getDisplayName().equals("Example Number Param"));
-        assertTrue(wp.getDelimiterValue() == null);
+        assertTrue(wp.getNameValueDelimiter() == null);
         assertTrue(wp.getHelp().equals("Sets the upper limit on number of database  sequences to show alignments. Maximum allowed value is 50,000."));
         assertTrue(wp.getIsAdvanced() == false);
         assertTrue(wp.getIsRequired() == false);
@@ -155,7 +155,7 @@ public class TestWorkflowFromXmlFactory {
         wp = paramHash.get("CWS_outputdir");
         assertTrue(wp != null);
         assertTrue(wp.getDisplayName().equals("CWS_outputdir"));
-        assertTrue(wp.getDelimiterValue() == null);
+        assertTrue(wp.getNameValueDelimiter() == null);
         assertTrue(wp.getHelp() == null);
         assertTrue(wp.getIsAdvanced() == false);
         assertTrue(wp.getIsRequired() == false);
@@ -175,7 +175,7 @@ public class TestWorkflowFromXmlFactory {
         wp = paramHash.get("CWS_user");
         assertTrue(wp != null);
         assertTrue(wp.getDisplayName().equals("CWS_user"));
-        assertTrue(wp.getDelimiterValue() == null);
+        assertTrue(wp.getNameValueDelimiter() == null);
         assertTrue(wp.getHelp() == null);
         assertTrue(wp.getIsAdvanced() == false);
         assertTrue(wp.getIsRequired() == false);
@@ -195,7 +195,7 @@ public class TestWorkflowFromXmlFactory {
         wp = paramHash.get("CWS_taskname");
         assertTrue(wp != null);
         assertTrue(wp.getDisplayName().equals("CWS_taskname"));
-        assertTrue(wp.getDelimiterValue() == null);
+        assertTrue(wp.getNameValueDelimiter() == null);
         assertTrue(wp.getHelp() == null);
         assertTrue(wp.getIsAdvanced() == false);
         assertTrue(wp.getIsRequired() == false);

@@ -53,7 +53,8 @@ public class TestWorkflowParameter {
         assertTrue(wp.getHelp() == null);
         assertTrue(wp.getIsAdvanced() == false);
         assertTrue(wp.getIsRequired() == false);
-        assertTrue(wp.getDelimiterValue() == null);
+        assertTrue(wp.getNameValueDelimiter()== null);
+        assertTrue(wp.getLineDelimiter() == null);
         assertTrue(wp.getValidationType() == null);
         assertTrue(wp.getValidationHelp() == null);
         assertTrue(wp.getMaxValue() == 0.0);
@@ -79,7 +80,8 @@ public class TestWorkflowParameter {
         wp.setIsAdvanced(false);
         assertTrue(wp.getIsRequired() == true);
         assertTrue(wp.getIsAdvanced() == false);
-        wp.setDelimiterValue("delim");
+        wp.setNameValueDelimiter("delim");
+        wp.setLineDelimiter("linedelim");
         wp.setValidationType("validationtype");
         wp.setValidationHelp("validationhelp");
         double maxVal = 2.0;
@@ -98,7 +100,8 @@ public class TestWorkflowParameter {
         assertTrue(wp.getValue().equals("value"));
         assertTrue(wp.getType().equals("type"));
         assertTrue(wp.getHelp().equals("help"));
-        assertTrue(wp.getDelimiterValue().equals("delim"));
+        assertTrue(wp.getNameValueDelimiter().equals("delim"));
+        assertTrue(wp.getLineDelimiter().equals("linedelim"));
         assertTrue(wp.getValidationType().equals("validationtype"));
         assertTrue(wp.getValidationHelp().equals("validationhelp"));
         assertTrue(wp.getMaxValue() == maxVal);
