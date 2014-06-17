@@ -23,15 +23,11 @@ import edu.ucsd.crbs.cws.workflow.WorkflowParameter;
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.List;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import joptsimple.OptionException;
@@ -437,15 +433,26 @@ public class App {
         params.add(wp);
 
         wp = new WorkflowParameter();
-        wp.setType("number");
-        wp.setValue("7");
+        wp.setType("dropdown");
+        wp.setValue("http://www.google.com");
         wp.setName("bar");
         wp.setDisplayName("Bar");
         wp.setMaxValue(100);
         wp.setMinValue(0);
-
-        wp.setHelp("Tooltip goes here.  This is just a number field");
+        HashMap<String,String> valueMap = new HashMap<>();
+        valueMap.put("displayName1", "value1");
+        valueMap.put("displayName2", "value2");
+        valueMap.put("displayName3", "value3");
+                
+        wp.setValueMap(valueMap);
+        wp.setDelimiterValue("==");
+        wp.setHelp("Tooltip goes here.  This is a dropdown field");
         params.add(wp);
+        
+        
+       
+        
+        
         w.setParameters(params);
         return w;
     }
