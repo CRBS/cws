@@ -7,6 +7,13 @@ package edu.ucsd.crbs.cws.rest;
 public class Constants {
     
     
+    
+    public static final String SLASH = "/";
+    
+    public static final String TASK_ID_PATH_PARAM = "taskid";
+    
+    public static final String TASK_ID_REST_PATH = SLASH+"{"+TASK_ID_PATH_PARAM+"}";
+    
     public static final String WORKFLOW_SUFFIX = ".kar";
     
     /**
@@ -35,6 +42,14 @@ public class Constants {
      * rest calls
      */
     public static final String USER_TOKEN_PARAM = "usertoken";
+    
+    
+    /**
+     * Alternate user login parameter name.  Currently some rest calls
+     * require this if invoker is a super user wishing to run a task on behalf
+     * of another user
+     */
+    public static final String USER_LOGIN_TO_RUN_AS_PARAM = "runasuser";
     
     /**
      * workflow id query parameter name which is passed to {@link WorkflowFile}
