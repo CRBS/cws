@@ -103,7 +103,8 @@ public class WorkflowParameter {
     private String _help; //formerly tooltip/popup
     private boolean _isAdvanced;
     private boolean _isRequired;
-    private String _delimiterValue;
+    private String _nameValueDelimiter;
+    private String _lineDelimiter;
     private long _rows;
     private long _columns;
     private String _validationType;  //formerly inputType
@@ -238,21 +239,39 @@ public class WorkflowParameter {
         return _isRequired;
     }
     
+    
+     /**
+     * Sets the line delimiter value to use in the case {@link #getType()}
+     * is dropdown
+     * @param val 
+     */ 
+    public void setLineDelimiter(final String val){
+        _lineDelimiter = val;
+    }
+    
+    /**
+     * Gets the line delimiter to use in the case {@link #getType() } is dropdown
+     * @return 
+     */
+    public String getLineDelimiter(){
+        return _lineDelimiter;
+    }
+    
     /**
      * Sets the column delimiter value to use in the case {@link #getType()}
      * is dropdown
      * @param val 
      */ 
-    public void setDelimiterValue(final String val){
-        _delimiterValue = val;
+    public void setNameValueDelimiter(final String val){
+        _nameValueDelimiter = val;
     }
     
     /**
-     * Gets the delimiter to use in the case {@link #getType() } is dropdown
+     * Gets the column delimiter to use in the case {@link #getType() } is dropdown
      * @return 
      */
-    public String getDelimiterValue(){
-        return _delimiterValue;
+    public String getNameValueDelimiter(){
+        return _nameValueDelimiter;
     }
     
     /**
