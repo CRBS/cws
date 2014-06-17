@@ -1,6 +1,5 @@
 package edu.ucsd.crbs.cws.servlet;
 
-import com.google.appengine.api.blobstore.BlobKey;
 import com.google.appengine.api.blobstore.BlobstoreService;
 import com.google.appengine.api.blobstore.BlobstoreServiceFactory;
 import edu.ucsd.crbs.cws.auth.Authenticator;
@@ -9,10 +8,10 @@ import edu.ucsd.crbs.cws.auth.Permission;
 import edu.ucsd.crbs.cws.auth.User;
 import edu.ucsd.crbs.cws.dao.WorkflowDAO;
 import edu.ucsd.crbs.cws.dao.objectify.WorkflowObjectifyDAOImpl;
+import edu.ucsd.crbs.cws.gae.BlobStoreServiceUtil;
+import static edu.ucsd.crbs.cws.servlet.WorkflowFile.WFID;
 import edu.ucsd.crbs.cws.workflow.Workflow;
 import java.io.IOException;
-import java.util.List;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.ServletException;
@@ -29,112 +28,121 @@ public class WorkflowFile extends HttpServlet {
 
     private static final Logger _log = Logger.getLogger(WorkflowFile.class.getName());
 
-    public static final String CLOUD_BUCKET = "crbsworkflow.appspot.com/workflows/";
-
     public static final String WFID = "wfid";
 
-    WorkflowDAO _workflowDAO;
+    Authenticator _authenticator = new AuthenticatorImpl();
 
-    static Authenticator _authenticator = new AuthenticatorImpl();
+    WorkflowDownloader _workflowDownloader = new WorkflowDownloaderImpl();
 
+    WorkflowDAO _workflowDAO = new WorkflowObjectifyDAOImpl();
     /**
-     * This is the service from which all requests are initiated. The retry and
-     * exponential backoff settings are configured here.
+     * Handles <b>GET</b> requests to <b>/workflowfile</b> servlet which lets
+     * users download a specific workflow kar file. This method assumes the
+     * query parameter {@link WFID} is set with a valid workflow id. If not a {@link
+     * <p/>
+     * The method first verifies the request is authorized to retrieve the data
+     * and if not a {@link HttpServletResponse.SC_UNAUTHORIZED} is set in the
+     * <b>resp</b> object.
+     * <p/>
+     * The method then checks the workflow id is not empty or null and if it is
+     * a
+     * {@link HttpServletResponse.SC_BAD_REQUEST} is set in the <b>resp</b> object.
+     * <p/>
+     * The method then attempts to load the workflow object from the data store
+     * to get the path for the file on google cloud store. If none is found a 
+     * {@link HttpServletResponse.SC_NOT_FOUND} is set in the <b>resp</b> object.
+     * <p/>
+     * Finally the blob key used to retrieve the workflow file from Google's
+     * cloud bucket is extracted and if its null a {link
+     * HttpServletResponse.SC_INTERNAL_SERVER_ERROR} is set in the <b>resp</b>
+     * object.
+     *
+     * @param req Web request
+     * @param resp Response Upon success a kar file is sent in the response
+     * otherwise one of several error responses
+     * @throws IOException If there was an exception generated from invocation
+     * of
+     * <b>resp.sendError()</b> method
      */
-
-    public WorkflowFile() {
-        _workflowDAO = new WorkflowObjectifyDAOImpl();
-    }
-
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        _log.info("in get");
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 
-        try {
-            if (req.getParameter(WFID) != null) {
-
-                User user = _authenticator.authenticate(req);
-                if (!user.isAuthorizedTo(Permission.DOWNLOAD_ALL_WORKFLOWS)) {
-                    _log.warning("Not authorized");
-                    resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Not authorized");
-                    return;
-                }
-
-                String wfid = req.getParameter(WFID);
-                if (wfid == null || wfid.trim().isEmpty()) {
-                    _log.warning("wfid is null or empty string");
-                    resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Invalid file specified to download");
-                    return;
-                }
-                _log.log(Level.INFO, "Got a wfid of: {0}", wfid);
-
-                Workflow w = null;
-
-                w = this._workflowDAO.getWorkflowById(wfid);
-
-                if (w == null) {
-                    _log.log(Level.SEVERE, "Workflow returned by data store is null");
-                    resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, " No workflow matching id found: " + w.getId());
-                    return;
-                }
-
-                if (w.getBlobKey() == null) {
-                    _log.log(Level.SEVERE, "blob key is null");
-                    resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, " Key to workflow file not found for workflow: " + w.getId());
-                    return;
-                }
-
-                BlobstoreService blobstoreService = BlobstoreServiceFactory.getBlobstoreService();
-
-                BlobKey blobKey = new BlobKey(w.getBlobKey());
-                resp.setContentType("application/x-download");
-                resp.setHeader("Content-Disposition", "attachment; filename=" + wfid + ".kar");
-                _log.log(Level.INFO, "attempting to serve blob with key: {0}", blobKey.getKeyString());
-                blobstoreService.serve(blobKey, resp);
-                return;
-            }
-        } catch (Exception ex) {
-            _log.log(Level.SEVERE, "unable to load workflow", ex);
-            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, " Error retreiving workflow file: " + ex.getMessage());
+        if (req.getParameter(WFID) == null) {
+            _log.warning(WFID + " query parameter not set.  No workflow id found");
+            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, WFID
+                    + " query parameter not set.  No workflow id found");
             return;
         }
 
-        resp.setContentType("text/plain");
-        resp.getWriter().println("Hello, this is a testing servlet. \n\n");
-        String remoteIp = req.getRemoteAddr();
-        if (remoteIp != null) {
-            resp.getWriter().println("Your ip is: " + remoteIp);
+        try {
+            User user = _authenticator.authenticate(req);
+            if (!user.isAuthorizedTo(Permission.DOWNLOAD_ALL_WORKFLOWS)) {
+                _log.warning("Not authorized");
+                resp.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Not authorized");
+                return;
+            }
+
+            String wfid = req.getParameter(WFID);
+            if (wfid.trim().isEmpty()) {
+                _log.warning("Workflow Id passed in via " + WFID
+                        + " query parameter is empty");
+                resp.sendError(HttpServletResponse.SC_BAD_REQUEST,
+                        "Workflow Id passed in via " + WFID + " query parameter is empty");
+                return;
+            }
+
+            _log.log(Level.INFO, "Request to download workflow with id: {0}", wfid);
+            _workflowDownloader.send(wfid, resp);
+            
+        } catch (Exception ex) {
+            _log.log(Level.SEVERE, "Unable to load workflow", ex);
+            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error retreiving workflow file: " + ex.getMessage());
         }
     }
 
+    /**
+     * Handles POST request for /workflowfile servlet. It is expected that this
+     * method is only invoked as a redirect from the blobstore upload service
+     * which will set the list of uploaded files in the
+     * {@link BlobstoreService.getUploads} method. This code will take the first
+     * entry as the file uploaded. If there are extra files listed they are
+     * noted via warning logs, but otherwise ignored. The code takes the blob
+     * key for the first uploaded file it encounters and updates the Workflow
+     * object in the data store with the blob key. The response will be set to
+     * error under these conditions<p/>
+     *
+     * If there is an error a
+     * {@link HttpServletResponse.SC_INTERNAL_SERVER_ERROR} is set on
+     * <b>resp</b> object.
+     *
+     * @param req
+     * @param resp
+     * @throws ServletException
+     * @throws IOException
+     */
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        resp.setContentType("text/plain");
-        resp.getWriter().println("Hello, this is doPOST call which registers the workflow file just uploaded. \n\n");
-
-        BlobstoreService blobstoreService = BlobstoreServiceFactory.getBlobstoreService();
-        Map<String, List<BlobKey>> blobMap = blobstoreService.getUploads(req);
-
-        if (blobMap != null) {
-            for (String key : blobMap.keySet()) {
-                List<BlobKey> bkList = blobMap.get(key);
-                String res = "null";
-                String keyVal = "null";
-                if (bkList != null) {
-                    res = Integer.toString(bkList.size());
-                    keyVal = bkList.get(0).getKeyString();
-                }
-
-                resp.getWriter().println("Key " + key + " ==> (" + res + ") " + keyVal);
-                try {
-                    this._workflowDAO.updateBlobKey(Long.parseLong(key), keyVal);
-                } catch (Exception ex) {
-                    _log.log(Level.SEVERE, "Unable to update workflow with id: " + key, ex);
-                    resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, " Unable to update workflow with id: " + key + " : "
-                            + ex.getMessage());
-                }
-            }
+        
+        // @TODO CHECK IF WE NEED TO VERIFY A VALID USER HERE.  REASON I DONT DO
+        // IT NOW IS THE BLOBSTORE WON'T BE SET WITH ANYTHING IN ANY OTHER CASE
+        // EXCEPT WHEN REDIRECTED FROM GAE. OR WILL IT?
+        
+        
+        // @TODO refactor this to a upload handler interface so its easy to test this
+        //       method
+        BlobstoreService blobstoreService = BlobStoreServiceUtil.getBlobstoreService();
+        
+        try {
+            Workflow w = BlobStoreServiceUtil.getWorkflowWithBlobKeyFromMapOfBlobKeyLists(blobstoreService.getUploads(req));
+            _workflowDAO.updateBlobKey(w.getId(), w.getBlobKey());
+        } catch (Exception ex) {
+            _log.log(Level.SEVERE, "Caught exception " + ex.getMessage(), ex);
+            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+            "Caught Exception: " + ex.getMessage());
+            return;
         }
+
+        resp.setStatus(HttpServletResponse.SC_OK);
     }
 
 }
