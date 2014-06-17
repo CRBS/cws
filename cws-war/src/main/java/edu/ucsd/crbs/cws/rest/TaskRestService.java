@@ -32,7 +32,7 @@ import javax.ws.rs.core.MediaType;
  *
  * @author Christopher Churas <churas@ncmir.ucsd.edu>
  */
-@Path("/" + Constants.TASKS_PATH)
+@Path(Constants.SLASH + Constants.TASKS_PATH)
 public class TaskRestService {
 
     
@@ -67,6 +67,7 @@ public class TaskRestService {
      * are returned (?notsubmittedtoscheduler=)
      * @param userLogin
      * @param userToken
+     * @param userLoginToRunAs
      * @param request
      *
      * @return List of Task objects in JSON format with media type set to
@@ -81,10 +82,12 @@ public class TaskRestService {
             @QueryParam(Constants.NOTSUBMITTED_TO_SCHED_QUERY_PARAM) final boolean notSubmitted,
             @QueryParam(Constants.USER_LOGIN_PARAM) final String userLogin,
             @QueryParam(Constants.USER_TOKEN_PARAM) final String userToken,
+            @QueryParam(Constants.USER_LOGIN_TO_RUN_AS_PARAM) final String userLoginToRunAs,
             @Context HttpServletRequest request) {
 
         try {
-            User user = _authenticator.authenticate(request, userLogin, userToken);
+            User user = _authenticator.authenticate(request, userLogin, userToken,
+                    userLoginToRunAs);
              Event event = _eventBuilder.createEvent(request, user);
             _log.info(event.getStringOfLocationData());
             
@@ -106,18 +109,21 @@ public class TaskRestService {
      * @param taskid Path parameter that denotes id of task to retrieve
      * @param userLogin
      * @param userToken
+     * @param userLoginToRunAs
      * @param request
      * @return
      */
     @GET
-    @Path("/{taskid}")
+    @Path(Constants.TASK_ID_REST_PATH)
     @Produces(MediaType.APPLICATION_JSON)
-    public Task getTask(@PathParam("taskid") String taskid,
+    public Task getTask(@PathParam(Constants.TASK_ID_PATH_PARAM) String taskid,
             @QueryParam(Constants.USER_LOGIN_PARAM) final String userLogin,
             @QueryParam(Constants.USER_TOKEN_PARAM) final String userToken,
+            @QueryParam(Constants.USER_LOGIN_TO_RUN_AS_PARAM) final String userLoginToRunAs,
             @Context HttpServletRequest request) {
         try {
-            User user = _authenticator.authenticate(request, userLogin, userToken);
+            User user = _authenticator.authenticate(request, userLogin, userToken,
+                    userLoginToRunAs);
              Event event = _eventBuilder.createEvent(request, user);
             _log.info(event.getStringOfLocationData());
 
@@ -149,15 +155,16 @@ public class TaskRestService {
      * @param jobId
      * @param userLogin
      * @param userToken
+     * @param userLoginToRunAs
      * @param request
      * @return
      */
     @POST
-    @Path("/{taskid}")
+    @Path(Constants.TASK_ID_REST_PATH)
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
 
-    public Task updateTask(@PathParam("taskid") final Long taskId,
+    public Task updateTask(@PathParam(Constants.TASK_ID_PATH_PARAM) final Long taskId,
             @QueryParam(Constants.STATUS_QUERY_PARAM) final String status,
             @QueryParam(Constants.ESTCPU_QUERY_PARAM) final Long estCpu,
             @QueryParam(Constants.ESTRUNTIME_QUERY_PARAM) final Long estRunTime,
@@ -170,10 +177,12 @@ public class TaskRestService {
             @QueryParam(Constants.JOB_ID_QUERY_PARAM) final String jobId,
             @QueryParam(Constants.USER_LOGIN_PARAM) final String userLogin,
             @QueryParam(Constants.USER_TOKEN_PARAM) final String userToken,
+            @QueryParam(Constants.USER_LOGIN_TO_RUN_AS_PARAM) final String userLoginToRunAs,
             @Context HttpServletRequest request) {
 
         try {
-            User user = _authenticator.authenticate(request, userLogin, userToken);
+            User user = _authenticator.authenticate(request, userLogin, userToken,
+                    userLoginToRunAs);
             Event event = _eventBuilder.createEvent(request, user);
             _log.info(event.getStringOfLocationData());
             if (taskId != null) {
@@ -202,6 +211,7 @@ public class TaskRestService {
      * @param t
      * @param userLogin
      * @param userToken
+     * @param userLoginToRunAs
      * @param request
      * @return
      */
@@ -211,9 +221,11 @@ public class TaskRestService {
     public Task createTask(Task t,
             @QueryParam(Constants.USER_LOGIN_PARAM) final String userLogin,
             @QueryParam(Constants.USER_TOKEN_PARAM) final String userToken,
+            @QueryParam(Constants.USER_LOGIN_TO_RUN_AS_PARAM) final String userLoginToRunAs,
             @Context HttpServletRequest request) {
         try {
-            User user = _authenticator.authenticate(request, userLogin, userToken);
+            User user = _authenticator.authenticate(request, userLogin, userToken,
+                    userLoginToRunAs);
             Event event = _eventBuilder.createEvent(request, user);
             _log.info(event.getStringOfLocationData());
             
