@@ -1,0 +1,36 @@
+<#if licenseFirst??>
+${licenseFirst}
+</#if>
+${licensePrefix}COPYRIGHT AND LICENSE
+${licensePrefix}
+${licensePrefix}Copyright ${date?date?string("yyyy")} The Regents of the University of California All Rights Reserved
+${licensePrefix}
+${licensePrefix}Permission to copy, modify and distribute any part of this CRBS Workflow 
+${licensePrefix}Service for educational, research and non-profit purposes, without fee, and
+${licensePrefix}without a written agreement is hereby granted, provided that the above 
+${licensePrefix}copyright notice, this paragraph and the following three paragraphs appear
+${licensePrefix}in all copies.
+${licensePrefix}
+${licensePrefix}Those desiring to incorporate this CRBS Workflow Service into commercial 
+${licensePrefix}products or use for commercial purposes should contact the Technology
+${licensePrefix}Transfer Office, University of California, San Diego, 9500 Gilman Drive, 
+${licensePrefix}Mail Code 0910, La Jolla, CA 92093-0910, Ph: (858) 534-5815, 
+${licensePrefix}FAX: (858) 534-7345, E-MAIL:invent@ucsd.edu.
+${licensePrefix}
+${licensePrefix}IN NO EVENT SHALL THE UNIVERSITY OF CALIFORNIA BE LIABLE TO ANY PARTY FOR 
+${licensePrefix}DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES, INCLUDING 
+${licensePrefix}LOST PROFITS, ARISING OUT OF THE USE OF THIS CRBS Workflow Service, EVEN IF 
+${licensePrefix}THE UNIVERSITY OF CALIFORNIA HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH
+${licensePrefix}DAMAGE.
+${licensePrefix}
+${licensePrefix}THE CRBS Workflow Service PROVIDED HEREIN IS ON AN "AS IS" BASIS, AND THE
+${licensePrefix}UNIVERSITY OF CALIFORNIA HAS NO OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, 
+${licensePrefix}UPDATES, ENHANCEMENTS, OR MODIFICATIONS. THE UNIVERSITY OF CALIFORNIA MAKES
+${licensePrefix}NO REPRESENTATIONS AND EXTENDS NO WARRANTIES OF ANY KIND, EITHER IMPLIED OR 
+${licensePrefix}EXPRESS, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF 
+${licensePrefix}MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE, OR THAT THE USE OF 
+${licensePrefix}THE CRBS Workflow Service WILL NOT INFRINGE ANY PATENT, TRADEMARK OR OTHER
+${licensePrefix}RIGHTS. 
+<#if licenseLast??>
+${licenseLast}
+</#if>
