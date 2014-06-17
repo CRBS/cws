@@ -5,12 +5,12 @@ import edu.ucsd.crbs.cws.workflow.Task;
 import java.io.File;
 
 /**
- *
+ * Creates directories needed to run a Workflow Task
  * @author Christopher Churas <churas@ncmir.ucsd.edu>
  */
 public class TaskDirectoryCreatorImpl implements TaskDirectoryCreator{
 
-    private String _baseExecDir;
+    private final String _baseExecDir;
     
     public TaskDirectoryCreatorImpl(final String baseTaskExecutionDirectory){
         _baseExecDir = baseTaskExecutionDirectory;
