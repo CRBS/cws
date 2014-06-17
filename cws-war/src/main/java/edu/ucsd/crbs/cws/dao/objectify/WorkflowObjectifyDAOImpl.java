@@ -2,9 +2,13 @@ package edu.ucsd.crbs.cws.dao.objectify;
 
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Work;
+import edu.ucsd.crbs.cws.auth.User;
 import edu.ucsd.crbs.cws.dao.WorkflowDAO;
 import static edu.ucsd.crbs.cws.dao.objectify.OfyService.ofy;
+import edu.ucsd.crbs.cws.gae.URLFetcher;
+import edu.ucsd.crbs.cws.gae.URLFetcherImpl;
 import edu.ucsd.crbs.cws.workflow.Workflow;
+import edu.ucsd.crbs.cws.workflow.WorkflowParameter;
 import java.util.Date;
 import java.util.List;
 
@@ -16,6 +20,9 @@ import java.util.List;
  */
 public class WorkflowObjectifyDAOImpl implements WorkflowDAO {
 
+    
+    URLFetcher _dropDownFetcher = new URLFetcherImpl();
+    
     /**
      * Adds a new workflow to the data store.  If the Id of the Workflow is set then the
      * parent field of this Workflow object is set to that Id and this Workflow is given
@@ -88,7 +95,7 @@ public class WorkflowObjectifyDAOImpl implements WorkflowDAO {
      * @throws Exception If workflowId is null or there is an error parsing the numerical id or if there was an error retrieving from Objectify
      */
     @Override
-    public Workflow getWorkflowById(final String workflowId) throws Exception {
+    public Workflow getWorkflowById(final String workflowId,User user) throws Exception {
         long wfId;
         if (workflowId == null){
             throw new IllegalArgumentException("workflow id cannot be null");
@@ -102,7 +109,16 @@ public class WorkflowObjectifyDAOImpl implements WorkflowDAO {
         if (wfId <= 0){
             throw new Exception(Long.toString(wfId)+" is not a valid workflow id");
         }
-        return ofy().load().type(Workflow.class).id(wfId).now();
+        Workflow w = ofy().load().type(Workflow.class).id(wfId).now();
+        
+        if (w == null){
+            return null;
+        }
+        
+        for (WorkflowParameter param : w.getParameters()){
+            _dropDownFetcher.fetchAndUpdate(param,user);
+        }
+        return w;
     }
 
     
