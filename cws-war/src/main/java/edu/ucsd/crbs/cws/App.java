@@ -434,7 +434,7 @@ public class App {
 
         wp = new WorkflowParameter();
         wp.setType("dropdown");
-        wp.setValue("http://www.google.com");
+        wp.setValue("displayName1==value1;displayName2==value2;displayName3==value3");
         wp.setName("bar");
         wp.setDisplayName("Bar");
         wp.setMaxValue(100);
@@ -445,7 +445,8 @@ public class App {
         valueMap.put("displayName3", "value3");
                 
         wp.setValueMap(valueMap);
-        wp.setDelimiterValue("==");
+        wp.setNameValueDelimiter("==");
+        wp.setLineDelimiter(";");
         wp.setHelp("Tooltip goes here.  This is a dropdown field");
         params.add(wp);
         
