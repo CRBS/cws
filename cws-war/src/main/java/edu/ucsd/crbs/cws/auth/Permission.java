@@ -14,6 +14,11 @@ public class Permission {
     public static final int NONE = 0;
     
     /**
+     * All permissions
+     */
+    public static final int ALL = 0xFFFFFFFF;
+    
+    /**
      * Permission to get a list of all user Tasks
      */
     public static final int LIST_ALL_TASKS = 1;
@@ -62,4 +67,9 @@ public class Permission {
      * Permission to download their workflows
      */
     public static final int DOWNLOAD_THEIR_WORKFLOWS = 512;
+    
+    /**
+     * Permission to run as another user
+     */
+    public static final int RUN_AS_ANOTHER_USER = 1024;
 }
