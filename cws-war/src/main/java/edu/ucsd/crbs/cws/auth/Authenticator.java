@@ -20,7 +20,7 @@ public interface Authenticator {
      * @return Authenticated User object
      */
     public User authenticate(HttpServletRequest request,final String userLogin,
-            final String userToken) throws Exception;
+            final String userToken,final String loginToRunAs) throws Exception;
     
     public User authenticate(HttpServletRequest request) throws Exception;
 }
