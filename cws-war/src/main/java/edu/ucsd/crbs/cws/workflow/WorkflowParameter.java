@@ -43,6 +43,11 @@ public class WorkflowParameter {
         public static final String CHECK_BOX = "checkbox";
         
         /**
+         * Drop down field maps to "select" in HTML
+         */
+        public static final String DROP_DOWN = "dropdown";
+        
+        /**
          * Denotes this field should be a list of values preferably displayed
          * in a drop down menu. @TODO NEED TO IMPLEMENT THIS
          */
@@ -62,7 +67,8 @@ public class WorkflowParameter {
                     type.equalsIgnoreCase(TEXT) ||
                     type.equalsIgnoreCase(FILE) ||
                     type.equalsIgnoreCase(CHECK_BOX) ||
-                    type.equalsIgnoreCase(TEXT_AREA);
+                    type.equalsIgnoreCase(TEXT_AREA) ||
+                    type.equalsIgnoreCase(DROP_DOWN);
         }
     }
 

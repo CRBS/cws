@@ -112,4 +112,17 @@ public class TestWorkflowParameter {
         
     }
     
+    @Test
+    public void testIsValidType(){
+       assertTrue(WorkflowParameter.Type.isValidType(null) == false);
+       assertTrue(WorkflowParameter.Type.isValidType(WorkflowParameter.Type.CHECK_BOX) == true);
+       assertTrue(WorkflowParameter.Type.isValidType(WorkflowParameter.Type.HIDDEN) == true);
+       assertTrue(WorkflowParameter.Type.isValidType(WorkflowParameter.Type.TEXT) == true);
+       assertTrue(WorkflowParameter.Type.isValidType(WorkflowParameter.Type.TEXT.toUpperCase()) == true);
+       assertTrue(WorkflowParameter.Type.isValidType(WorkflowParameter.Type.TEXT_AREA) == true);
+       assertTrue(WorkflowParameter.Type.isValidType(WorkflowParameter.Type.FILE) == true);
+       assertTrue(WorkflowParameter.Type.isValidType("Textarea") == true);
+       assertTrue(WorkflowParameter.Type.isValidType(WorkflowParameter.Type.FILE+"x") == false);
+       assertTrue(WorkflowParameter.Type.isValidType("x"+WorkflowParameter.Type.FILE) == false);
+    }
 }
