@@ -28,4 +28,5 @@
     <module>cws-war</module>
     <module>cws-ear</module>
   </modules>
+    <name>CRBS Workflow Service</name>
 </project>
