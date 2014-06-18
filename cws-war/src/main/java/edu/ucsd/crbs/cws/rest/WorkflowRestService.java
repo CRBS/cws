@@ -162,7 +162,7 @@ public class WorkflowRestService {
             
             //@TODO need to cache the AppIdentity Service factory default google bucket 
             insertedWorkflow.setWorkflowFileUploadURL(blobstoreService.createUploadUrl(WORKFLOW_FILE_SERVLET_PATH,
-                    Builder.withGoogleStorageBucketName(AppIdentityServiceFactory.getAppIdentityService().getDefaultGcsBucketName())));
+                    Builder.withGoogleStorageBucketName(AppIdentityServiceFactory.getAppIdentityService().getDefaultGcsBucketName()+"/workflows/")));
             
             // save this event to datastore, but if it fails no biggy
             saveEvent(_eventBuilder.setAsCreateWorkflowEvent(event, w));
