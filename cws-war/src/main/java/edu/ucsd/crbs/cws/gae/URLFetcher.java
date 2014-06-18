@@ -50,6 +50,7 @@ public interface URLFetcher {
      * in <b>parameter</b>
      * 
      * @param parameter
+     * @param user
      * @throws Exception 
      */
     public void fetchAndUpdate(WorkflowParameter parameter,
