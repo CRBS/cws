@@ -261,7 +261,8 @@ public class WorkflowFromXmlFactory {
                 wParam.setHelp(subEl.getAttributeValue(ATTRIBUTE_VALUE_KEY));
                 
             }
-            if (subEl.getAttributeValue(ATTRIBUTE_NAME_KEY).equalsIgnoreCase("displaytype")) {
+            if (subEl.getAttributeValue(ATTRIBUTE_NAME_KEY).equalsIgnoreCase("displaytype") ||
+                subEl.getAttributeValue(ATTRIBUTE_NAME_KEY).equalsIgnoreCase("type")) {
                 String theType = subEl.getAttributeValue(ATTRIBUTE_VALUE_KEY);
                 if (theType == null){
                     throw new Exception("value of displaytype attribute for Parameter "+wParam.getName()+" is null. ");
