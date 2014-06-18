@@ -76,7 +76,7 @@ public class TestWorkflowFromXmlFactory {
         assertTrue(w.getDescription().startsWith("This is an example workflow that can be used as a template\n\nThe Blue"));
         assertTrue(w.getDescription().contains("This text is the description for the workflow."));
         assertTrue(w.getReleaseNotes().contains("-- Some new feature"));
-        assertTrue(w.getParameters().size() == 6);
+        assertTrue(w.getParameters().size() == 9);
 
         //put parameters into a hash to make it easier to test
         HashMap<String,WorkflowParameter> paramHash = new HashMap<>();
@@ -86,20 +86,40 @@ public class TestWorkflowFromXmlFactory {
         
         WorkflowParameter wp;
        
+        
+        //example dropdown
+        wp = paramHash.get("exampledropdown");
+        assertTrue(wp != null);
+        assertTrue(wp.getDisplayName().equals("Example Drop Down"));
+        assertTrue(wp.getNameValueDelimiter().equals("=="));
+        assertTrue(wp.getHelp().startsWith("Example drop down"));
+        assertTrue(wp.getIsAdvanced() == false);
+        assertTrue(wp.getIsRequired() == false);
+        assertTrue(wp.getType().equals(WorkflowParameter.Type.DROP_DOWN));
+        assertTrue(wp.getValidationHelp() == null);
+        assertTrue(wp.getValidationRegex() == null);
+        assertTrue(wp.getValidationType() == null);
+        assertTrue(wp.getValue().startsWith("https"));
+        assertTrue(wp.getColumns() == 0L);
+        assertTrue(wp.getMaxFileSize() == 0L);
+        assertTrue(wp.getMaxLength() == 0L);
+        assertTrue(wp.getMaxValue() == 0L);
+        assertTrue(wp.getMinValue() == 0L);
+        assertTrue(wp.getRows() == 0L);
+        assertTrue(wp.getValueMap() == null);
+        
         //example file parameter
-        wp = paramHash.get("examplefileparam");
+        wp = paramHash.get("examplefile");
         assertTrue(wp != null);
-        assertTrue(wp != null);
-        assertTrue(wp.getDisplayName().equals("Example File Param"));
+        assertTrue(wp.getDisplayName().equals("Example File"));
         assertTrue(wp.getNameValueDelimiter() == null);
-        assertTrue(wp.getHelp().equals("Query sequence(s) in fasta format to be used for a BLAST seach."));
+        assertTrue(wp.getHelp().startsWith("This parameter takes a file"));
         assertTrue(wp.getIsAdvanced() == false);
         assertTrue(wp.getIsRequired() == true);
         assertTrue(wp.getType().equals(WorkflowParameter.Type.FILE));
-        assertTrue(wp.getValidationHelp().startsWith("Must be set to an uncompressed"));
+        assertTrue(wp.getValidationHelp().startsWith("Must be"));
         assertTrue(wp.getValidationRegex() == null);
-        // @TODO NUCLEOTIDEFASTA is no longer a valid validation type so we should switch it in the kar
-        assertTrue(wp.getValidationType().equals("NUCLEOTIDEFASTA"));
+        assertTrue(wp.getValidationType() == null);
         assertTrue(wp.getValue().equals("/somepath"));
         assertTrue(wp.getColumns() == 0L);
         assertTrue(wp.getMaxFileSize() == 20000000L);
@@ -110,18 +130,18 @@ public class TestWorkflowFromXmlFactory {
         assertTrue(wp.getValueMap() == null);
         
         //example string parameter
-        wp = paramHash.get("examplestringparam");
+        wp = paramHash.get("exampletext");
         assertTrue(wp != null);
-        assertTrue(wp.getDisplayName().equals("Example String Param"));
+        assertTrue(wp.getDisplayName().equals("Example Text"));
         assertTrue(wp.getNameValueDelimiter() == null);
-        assertTrue(wp.getHelp().startsWith("With this option set to true you can cut and paste"));
+        assertTrue(wp.getHelp().startsWith("Example"));
         assertTrue(wp.getIsAdvanced() == false);
         assertTrue(wp.getIsRequired() == false);
         assertTrue(wp.getType().equals(WorkflowParameter.Type.TEXT));
         assertTrue(wp.getValidationHelp() == null);
-        assertTrue(wp.getValidationRegex().equals("^false|true$"));
+        assertTrue(wp.getValidationRegex().equals("^.*blah.*"));
         assertTrue(wp.getValidationType().equals("string"));
-        assertTrue(wp.getValue().equals("false"));
+        assertTrue(wp.getValue().equals("blah blah text"));
         assertTrue(wp.getColumns() == 0L);
         assertTrue(wp.getMaxFileSize() == 0L);
         assertTrue(wp.getMaxLength() == 0L);
@@ -132,11 +152,11 @@ public class TestWorkflowFromXmlFactory {
         
         
         //example number parameter
-        wp = paramHash.get("examplenumberparam");
+        wp = paramHash.get("examplenumber");
         assertTrue(wp != null);
-        assertTrue(wp.getDisplayName().equals("Example Number Param"));
+        assertTrue(wp.getDisplayName().equals("Example Number"));
         assertTrue(wp.getNameValueDelimiter() == null);
-        assertTrue(wp.getHelp().equals("Sets the upper limit on number of database  sequences to show alignments. Maximum allowed value is 50,000."));
+        assertTrue(wp.getHelp().startsWith("Example number parameter"));
         assertTrue(wp.getIsAdvanced() == false);
         assertTrue(wp.getIsRequired() == false);
         assertTrue(wp.getType().equals(WorkflowParameter.Type.TEXT));
@@ -151,7 +171,50 @@ public class TestWorkflowFromXmlFactory {
         assertTrue(wp.getMinValue() == 1L);
         assertTrue(wp.getRows() == 0L);
         assertTrue(wp.getValueMap() == null);
-
+        
+        //example checkbox parameter
+        wp = paramHash.get("examplecheckbox");
+        assertTrue(wp != null);
+        assertTrue(wp.getDisplayName().equals("Example Checkbox"));
+        assertTrue(wp.getNameValueDelimiter() == null);
+        assertTrue(wp.getHelp().startsWith("Example checkbox"));
+        assertTrue(wp.getIsAdvanced() == false);
+        assertTrue(wp.getIsRequired() == false);
+        assertTrue(wp.getType().equals(WorkflowParameter.Type.CHECK_BOX));
+        assertTrue(wp.getValidationHelp() == null);
+        assertTrue(wp.getValidationRegex() == null);
+        assertTrue(wp.getValidationType() == null);
+        assertTrue(wp.getValue().equals("false"));
+        assertTrue(wp.getColumns() == 0L);
+        assertTrue(wp.getMaxFileSize() == 0L);
+        assertTrue(wp.getMaxLength() == 0L);
+        assertTrue(wp.getMaxValue() == 0L);
+        assertTrue(wp.getMinValue() == 0L);
+        assertTrue(wp.getRows() == 0L);
+        assertTrue(wp.getValueMap() == null);
+        
+       //example textarea parameter
+        wp = paramHash.get("exampletextarea");
+        assertTrue(wp != null);
+        assertTrue(wp.getDisplayName().equals("Example Text Area"));
+        assertTrue(wp.getNameValueDelimiter() == null);
+        assertTrue(wp.getHelp().startsWith("Example Text area"));
+        assertTrue(wp.getIsAdvanced() == false);
+        assertTrue(wp.getIsRequired() == false);
+        assertTrue(wp.getType().equals(WorkflowParameter.Type.TEXT_AREA));
+        assertTrue(wp.getValidationHelp() == null);
+        assertTrue(wp.getValidationRegex() == null);
+        assertTrue(wp.getValidationType().equals("string"));
+        assertTrue(wp.getValue().equals("blah blah text area"));
+        assertTrue(wp.getColumns() == 30L);
+        assertTrue(wp.getMaxFileSize() == 0L);
+        assertTrue(wp.getMaxLength() == 0L);
+        assertTrue(wp.getMaxValue() == 0L);
+        assertTrue(wp.getMinValue() == 0L);
+        assertTrue(wp.getRows() == 2L);
+        assertTrue(wp.getValueMap() == null);
+        
+        
         wp = paramHash.get("CWS_outputdir");
         assertTrue(wp != null);
         assertTrue(wp.getDisplayName().equals("CWS_outputdir"));

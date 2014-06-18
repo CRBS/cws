@@ -299,6 +299,15 @@ public class WorkflowFromXmlFactory {
                     }
                 }
             }
+            
+            if (subEl.getAttributeValue(ATTRIBUTE_NAME_KEY).equalsIgnoreCase("rows")) {
+                wParam.setRows(new Long(subEl.getAttributeValue(ATTRIBUTE_VALUE_KEY)));
+            }
+
+            if (subEl.getAttributeValue(ATTRIBUTE_NAME_KEY).equalsIgnoreCase("columns")) {
+                wParam.setColumns(new Long(subEl.getAttributeValue(ATTRIBUTE_VALUE_KEY)));
+            }
+            
             //this checks for the presence of elements for validation properties
             if (subEl.getAttributeValue(ATTRIBUTE_NAME_KEY).equalsIgnoreCase("inputtype")) {
                 wParam.setValidationType(subEl.getAttributeValue(ATTRIBUTE_VALUE_KEY));
