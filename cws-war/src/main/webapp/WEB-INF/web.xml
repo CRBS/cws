@@ -52,4 +52,15 @@
         <servlet-name>workflowfile</servlet-name>
         <url-pattern>/workflowfile/*</url-pattern>
     </servlet-mapping>
+    
+    <!-- Any requests going to URL /testdropdown/* should be handled by HttpServlet -->
+    <servlet>
+        <servlet-name>fakedropdown</servlet-name>
+        <servlet-class>edu.ucsd.crbs.cws.servlet.FakeDropDown</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>fakedropdown</servlet-name>
+        <url-pattern>/fakedropdown/*</url-pattern>
+    </servlet-mapping>
+   
 </web-app>
