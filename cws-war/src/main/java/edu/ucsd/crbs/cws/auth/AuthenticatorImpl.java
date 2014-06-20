@@ -43,6 +43,7 @@ public class AuthenticatorImpl implements Authenticator {
         //query data store for user with username and token and return it
         user = _userDAO.getUserByLoginAndToken(userLogin,userToken);
         if (user != null){
+            user.setIpAddress(ipAddress);
             if (user.isAuthorizedTo(Permission.RUN_AS_ANOTHER_USER) == true){
                 user.setLoginToRunTaskAs(loginToRunAs);
             }
@@ -51,6 +52,7 @@ public class AuthenticatorImpl implements Authenticator {
         
         //fail cause we couldn't find anybody so make a user with no permission
         User invalidUser = new User();
+        invalidUser.setIpAddress(ipAddress);
         invalidUser.setPermissions(Permission.NONE);
         return invalidUser;
     }
