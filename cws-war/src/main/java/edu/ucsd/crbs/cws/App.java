@@ -20,6 +20,7 @@ import edu.ucsd.crbs.cws.workflow.Task;
 import edu.ucsd.crbs.cws.workflow.Workflow;
 import edu.ucsd.crbs.cws.workflow.WorkflowFromXmlFactory;
 import edu.ucsd.crbs.cws.workflow.WorkflowParameter;
+import edu.ucsd.crbs.cws.workflow.WorkspaceFile;
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.File;
@@ -46,6 +47,10 @@ public class App {
     public static final String XML_SUFFIX = ".xml";
 
     public static final String UPLOAD_WF_ARG = "uploadwf";
+    
+    public static final String UPLOAD_FILE_ARG = "uploadfile";
+    
+    public static final String OWNER_ARG = "owner";
 
     public static final String SYNC_WITH_CLUSTER_ARG = "syncwithcluster";
 
@@ -91,9 +96,10 @@ public class App {
 
             OptionParser parser = new OptionParser() {
                 {
-                    accepts(UPLOAD_WF_ARG, "Add/Update Workflow").withRequiredArg().ofType(File.class).describedAs(".xml or .kar");
+                    accepts(UPLOAD_WF_ARG, "Add/Update Workflow").withRequiredArg().ofType(File.class).describedAs(".kar");
                     //accepts(LOAD_TEST,"creates lots of workflows and tasks");
                     accepts(SYNC_WITH_CLUSTER_ARG, "Submits & Synchronizes Workflow Tasks on local cluster with CRBS Workflow Webservice").withRequiredArg().ofType(String.class).describedAs("URL");
+                    accepts(UPLOAD_FILE_ARG,"Adds Workspace file").withRequiredArg().ofType(File.class);
                     accepts(URL_ARG, "URL to use with --" + UPLOAD_WF_ARG + " flag").withRequiredArg().ofType(String.class).describedAs("URL");
                     accepts(PARENT_WFID_ARG, "Parent Workflow ID").withRequiredArg().ofType(Long.class).describedAs("Workflow ID");
                     accepts(EXAMPLE_JSON_ARG, "Outputs JSON of Task & Workflow objects");
@@ -105,6 +111,7 @@ public class App {
                     accepts(STAT, "Panfishstat binary").withRequiredArg().ofType(File.class).describedAs("panfishstat");
                     accepts(LOGIN, "User Login").withRequiredArg().ofType(String.class).describedAs("username");
                     accepts(TOKEN, "User Token").withRequiredArg().ofType(String.class).describedAs("token");
+                    accepts(OWNER_ARG,"Owner").withRequiredArg().ofType(String.class);
                     accepts(HELP_ARG).forHelp();
                 }
             };
@@ -120,7 +127,7 @@ public class App {
 
             if (optionSet.has(HELP_ARG)
                     || (!optionSet.has(SYNC_WITH_CLUSTER_ARG) && !optionSet.has(UPLOAD_WF_ARG))
-                    && !optionSet.has(EXAMPLE_JSON_ARG)) {
+                    && !optionSet.has(EXAMPLE_JSON_ARG) && !optionSet.has(UPLOAD_FILE_ARG)) {
                 System.out.println(PROGRAM_HELP + "\n");
                 parser.printHelpOn(System.out);
                 System.exit(0);
@@ -211,6 +218,74 @@ public class App {
                 System.exit(0);
             }
 
+            if (optionSet.has(UPLOAD_FILE_ARG)){
+                 String postURL = null;
+                if (optionSet.has(URL_ARG)) {
+                    postURL = (String) optionSet.valueOf(URL_ARG);
+                    if (!optionSet.has(LOGIN)) {
+                        System.err.println("-" + LOGIN + " is required with -" + UPLOAD_FILE_ARG + " and -"+URL_ARG+" flag");
+                        System.exit(10);
+                    }
+                    if (!optionSet.has(TOKEN)) {
+                        System.err.println("-" + TOKEN + " is required with -" + UPLOAD_FILE_ARG + " and -"+URL_ARG+" flag");
+                        System.exit(11);
+                    }
+                }
+                
+                File file = (File)optionSet.valueOf(UPLOAD_FILE_ARG);
+                WorkspaceFile wsp = new WorkspaceFile();
+                wsp.setName(file.getName());
+                wsp.setSize(file.length());
+                wsp.setDir(file.isDirectory());
+                if (optionSet.has(OWNER_ARG)){
+                    wsp.setOwner((String)optionSet.valueOf(OWNER_ARG));
+                }
+                
+                ObjectMapper om = new ObjectMapper();
+                if (postURL == null){
+                       System.out.println("\n--- JSON Representation of WorkspaceFile ---");
+                        ObjectWriter ow = om.writerWithDefaultPrettyPrinter();
+                        System.out.println(ow.writeValueAsString(wsp));
+                        System.out.flush();
+                        System.out.println("---------------------------------------");
+                        System.exit(0);
+                }
+                
+                
+                ClientConfig cc = new DefaultClientConfig();
+                        cc.getClasses().add(StringProvider.class);
+                        cc.getClasses().add(MultiPartWriter.class);
+                        Client client = Client.create(cc);
+                        client.setFollowRedirects(true);
+                        WebResource resource = client.resource(postURL);
+                        String workspaceFileAsJson = om.writeValueAsString(wsp);
+
+                        MultivaluedMap queryParams = new MultivaluedMapImpl();
+
+                        //add authentication tokens
+                        queryParams.add(Constants.USER_LOGIN_PARAM, (String) optionSet.valueOf(LOGIN));
+                        queryParams.add(Constants.USER_TOKEN_PARAM, (String) optionSet.valueOf(TOKEN));
+
+                        String response = resource.queryParams(queryParams).type(MediaType.APPLICATION_JSON_TYPE)
+                                .entity(workspaceFileAsJson)
+                                .post(String.class);
+                        WorkspaceFile workspaceFileRes = om.readValue(response, WorkspaceFile.class);
+                        ObjectWriter ow = om.writerWithDefaultPrettyPrinter();
+                        //System.out.println(ow.writeValueAsString(workflowRes));
+
+                        if (workspaceFileRes.getUploadURL() == null) {
+                            throw new Exception("No upload url found for workflow!!!"
+                                    + ow.writeValueAsString(workspaceFileRes));
+                        }
+
+                        // TODO FIX THIS
+                        // I gave up trying to get the jersey client to post the
+                        // file so as a backup I'm just calling curl
+                        uploadWorkspaceFile(workspaceFileRes,file);
+                
+                System.exit(0);
+            }
+            
             if (optionSet.has(UPLOAD_WF_ARG)) {
 
                 Long parentWfId = null;
@@ -348,6 +423,42 @@ public class App {
     }
 
     
+    public static void uploadWorkspaceFile(WorkspaceFile w, File file) throws Exception {
+
+        System.out.println("TODO SWITCH THIS TO USE JERSEY CLIENT!!!\nAttempting to run this command: curl -i -X POST --form '"
+                + w.getId().toString() + "=@" + file.getAbsolutePath() + "' "
+                + w.getUploadURL());
+        ProcessBuilder pb = new ProcessBuilder("curl",
+                "-i", "-X", "POST", "--form",
+                w.getId().toString() + "=@" + file.getAbsolutePath(),
+                w.getUploadURL());
+
+        pb.redirectErrorStream(true);
+
+        Process p = pb.start();
+
+        BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
+
+        StringBuilder sb = new StringBuilder();
+
+        String line = reader.readLine();
+        boolean firstLine = true;
+        String jobId = null;
+        while (line != null) {
+            sb.append(line).append("\n");
+            line = reader.readLine();
+        }
+        reader.close();
+
+        if (p.waitFor() != 0) {
+            throw new Exception("Non zero exit code from curl: " + sb.toString());
+        }
+        System.out.println("\n");
+        System.out.println("--------------- OUTPUT FROM CURL ----------------");
+        System.out.println(sb.toString());
+        System.out.println("--------------- END OF OUTPUT FROM CURL ---------");
+    }
+    
 
     public static void renderExampleWorkflowsAndTasksAsJson() throws Exception {
 
@@ -371,7 +482,12 @@ public class App {
         System.out.println("-----------------------");
         System.out.println(ow.writeValueAsString(getTaskWithParametersAndWorkflow()));
         System.out.flush();
+        System.out.println("-----------------------\n\n");
 
+        System.out.println("Json for WorkspaceFile");
+        System.out.println("-----------------------");
+        System.out.println(ow.writeValueAsString(getWorkspaceFile()));
+        System.out.flush();
     }
 
     public static Task getTaskWithParametersAndWorkflow() {
@@ -450,11 +566,23 @@ public class App {
         wp.setHelp("Tooltip goes here.  This is a dropdown field");
         params.add(wp);
         
-        
-       
-        
-        
         w.setParameters(params);
         return w;
+    }
+    
+    public static WorkspaceFile getWorkspaceFile(){
+        WorkspaceFile wsp = new WorkspaceFile();
+        wsp.setId(new Long(123123));
+        wsp.setType("png");
+        wsp.setCreateDate(new Date());
+        wsp.setDescription("some information");
+        wsp.setDeleted(false);
+        wsp.setDir(false);
+        wsp.setMd5("cec200b3e7c2c013fecdaaa5cceaf526");
+        wsp.setName("foo.png");
+        wsp.setOwner("bob");
+        wsp.setPath("/home/foo/bob/123/foo.png");
+        wsp.setSize(new Long(123123));
+        return wsp;
     }
 }
