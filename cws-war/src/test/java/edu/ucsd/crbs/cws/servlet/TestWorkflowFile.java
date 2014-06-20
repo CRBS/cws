@@ -168,7 +168,7 @@ public class TestWorkflowFile {
             User validUser = new User();
             servlet._authenticator = mockAuthen;
             
-            WorkflowDownloader mockDownloader = mock(WorkflowDownloader.class);
+            Downloader mockDownloader = mock(Downloader.class);
             servlet._workflowDownloader = mockDownloader;
             validUser.setPermissions(Permission.DOWNLOAD_ALL_WORKFLOWS);
             HttpServletRequest mockRequest = mock(HttpServletRequest.class);
@@ -201,7 +201,7 @@ public class TestWorkflowFile {
             User validUser = new User();
             servlet._authenticator = mockAuthen;
             
-            WorkflowDownloader mockDownloader = mock(WorkflowDownloader.class);
+            Downloader mockDownloader = mock(Downloader.class);
             servlet._workflowDownloader = mockDownloader;
             validUser.setPermissions(Permission.DOWNLOAD_ALL_WORKFLOWS);
             HttpServletRequest mockRequest = mock(HttpServletRequest.class);
