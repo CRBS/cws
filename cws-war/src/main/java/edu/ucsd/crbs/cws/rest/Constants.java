@@ -7,6 +7,9 @@ package edu.ucsd.crbs.cws.rest;
 public class Constants {
     
     
+    public static final String HTTPS = "https://";
+    
+    public static final String HTTP = "http://";
     
     public static final String SLASH = "/";
     
@@ -15,6 +18,12 @@ public class Constants {
     public static final String TASK_ID_REST_PATH = SLASH+"{"+TASK_ID_PATH_PARAM+"}";
     
     public static final String WORKFLOW_SUFFIX = ".kar";
+    
+    
+    public static final String WORKSPACEFILE_ID_PATH_PARAM = "workspacefileid";
+    
+    public static final String WORKSPACEFILE_ID_REST_PATH = SLASH+"{"+
+            WORKSPACEFILE_ID_PATH_PARAM+"}";
     
     /**
      * REST URL path for Tasks
@@ -25,6 +34,11 @@ public class Constants {
      * REST URL path for Workflows
      */
     public static final String WORKFLOWS_PATH = "workflows";
+    
+    /**
+     * REST URL path for WorkspaceFiles
+     */
+    public static final String WORKSPACEFILES_PATH = "workspacefiles";
     
     /**
      * REST path added at end of address like so:  IE https://blah.com/rest/
@@ -73,6 +87,12 @@ public class Constants {
     public static final String JOB_ID_QUERY_PARAM = "jobid";
     public static final String DOWNLOADURL_QUERY_PARAM = "downloadurl";
     
+    
+    public static final String SYNCED_QUERY_PARAM = "synced";
+    
+    public static final String PATH_QUERY_PARAM = "path";
+    
+    public static final String ADD_UPLOAD_URL_PARAM = "adduploadurl";
     /**
      * outputs Directory where Tasks should write output
      */
