@@ -91,7 +91,7 @@ public class TestWorkflowDownloaderImpl {
             
             HttpServletResponse mockResponse = mock(HttpServletResponse.class);
             
-            WorkflowDownloader downloader = new WorkflowDownloaderImpl();
+            Downloader downloader = new WorkflowDownloaderImpl();
             
             downloader.send(null, mockResponse);
             verify(mockResponse).sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
@@ -112,7 +112,7 @@ public class TestWorkflowDownloaderImpl {
             
             HttpServletResponse mockResponse = mock(HttpServletResponse.class);
             
-            WorkflowDownloader downloader = new WorkflowDownloaderImpl();
+            Downloader downloader = new WorkflowDownloaderImpl();
             downloader.send("12345", mockResponse);
             verify(mockResponse).sendError(HttpServletResponse.SC_NOT_FOUND,
                     "No workflow matching id found: 12345");
