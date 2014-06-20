@@ -108,7 +108,7 @@ public class TestBlobStoreServiceUtil {
             fail("Expected exception");
         }
         catch(Exception ex){
-            assertTrue(ex.getMessage().equals("No uploaded files found for workflow id 12345"));
+            assertTrue(ex.getMessage().equals("No uploaded files found for id 12345"));
         }
     }
     
