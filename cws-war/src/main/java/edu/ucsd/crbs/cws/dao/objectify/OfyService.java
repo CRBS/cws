@@ -7,6 +7,7 @@ import edu.ucsd.crbs.cws.auth.User;
 import edu.ucsd.crbs.cws.log.Event;
 import edu.ucsd.crbs.cws.workflow.Task;
 import edu.ucsd.crbs.cws.workflow.Workflow;
+import edu.ucsd.crbs.cws.workflow.WorkspaceFile;
 
 
 /**
@@ -26,6 +27,7 @@ public class OfyService {
         factory().register(Task.class);
         factory().register(User.class);
         factory().register(Event.class);
+        factory().register(WorkspaceFile.class);
     }
 
     /**
