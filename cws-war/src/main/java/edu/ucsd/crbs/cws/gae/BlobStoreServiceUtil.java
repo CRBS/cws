@@ -36,11 +36,14 @@ package edu.ucsd.crbs.cws.gae;
 import com.google.appengine.api.blobstore.BlobKey;
 import com.google.appengine.api.blobstore.BlobstoreService;
 import com.google.appengine.api.blobstore.BlobstoreServiceFactory;
+import edu.ucsd.crbs.cws.rest.Constants;
 import edu.ucsd.crbs.cws.workflow.Workflow;
+import edu.ucsd.crbs.cws.workflow.WorkspaceFile;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.servlet.http.HttpServletResponse;
 
 /**
  * Utility class to extract the uploaded workflow id and associated blobkey
@@ -54,16 +57,7 @@ public class BlobStoreServiceUtil {
     static BlobstoreService _blobStoreService;
     
     
-    /**
-     * Helper method that takes the <b>blobMap</b> generated from {@link BlobstoreService.getUploads()}
-     * extracting the workflow id and {@link BlobKey} associated with the workflow
-     * file uploaded.  The method puts those into an empty Workflow object and
-     * returns it
-     * @param blobMap
-     * @return Workflow object with only id and blobkey set
-     * @throws Exception If there is an error parsing the blob Map or if keys or values are null
-     */
-    public static Workflow getWorkflowWithBlobKeyFromMapOfBlobKeyLists(Map<String, List<BlobKey>> blobMap) throws Exception {
+    private static String[] getFirstBlobKeyFromMap(Map<String, List<BlobKey>> blobMap) throws Exception{
         if (blobMap == null) {
             throw new Exception("Unable to get list of uploads from BlobStoreService");
         }
@@ -77,23 +71,45 @@ public class BlobStoreServiceUtil {
                     blobMap.keySet().size());
         }
 
-        String wfid = blobMap.keySet().iterator().next();
-        List<BlobKey> bkList = blobMap.get(wfid);
+        String id = blobMap.keySet().iterator().next();
+        List<BlobKey> bkList = blobMap.get(id);
 
         if (bkList == null || bkList.isEmpty() == true) {
-            throw new Exception("No uploaded files found for workflow id " + wfid);
+            throw new Exception("No uploaded files found for id " + id);
         }
 
         if (bkList.size() > 1) {
             _log.log(Level.WARNING,
                     "Found {0} blob keys for wfid {1}.  Expected only 1, using first one",
-                    new Object[]{bkList.size(), wfid});
+                    new Object[]{bkList.size(), id});
         }
-
+        return new String[]{id,bkList.get(0).getKeyString()};
+    }
+    
+    /**
+     * Helper method that takes the <b>blobMap</b> generated from {@link BlobstoreService.getUploads()}
+     * extracting the workflow id and {@link BlobKey} associated with the workflow
+     * file uploaded.  The method puts those into an empty Workflow object and
+     * returns it
+     * @param blobMap
+     * @return Workflow object with only id and blobkey set
+     * @throws Exception If there is an error parsing the blob Map or if keys or values are null
+     */
+    public static Workflow getWorkflowWithBlobKeyFromMapOfBlobKeyLists(Map<String, List<BlobKey>> blobMap) throws Exception {
+        
+        String[] firstBlobKeyAndVal = getFirstBlobKeyFromMap(blobMap);
         Workflow w = new Workflow();
-        w.setBlobKey(bkList.get(0).getKeyString());
-        w.setId(Long.parseLong(wfid));
-
+        w.setBlobKey(firstBlobKeyAndVal[1]);
+        w.setId(Long.parseLong(firstBlobKeyAndVal[0]));
+        return w;
+    }
+    
+    public static WorkspaceFile getWorkspaceFileWithBlobKeyFromMapOfBlobKeyLists(Map<String, List<BlobKey>> blobMap) throws Exception {
+        
+        String[] firstBlobKeyAndVal = getFirstBlobKeyFromMap(blobMap);
+        WorkspaceFile w = new WorkspaceFile();
+        w.setBlobKey(firstBlobKeyAndVal[1]);
+        w.setId(Long.parseLong(firstBlobKeyAndVal[0]));
         return w;
     }
     
@@ -102,7 +118,39 @@ public class BlobStoreServiceUtil {
             return _blobStoreService;
         }
         return BlobstoreServiceFactory.getBlobstoreService();
+    }
+    
+    public static void serveBlobKeyForDownload(final String key,final String filename,
+            HttpServletResponse response) throws Exception {
         
+        if (response == null){
+            throw new Exception("HttpServletResponse is null");
+        }
+        
+        if (key == null){
+             response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                    "Key is null");
+             return;
+        }
+        
+        if (filename == null){
+            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                    "filename to serve is null");
+             return;
+        }
+        
+        BlobstoreService blobstoreService = BlobStoreServiceUtil.getBlobstoreService();
+
+        BlobKey blobKey = new BlobKey(key);
+        response.setContentType("application/x-download");
+        
+        response.setHeader("Content-Disposition",
+                new StringBuilder().append("attachment; filename=").
+                        append(filename).toString());
+        
+        _log.log(Level.INFO, "Attempting to serve blob with key: {0}", 
+                blobKey.getKeyString());
+        blobstoreService.serve(blobKey, response);
     }
 
 }
