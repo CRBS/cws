@@ -26,6 +26,8 @@ import edu.ucsd.crbs.cws.dao.objectify.WorkflowObjectifyDAOImpl;
 import edu.ucsd.crbs.cws.log.Event;
 import edu.ucsd.crbs.cws.log.EventBuilder;
 import edu.ucsd.crbs.cws.log.EventBuilderImpl;
+import edu.ucsd.crbs.cws.servlet.ServletUtil;
+import edu.ucsd.crbs.cws.workflow.WorkflowParameter;
 import java.util.logging.Level;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.QueryParam;
@@ -118,7 +120,21 @@ public class WorkflowRestService {
             _log.info(event.getStringOfLocationData());
             
             if (user.isAuthorizedTo(Permission.LIST_ALL_WORKFLOWS)) {
-                return _workflowDAO.getWorkflowById(wfid,user);
+                Workflow w = _workflowDAO.getWorkflowById(wfid,user);
+                if (w != null){
+                    if (w.getParameters() != null){
+                        String workspaceFileURL = null;
+                        for (WorkflowParameter param : w.getParameters()){
+                            if (param.getType().equals(WorkflowParameter.Type.FILE)){
+                                if (workspaceFileURL == null){
+                                    workspaceFileURL = ServletUtil.buildRequestURLForWorkspaceFile(request, user);
+                                }
+                                param.setValue(workspaceFileURL);
+                            }
+                        }
+                    }
+                }
+                return w;
             }
             throw new Exception("Not authorized");
         } catch (Exception ex) {
