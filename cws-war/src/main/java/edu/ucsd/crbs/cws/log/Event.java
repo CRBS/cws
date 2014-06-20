@@ -13,6 +13,8 @@ import java.util.Date;
  */
 @Entity
 public class Event {
+
+   
     
     /**
      * Creation of a Task
@@ -23,6 +25,9 @@ public class Event {
      * Creation of a Workflow
      */
     public static final String CREATE_WORKFLOW_EVENT_TYPE = "createworkflow";
+    
+    public static final String CREATE_WORKSPACEFILE_EVENT_TYPE = "createworkspacefile";
+    
     
     @Id private Long _id;
     @Index private Date _date;
@@ -37,6 +42,7 @@ public class Event {
     private Long _workflowId;
     private Long _taskId;
     private Long _userId;
+    private Long _workspaceFileId;
     private String _message;
     
     /**
@@ -265,6 +271,14 @@ public class Event {
      */
     public Long getId(){
         return _id;
+    }
+    
+     public Long getWorkspaceFileId() {
+        return _workspaceFileId;
+    }
+
+    public void setWorkspaceFileId(Long _workspaceFileId) {
+        this._workspaceFileId = _workspaceFileId;
     }
     
     /**

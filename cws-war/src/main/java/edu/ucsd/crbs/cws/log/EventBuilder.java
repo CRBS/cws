@@ -3,6 +3,7 @@ package edu.ucsd.crbs.cws.log;
 import edu.ucsd.crbs.cws.auth.User;
 import edu.ucsd.crbs.cws.workflow.Task;
 import edu.ucsd.crbs.cws.workflow.Workflow;
+import edu.ucsd.crbs.cws.workflow.WorkspaceFile;
 import javax.servlet.http.HttpServletRequest;
 
 /**
@@ -35,4 +36,6 @@ public interface EventBuilder {
      * @return Same Event object passed in unless there was a problem in which case null is returned
      */
     public Event setAsCreateWorkflowEvent(Event event,Workflow workflow);
+    
+    public Event setAsCreateWorkspaceFileEvent(Event event,WorkspaceFile workspaceFile);
 }

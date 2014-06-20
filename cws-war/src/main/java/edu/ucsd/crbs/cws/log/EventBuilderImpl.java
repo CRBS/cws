@@ -3,6 +3,7 @@ package edu.ucsd.crbs.cws.log;
 import edu.ucsd.crbs.cws.auth.User;
 import edu.ucsd.crbs.cws.workflow.Task;
 import edu.ucsd.crbs.cws.workflow.Workflow;
+import edu.ucsd.crbs.cws.workflow.WorkspaceFile;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
@@ -14,6 +15,8 @@ import javax.servlet.http.HttpServletRequest;
  * @author Christopher Churas <churas@ncmir.ucsd.edu>
  */
 public class EventBuilderImpl implements EventBuilder {
+
+   
 
     /**
      * HttpServletRequest Header Parameter showing what tool the requestor used
@@ -121,6 +124,18 @@ public class EventBuilderImpl implements EventBuilder {
         
         return event;
         
+    }
+    
+    @Override
+    public Event setAsCreateWorkspaceFileEvent(Event event, WorkspaceFile workspaceFile) {
+        if (anyOfTheseObjectsNull(event,workspaceFile) == true){
+            _log.log(Level.WARNING,"One or more parameters passed in is null.  Unable to log event.");
+            return null;
+        }
+         event.setWorkspaceFileId(workspaceFile.getId());
+         event.setEventType(Event.CREATE_WORKSPACEFILE_EVENT_TYPE);
+         event.setDate(workspaceFile.getCreateDate());
+         return event;
     }
     
     
