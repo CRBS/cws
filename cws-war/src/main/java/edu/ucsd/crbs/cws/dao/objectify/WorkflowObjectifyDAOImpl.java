@@ -5,7 +5,7 @@ import com.googlecode.objectify.Work;
 import edu.ucsd.crbs.cws.auth.User;
 import edu.ucsd.crbs.cws.dao.WorkflowDAO;
 import static edu.ucsd.crbs.cws.dao.objectify.OfyService.ofy;
-import edu.ucsd.crbs.cws.gae.URLFetcher;
+import edu.ucsd.crbs.cws.gae.WorkflowParameterDataFetcher;
 import edu.ucsd.crbs.cws.gae.URLFetcherImpl;
 import edu.ucsd.crbs.cws.workflow.Workflow;
 import edu.ucsd.crbs.cws.workflow.WorkflowParameter;
@@ -21,7 +21,7 @@ import java.util.List;
 public class WorkflowObjectifyDAOImpl implements WorkflowDAO {
 
     
-    URLFetcher _dropDownFetcher = new URLFetcherImpl();
+    WorkflowParameterDataFetcher _dropDownFetcher = new URLFetcherImpl();
     
     /**
      * Adds a new workflow to the data store.  If the Id of the Workflow is set then the
