@@ -51,7 +51,7 @@ import java.util.logging.Logger;
  * 
  * @author Christopher Churas <churas@ncmir.ucsd.edu>
  */
-public class URLFetcherImpl implements URLFetcher {
+public class URLFetcherImpl implements WorkflowParameterDataFetcher {
 
     /**
      * HTTP prefix
