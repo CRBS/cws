@@ -3,6 +3,9 @@ package edu.ucsd.crbs.cws.log;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Index;
+import com.googlecode.objectify.condition.IfNotNull;
+import edu.ucsd.crbs.cws.auth.User;
+import edu.ucsd.crbs.cws.workflow.Workflow;
 import java.util.Date;
 
 /**
@@ -38,11 +41,11 @@ public class Event {
     private String _region;
     private String _city;
     private String _cityLatLong;
-    private String _eventType;
-    private Long _workflowId;
-    private Long _taskId;
-    private Long _userId;
-    private Long _workspaceFileId;
+    @Index({IfNotNull.class}) private String _eventType;
+    @Index({IfNotNull.class}) private Long _workflowId;
+    @Index({IfNotNull.class}) private Long _taskId;
+    @Index({IfNotNull.class}) private Long _userId;
+    @Index({IfNotNull.class}) private Long _workspaceFileId;
     private String _message;
     
     /**
