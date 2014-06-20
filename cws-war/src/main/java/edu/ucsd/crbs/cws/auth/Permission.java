@@ -72,4 +72,29 @@ public class Permission {
      * Permission to run as another user
      */
     public static final int RUN_AS_ANOTHER_USER = 1024;
+    
+    /**
+     * Permission to list all workspace files
+     */
+    public static final int LIST_ALL_WORKSPACEFILES = 2048;
+    
+    /**
+     * Permission to list their workspace files
+     */
+    public static final int LIST_THEIR_WORKSPACEFILES = 4096;
+    
+    /**
+     * Permission to create a workspace file
+     */
+    public static final int CREATE_WORKSPACEFILE = 8192;
+    
+    /**
+     * Permission to update workspace file
+     */
+    public static final int UPDATE_ALL_WORKSPACEFILES = 16384;
+    
+    /**
+     * Permission to download workspace file
+     */
+    public static final int DOWNLOAD_ALL_WORKSPACEFILES = 32768;
 }
