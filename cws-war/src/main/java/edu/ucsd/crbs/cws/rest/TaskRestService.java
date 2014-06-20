@@ -163,7 +163,6 @@ public class TaskRestService {
     @Path(Constants.TASK_ID_REST_PATH)
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-
     public Task updateTask(@PathParam(Constants.TASK_ID_PATH_PARAM) final Long taskId,
             @QueryParam(Constants.STATUS_QUERY_PARAM) final String status,
             @QueryParam(Constants.ESTCPU_QUERY_PARAM) final Long estCpu,
