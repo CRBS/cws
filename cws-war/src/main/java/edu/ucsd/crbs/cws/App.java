@@ -100,7 +100,7 @@ public class App {
                     //accepts(LOAD_TEST,"creates lots of workflows and tasks");
                     accepts(SYNC_WITH_CLUSTER_ARG, "Submits & Synchronizes Workflow Tasks on local cluster with CRBS Workflow Webservice").withRequiredArg().ofType(String.class).describedAs("URL");
                     accepts(UPLOAD_FILE_ARG,"Adds Workspace file").withRequiredArg().ofType(File.class);
-                    accepts(URL_ARG, "URL to use with --" + UPLOAD_WF_ARG + " flag").withRequiredArg().ofType(String.class).describedAs("URL");
+                    accepts(URL_ARG, "URL to use with --" + UPLOAD_WF_ARG + " or --"+UPLOAD_FILE_ARG+" flag").withRequiredArg().ofType(String.class).describedAs("URL");
                     accepts(PARENT_WFID_ARG, "Parent Workflow ID").withRequiredArg().ofType(Long.class).describedAs("Workflow ID");
                     accepts(EXAMPLE_JSON_ARG, "Outputs JSON of Task & Workflow objects");
                     accepts(WF_EXEC_DIR, "Workflow Execution Directory").withRequiredArg().ofType(File.class).describedAs("Directory");
@@ -250,7 +250,9 @@ public class App {
                         System.out.println("---------------------------------------");
                         System.exit(0);
                 }
-                
+                postURL = new StringBuilder().append(postURL).append(Constants.SLASH).
+                        append(Constants.REST_PATH).append(Constants.SLASH).
+                        append(Constants.WORKSPACEFILES_PATH).toString();
                 
                 ClientConfig cc = new DefaultClientConfig();
                         cc.getClasses().add(StringProvider.class);
@@ -325,6 +327,10 @@ public class App {
                         System.out.println("---------------------------------------");
 
                     } else {
+                        postURL = new StringBuilder().append(postURL).append(Constants.SLASH).
+                        append(Constants.REST_PATH).append(Constants.SLASH).
+                        append(Constants.WORKFLOWS_PATH).toString();
+
                         ClientConfig cc = new DefaultClientConfig();
                         cc.getClasses().add(StringProvider.class);
                         cc.getClasses().add(MultiPartWriter.class);
