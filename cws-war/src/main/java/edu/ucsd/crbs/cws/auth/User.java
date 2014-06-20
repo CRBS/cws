@@ -4,6 +4,7 @@ import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Ignore;
 import com.googlecode.objectify.annotation.Index;
+import edu.ucsd.crbs.cws.rest.Constants;
 import java.util.Date;
 
 
@@ -81,6 +82,9 @@ public class User {
     }
     
     public String getLoginToRunTaskAs(){
+        if (_loginToRunTaskAs == null){
+            return _login;
+        }
         return _loginToRunTaskAs;
     }
     
@@ -90,5 +94,15 @@ public class User {
     
     public boolean isAuthorizedTo(int requestedPermission){
         return ((_permissions & requestedPermission) == requestedPermission);
+    }
+    
+    public String getAsQueryParameters(){
+        if (this._login == null || this._token == null){
+            return null;
+        }
+        StringBuilder url = new StringBuilder();
+        url.append(Constants.USER_LOGIN_PARAM).append("=").append(_login);
+        url.append("&").append(Constants.USER_TOKEN_PARAM).append("=").append(_token);
+        return url.toString();
     }
 }
