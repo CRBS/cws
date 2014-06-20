@@ -1,7 +1,6 @@
 package edu.ucsd.crbs.cws.servlet;
 
 import com.google.appengine.api.blobstore.BlobstoreService;
-import com.google.appengine.api.blobstore.BlobstoreServiceFactory;
 import edu.ucsd.crbs.cws.auth.Authenticator;
 import edu.ucsd.crbs.cws.auth.AuthenticatorImpl;
 import edu.ucsd.crbs.cws.auth.Permission;
@@ -32,7 +31,7 @@ public class WorkflowFile extends HttpServlet {
 
     Authenticator _authenticator = new AuthenticatorImpl();
 
-    WorkflowDownloader _workflowDownloader = new WorkflowDownloaderImpl();
+    Downloader _workflowDownloader = new WorkflowDownloaderImpl();
 
     WorkflowDAO _workflowDAO = new WorkflowObjectifyDAOImpl();
     /**
