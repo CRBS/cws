@@ -19,7 +19,7 @@ import javax.servlet.http.HttpServletResponse;
  * 
  * @author Christopher Churas <churas@ncmir.ucsd.edu>
  */
-public class WorkflowDownloaderImpl implements WorkflowDownloader {
+public class WorkflowDownloaderImpl implements Downloader {
 
     private static final Logger _log = Logger.getLogger(WorkflowDownloaderImpl.class.getName());
 
@@ -38,13 +38,13 @@ public class WorkflowDownloaderImpl implements WorkflowDownloader {
      * @throws IOException 
      */ 
     @Override
-    public void send(String workflowId, 
+    public void send(String id, 
                      HttpServletResponse response) throws IOException {
         
         Workflow w;
 
         try {
-            w = _workflowDAO.getWorkflowById(workflowId,null);
+            w = _workflowDAO.getWorkflowById(id,null);
         } catch (Exception ex) {
             response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, 
                     "Error getting workflow by id from data store: "+
@@ -55,7 +55,7 @@ public class WorkflowDownloaderImpl implements WorkflowDownloader {
         if (w == null) {
             _log.log(Level.SEVERE, "Workflow returned by data store is null");
             response.sendError(HttpServletResponse.SC_NOT_FOUND, 
-                    "No workflow matching id found: " + workflowId);
+                    "No workflow matching id found: " + id);
             return;
         }
 
@@ -63,23 +63,18 @@ public class WorkflowDownloaderImpl implements WorkflowDownloader {
             _log.log(Level.SEVERE, "blob key is null");
             response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
                     "Key to workflow file not found for workflow: "
-                    + workflowId);
+                    + id);
             return;
         }
 
-        BlobstoreService blobstoreService = BlobStoreServiceUtil.getBlobstoreService();
-
-        BlobKey blobKey = new BlobKey(w.getBlobKey());
-        response.setContentType("application/x-download");
-        
-        response.setHeader("Content-Disposition",
-                new StringBuilder().append("attachment; filename=").
-                        append(workflowId).
-                        append(Constants.WORKFLOW_SUFFIX).toString());
-        
-        _log.log(Level.INFO, "Attempting to serve blob with key: {0}", 
-                blobKey.getKeyString());
-        blobstoreService.serve(blobKey, response);
+        try {
+            BlobStoreServiceUtil.serveBlobKeyForDownload(w.getBlobKey(), 
+                    id+Constants.WORKFLOW_SUFFIX, response);
+        }
+        catch(Exception ex){
+            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                    "Caught exception: "+ex.getMessage());
+        }
     }
 
 }
