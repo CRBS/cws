@@ -34,14 +34,20 @@
 package edu.ucsd.crbs.cws.workflow;
 
 /**
- *
+ * {@link Parameter} with error fields containing a description of what is wrong with
+ * this {@link Parameter}  
+ * 
  * @author Christopher Churas <churas@ncmir.ucsd.edu>
  */
 public class ParameterWithError extends Parameter  {
 
     private String _error;
     
-    
+    /**
+     * Constructor that takes a {@link Parameter} <b>p</p> and an <b>error</b> message
+     * @param p Parameter to use
+     * @param error Error message
+     */
     public ParameterWithError(Parameter p, final String error){
        if (p != null){
           _name = p.getName();
@@ -50,16 +56,30 @@ public class ParameterWithError extends Parameter  {
         _error = error;
     }
     
+    /**
+     * Constructor that takes name, value, and error message to construct the object
+     * @param name
+     * @param value
+     * @param error 
+     */
     public ParameterWithError(final String name,final String value,final String error){
         _name = name;
         _value = value;
         _error = error;
     }
     
+    /**
+     * Gets the error message
+     * @return 
+     */
     public String getError() {
         return _error;
     }
-
+    
+    /**
+     * Sets the error message
+     * @param error 
+     */
     public void setError(String error) {
         _error = error;
     }
