@@ -116,7 +116,20 @@ public class TestTask {
         
         assertTrue(t.getParametersWithErrors().get(0).getName().equals("name"));
         assertTrue(t.getParametersWithErrors().get(1).getName().equals("name"));
-
+    }
+    
+    @Test
+    public void testGetSummaryOfErrors(){
+        Task t = new Task();
+        assertTrue(t.getSummaryOfErrors().equals(""));
+        t.addParameterWithError(new ParameterWithError("someparam","3","bad"));
+        
+        assertTrue(t.getSummaryOfErrors().equals("Parameter: name=someparam,value=3,error=bad\n"));
+        t.addParameterWithError(new ParameterWithError("m","v","x"));
+        assertTrue(t.getSummaryOfErrors().equals("Parameter: name=someparam,value=3,error=bad\nParameter: name=m,value=v,error=x\n"));
+        
+        t.setError("some error");
+        assertTrue(t.getSummaryOfErrors().equals("TaskError: some error\nParameter: name=someparam,value=3,error=bad\nParameter: name=m,value=v,error=x\n"));
     }
     
 }

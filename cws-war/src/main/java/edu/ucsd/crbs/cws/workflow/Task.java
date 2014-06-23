@@ -295,4 +295,23 @@ public class Task  {
         _parametersWithErrors.add(param);
     }
     
+    /**
+     * Examines {@link #getError()} and {@link #getParametersWithErrors()} to generate
+     * a nice summary of the errors that can be logged
+     * @return 
+     */
+    @JsonIgnore
+    public String getSummaryOfErrors(){
+        StringBuilder sb = new StringBuilder();
+        if (_error != null){
+            sb.append("TaskError: ").append(_error).append("\n");
+        }
+        if (_parametersWithErrors != null){
+            for (ParameterWithError pwe : _parametersWithErrors){
+                sb.append("Parameter: ").append(pwe.asString()).append("\n");
+            }
+        }
+        return sb.toString();
+    }
+    
 }
