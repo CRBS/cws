@@ -23,4 +23,20 @@ public class TestParameter {
         assertTrue(p.getName().equals("bob"));
         assertTrue(p.getValue().equals("val"));
     }
+
+    @Test
+    public void testAsString(){
+        Parameter p = new Parameter();
+        assertTrue(p.asString().equals("name=null,value=null"));
+        
+        p.setName("bob");
+        assertTrue(p.asString().equals("name=bob,value=null"));
+        
+        p.setValue("val");
+        assertTrue(p.asString().equals("name=bob,value=val"));
+        
+        p.setName(null);
+        assertTrue(p.asString().equals("name=null,value=val"));
+    }
+    
 }

@@ -1,5 +1,7 @@
 package edu.ucsd.crbs.cws.workflow;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 
 /**
  * Instances of this class represent a parameter in a task. 
@@ -7,9 +9,9 @@ package edu.ucsd.crbs.cws.workflow;
  * @author Christopher Churas <churas@ncmir.ucsd.edu>
  */
 public class Parameter {
-    private String _name;
-    private String _value;
-    
+    protected String _name;
+    protected String _value;
+
     public Parameter(){
         
     }
@@ -44,5 +46,24 @@ public class Parameter {
      */
     public String getValue(){
         return _value;
+    }
+    
+    @JsonIgnore
+    public String asString(){
+        StringBuilder sb = new StringBuilder();
+        sb.append("name=");
+        if (_name == null){
+            sb.append("null,value=");
+        }
+        else {
+            sb.append(_name).append(",value=");
+        }
+        if (_value == null){
+            sb.append("null");
+        }
+        else {
+            sb.append(_value);
+        }
+        return sb.toString();
     }
 }
