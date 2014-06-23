@@ -114,7 +114,8 @@ public class WorkflowParameter {
     private long _maxLength;
     private String _regex;
     private long _maxFileSize;
-    
+    private String _selected;
+
     public WorkflowParameter(){
         
     }
@@ -450,6 +451,14 @@ public class WorkflowParameter {
      */
     public Map<String,String> getValueMap(){
         return _valueMap;
+    }
+    
+    public String getSelected() {
+        return _selected;
+    }
+
+    public void setSelected(String selected) {
+        _selected = selected;
     }
 }
     

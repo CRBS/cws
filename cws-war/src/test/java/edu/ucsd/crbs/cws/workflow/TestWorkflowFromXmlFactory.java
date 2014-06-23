@@ -107,6 +107,7 @@ public class TestWorkflowFromXmlFactory {
         assertTrue(wp.getMinValue() == 0L);
         assertTrue(wp.getRows() == 0L);
         assertTrue(wp.getValueMap() == null);
+        assertTrue(wp.getSelected().equals("name3"));
         
         //example file parameter
         wp = paramHash.get("examplefile");
@@ -128,6 +129,8 @@ public class TestWorkflowFromXmlFactory {
         assertTrue(wp.getMinValue() == 0L);
         assertTrue(wp.getRows() == 0L);
         assertTrue(wp.getValueMap() == null);
+        assertTrue(wp.getSelected() == null);
+
         
         //example string parameter
         wp = paramHash.get("exampletext");
@@ -149,6 +152,7 @@ public class TestWorkflowFromXmlFactory {
         assertTrue(wp.getMinValue() == 0L);
         assertTrue(wp.getRows() == 0L);
         assertTrue(wp.getValueMap() == null);
+        assertTrue(wp.getSelected() == null);
         
         
         //example number parameter
@@ -171,6 +175,7 @@ public class TestWorkflowFromXmlFactory {
         assertTrue(wp.getMinValue() == 1L);
         assertTrue(wp.getRows() == 0L);
         assertTrue(wp.getValueMap() == null);
+        assertTrue(wp.getSelected() == null);
         
         //example checkbox parameter
         wp = paramHash.get("examplecheckbox");
@@ -192,6 +197,7 @@ public class TestWorkflowFromXmlFactory {
         assertTrue(wp.getMinValue() == 0L);
         assertTrue(wp.getRows() == 0L);
         assertTrue(wp.getValueMap() == null);
+        assertTrue(wp.getSelected() == null);
         
        //example textarea parameter
         wp = paramHash.get("exampletextarea");
@@ -213,6 +219,7 @@ public class TestWorkflowFromXmlFactory {
         assertTrue(wp.getMinValue() == 0L);
         assertTrue(wp.getRows() == 2L);
         assertTrue(wp.getValueMap() == null);
+        assertTrue(wp.getSelected() == null);
         
         
         wp = paramHash.get("CWS_outputdir");
@@ -234,6 +241,7 @@ public class TestWorkflowFromXmlFactory {
         assertTrue(wp.getMinValue() == 0L);
         assertTrue(wp.getRows() == 0L);
         assertTrue(wp.getValueMap() == null);
+        assertTrue(wp.getSelected() == null);
         
         wp = paramHash.get("CWS_user");
         assertTrue(wp != null);
@@ -254,6 +262,7 @@ public class TestWorkflowFromXmlFactory {
         assertTrue(wp.getMinValue() == 0L);
         assertTrue(wp.getRows() == 0L);
         assertTrue(wp.getValueMap() == null);
+        assertTrue(wp.getSelected() == null);
         
         wp = paramHash.get("CWS_taskname");
         assertTrue(wp != null);
@@ -274,6 +283,7 @@ public class TestWorkflowFromXmlFactory {
         assertTrue(wp.getMinValue() == 0L);
         assertTrue(wp.getRows() == 0L);
         assertTrue(wp.getValueMap() == null);
+        assertTrue(wp.getSelected() == null);
         
         
     }
