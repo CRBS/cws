@@ -12,6 +12,7 @@ import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Ignore;
 import com.googlecode.objectify.annotation.Load;
 import java.util.Date;
+import java.util.Iterator;
 
 
 /**
@@ -136,6 +137,32 @@ public class Workflow {
     @JsonIgnore
     public String getBlobKey(){
         return _blobKey;
+    }
+    
+    /**
+     * Iterates through {@link WorkflowParameter} objects and removes/returns the first one
+     * whose {@link WorkflowParameter#getName()} matches <b>name</b> passed in
+     * @param name Name to compare
+     * @return {@link WorkflowParameter} that matches or null if none found
+     */
+    @JsonIgnore
+    public WorkflowParameter removeWorkflowParameterMatchingName(final String name){
+        if (name == null){
+            return null;
+        }
+        
+        if (_parameters == null || _parameters.isEmpty() == true){
+            return null;
+        }
+        WorkflowParameter param;
+        for (Iterator wParamIterator = _parameters.iterator();wParamIterator.hasNext() ;){
+            param = (WorkflowParameter)wParamIterator.next();
+            if (param.getName().equals(name)){
+                wParamIterator.remove();
+                return param;
+            }
+        }
+        return null;
     }
 }
 

@@ -8,6 +8,7 @@ package edu.ucsd.crbs.cws.workflow;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -74,5 +75,61 @@ public class TestWorkflow {
         assertTrue(w.getDescription().equals("description"));
     }
 
-    /** @TODO add tests to verify get/setParentWorkflow works properly **/
+    @Test
+    public void testRemoveWorkflowParameterMatchingNameOnNullAndEmptyList(){
+        Workflow w = new Workflow();
+        assertTrue(w.removeWorkflowParameterMatchingName(null) == null);
+        assertTrue(w.removeWorkflowParameterMatchingName("foo") == null);
+        w.setParameters(new ArrayList<WorkflowParameter>());
+        assertTrue(w.removeWorkflowParameterMatchingName(null) == null);
+        assertTrue(w.removeWorkflowParameterMatchingName("foo") == null);
+    }
+    
+    @Test
+    public void testRemoveWorkflowParameterMatchingNameOnSingleElementList(){ 
+        Workflow w = new Workflow();
+        List<WorkflowParameter> params = new ArrayList<WorkflowParameter>();
+        WorkflowParameter wp = new WorkflowParameter();
+        wp.setName("bob");
+        params.add(wp);
+        w.setParameters(params);
+        assertTrue(w.removeWorkflowParameterMatchingName("fill") == null);
+        assertTrue(w.removeWorkflowParameterMatchingName(null) == null);
+        assertTrue(w.removeWorkflowParameterMatchingName("bob").getName().equals("bob"));
+        assertTrue(w.getParameters().isEmpty() == true);
+    }
+    
+    @Test
+    public void testRemoveWorkflowParameterMatchingNameOnMultiElementList(){ 
+        Workflow w = new Workflow();
+        List<WorkflowParameter> params = new ArrayList<WorkflowParameter>();
+        WorkflowParameter wp = new WorkflowParameter();
+        wp.setName("bob");
+        params.add(wp);
+        wp = new WorkflowParameter();
+        wp.setName("joe");
+        params.add(wp);
+        
+        wp = new WorkflowParameter();
+        wp.setName("george");
+        params.add(wp);
+        
+        w.setParameters(params);
+        assertTrue(w.getParameters().size() == 3);
+        assertTrue(w.removeWorkflowParameterMatchingName("fill") == null);
+        assertTrue(w.removeWorkflowParameterMatchingName(null) == null);
+        assertTrue(w.removeWorkflowParameterMatchingName("Bob") == null);
+        assertTrue(w.removeWorkflowParameterMatchingName("bob").getName().equals("bob"));
+        assertTrue(w.getParameters().size() == 2);
+        assertTrue(w.removeWorkflowParameterMatchingName("bob") == null);
+        assertTrue(w.removeWorkflowParameterMatchingName("joe").getName().equals("joe"));
+        assertTrue(w.getParameters().size() == 1);
+        assertTrue(w.removeWorkflowParameterMatchingName("joe") == null);
+        assertTrue(w.removeWorkflowParameterMatchingName("george").getName().equals("george"));
+        assertTrue(w.getParameters().size() == 0);
+        assertTrue(w.removeWorkflowParameterMatchingName("george") == null);
+        
+    }
+    
+    
 }
