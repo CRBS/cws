@@ -32,12 +32,12 @@ public interface TaskDAO {
             boolean noParams,boolean noWorkflowParams) throws Exception;
 
     /**
-     * Inserts a new task into data store
+     * Inserts a new task into data store skipping Workflow Check
      * @param t
      * @return
      * @throws Exception 
      */
-    public Task insert(Task t) throws Exception;
+    public Task insert(Task t,boolean skipWorkflowCheck) throws Exception;
     
     /**
      * Updates existing task with values passed in.  

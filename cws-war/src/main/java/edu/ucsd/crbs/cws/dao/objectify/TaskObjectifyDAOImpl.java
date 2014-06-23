@@ -70,11 +70,12 @@ public class TaskObjectifyDAOImpl implements TaskDAO {
      * Creates a new Task in the data store
      *
      * @param task Task to insert
+     * @param skipWorkflowCheck
      * @return Task object with id updated
      * @throws Exception
      */
     @Override
-    public Task insert(Task task) throws Exception {
+    public Task insert(Task task, boolean skipWorkflowCheck) throws Exception {
         if (task == null) {
             throw new NullPointerException("Task is null");
         }
@@ -82,21 +83,22 @@ public class TaskObjectifyDAOImpl implements TaskDAO {
             task.setCreateDate(new Date());
         }
 
-        if (task.getWorkflow() == null) {
-            throw new Exception("Task Workflow cannot be null");
-        }
+        if (skipWorkflowCheck == false) {
 
-        if (task.getWorkflow().getId() == null || task.getWorkflow().getId() <= 0) {
-            throw new Exception("Task Workflow id is either null or 0 or less which is not valid");
-        }
+            if (task.getWorkflow() == null) {
+                throw new Exception("Task Workflow cannot be null");
+            }
 
-        //try to load the workflow and only if we get a workflow do we try to save
-        //the task otherwise it is an error
-        Workflow wf = ofy().load().type(Workflow.class).id(task.getWorkflow().getId()).now();
-        if (wf == null) {
-            throw new Exception("Unable to load Workflow for Task");
+            if (task.getWorkflow().getId() == null || task.getWorkflow().getId() <= 0) {
+                throw new Exception("Task Workflow id is either null or 0 or less which is not valid");
+            }
+            //try to load the workflow and only if we get a workflow do we try to save
+            //the task otherwise it is an error
+            Workflow wf = ofy().load().type(Workflow.class).id(task.getWorkflow().getId()).now();
+            if (wf == null) {
+                throw new Exception("Unable to load Workflow for Task");
+            }
         }
-
         /**
          * @TODO Need to verify the Task Parameters match the Workflow
          * parameters and that valid values are set for each of those parameters
