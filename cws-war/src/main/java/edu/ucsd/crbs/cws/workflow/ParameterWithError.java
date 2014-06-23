@@ -83,4 +83,25 @@ public class ParameterWithError extends Parameter  {
     public void setError(String error) {
         _error = error;
     }
+    
+    /**
+     * Generates text summary in format name=(name),value=(value),error=(error)
+     * @return 
+     */
+    @Override
+    public String asString(){
+        
+        String summary = super.asString();
+        
+        StringBuilder sb = new StringBuilder();
+        
+        sb.append(summary).append(",error=");
+        if (_error == null){
+            sb.append("null");
+        }
+        else {
+            sb.append(_error);
+        }
+        return sb.toString();
+    }
 }

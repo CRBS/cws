@@ -90,5 +90,17 @@ public class TestParameterWithError {
         assertTrue(pwe.getName().equals("name"));
         assertTrue(pwe.getValue().equals("value"));
     }
+    
+    @Test
+    public void testAsStringAndThreeParmeterConstructor(){
+         ParameterWithError pwe = new ParameterWithError(null,null,null);
+         
+         assertTrue(pwe.asString().equals("name=null,value=null,error=null"));
+         
+         pwe = new ParameterWithError("n","v",null);
+         assertTrue(pwe.asString().equals("name=n,value=v,error=null"));
+         pwe = new ParameterWithError("n","v","e");
+         assertTrue(pwe.asString().equals("name=n,value=v,error=e"));
+    }
 
 }
