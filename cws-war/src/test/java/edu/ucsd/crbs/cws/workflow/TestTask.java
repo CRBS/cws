@@ -57,6 +57,8 @@ public class TestTask {
         assertTrue(t.getParameters() == null);
         assertTrue(t.getHasJobBeenSubmittedToScheduler() == false);
         assertTrue(t.getDownloadURL() == null);
+        assertTrue(t.getError() == null);
+        assertTrue(t.getParametersWithErrors() == null);
         
         t.setId(new Long(5));
         t.setName("name");
@@ -77,6 +79,8 @@ public class TestTask {
         t.setParameters(params);
         t.setHasJobBeenSubmittedToScheduler(true);
         t.setDownloadURL("download");
+        t.setError("error");
+        t.setParametersWithErrors(new ArrayList<ParameterWithError>());
         
         assertTrue(t.getId().longValue() == 5);
         assertTrue(t.getName().equals("name"));
@@ -89,10 +93,30 @@ public class TestTask {
         assertTrue(t.getSubmitDate().equals(submitDate));
         assertTrue(t.getStartDate().equals(startDate));
         assertTrue(t.getFinishDate().equals(finishDate));
-        assertTrue(t.getParameters().size() == 0);
+        assertTrue(t.getParameters().isEmpty());
         assertTrue(t.getHasJobBeenSubmittedToScheduler() == true);
         assertTrue(t.getDownloadURL().equals("download"));
+        assertTrue(t.getError().equals("error"));
+        assertTrue(t.getParametersWithErrors().isEmpty() == true);
+                
     }
 
-    /** @TODO need to add tests for get/setWorkflow() methods **/
+    @Test
+    public void testAddParameterWithError(){
+        Task t = new Task();
+        
+        t.addParameterWithError(null);
+        
+        assertTrue(t.getParametersWithErrors() == null);
+        
+        t.addParameterWithError(new ParameterWithError("name","value","error"));
+        assertTrue(t.getParametersWithErrors().size() == 1);
+        t.addParameterWithError(new ParameterWithError("name","value","error"));
+        assertTrue(t.getParametersWithErrors().size() == 2);
+        
+        assertTrue(t.getParametersWithErrors().get(0).getName().equals("name"));
+        assertTrue(t.getParametersWithErrors().get(1).getName().equals("name"));
+
+    }
+    
 }

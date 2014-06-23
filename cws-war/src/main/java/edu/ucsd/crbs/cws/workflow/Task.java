@@ -1,5 +1,6 @@
 package edu.ucsd.crbs.cws.workflow;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.annotation.Entity;
@@ -8,6 +9,7 @@ import com.googlecode.objectify.annotation.Ignore;
 import com.googlecode.objectify.annotation.Index;
 import com.googlecode.objectify.annotation.Load;
 import com.googlecode.objectify.condition.IfFalse;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -34,6 +36,11 @@ public class Task  {
      * Your job is ready to run, pending availability of resources
      */
     public static final String PENDING_STATUS = "Pending";
+    
+    /**
+     * Your job is ready to run, pending synchronization of workspace files
+     */
+    public static final String WORKSPACE_SYNC_STATUS = "Workspace Sync";
     
     /**
      * Your job is running
@@ -81,9 +88,10 @@ public class Task  {
     
     private String _downloadURL;
     
-    
     private List<Parameter> _parameters;
-    
+    @Ignore private String _error;
+    @Ignore private List<ParameterWithError> _parametersWithErrors;
+
     /**
      * This will eventually hold a log of all events for this task
      */
@@ -239,6 +247,52 @@ public class Task  {
     
     public String getDownloadURL(){
         return _downloadURL;
+    }
+    
+    /**
+     * Contains any high level error encountered during creation or validation
+     * of Task
+     * @return Error message if there was a problem or null 
+     */
+    public String getError() {
+        return _error;
+    }
+
+    /**
+     * Sets a human readable message describing an error during creation or validation
+     * of Task
+     * @param error 
+     */
+    public void setError(String error) {
+        _error = error;
+    }
+    
+    /**
+     * Gets {@link ParameterWithError} list which is a list of parameters that generated
+     * errors during the validation process
+     * @return List of parameters that had errors during validation
+     */
+    public List<ParameterWithError> getParametersWithErrors() {
+        return _parametersWithErrors;
+    }
+
+    public void setParametersWithErrors(List<ParameterWithError> parametersWithErrors) {
+        _parametersWithErrors = parametersWithErrors;
+    }
+
+    /**
+     * Adds a {@link ParameterWithError} to error list.  If list is null a new one is created
+     * @param param Parameter to add
+     */
+    @JsonIgnore
+    public void addParameterWithError(ParameterWithError param){
+        if (param == null){
+            return;
+        }
+        if (_parametersWithErrors == null){
+            _parametersWithErrors = new ArrayList<ParameterWithError>();
+        }
+        _parametersWithErrors.add(param);
     }
     
 }
