@@ -155,8 +155,7 @@ public class WorkspaceFileRestService {
             
             if (user.isAuthorizedTo(Permission.CREATE_TASK)) {
                 WorkspaceFile resWorkspaceFile = _workspaceFileDAO.insert(workspaceFile);
-                if (addUploadURL == null ||
-                    (addUploadURL != null && addUploadURL == true)){
+                if (addUploadURL == null || addUploadURL == true){
                     resWorkspaceFile = setFileUploadURL(resWorkspaceFile);
                 }
                 saveEvent(_eventBuilder.setAsCreateWorkspaceFileEvent(event, resWorkspaceFile));
