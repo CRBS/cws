@@ -1,6 +1,7 @@
 package edu.ucsd.crbs.cws.dao;
 
 import edu.ucsd.crbs.cws.auth.User;
+import edu.ucsd.crbs.cws.workflow.Task;
 import edu.ucsd.crbs.cws.workflow.Workflow;
 import java.util.List;
 
@@ -49,5 +50,15 @@ public interface WorkflowDAO {
      * @throws Exception 
      */
     public Workflow updateBlobKey(long workflowId,final String key) throws Exception;
+
     
+    /**
+     * Examines <b>task</b> passed in and attempts to load workflow from {@link Task#getWorkflow()} object
+     * which is assumed to have at least a valid {@link Workflow#getId()}  The
+     * method sets this {@link Workflow} object in the <b>task</b> {@link Task#setWorkflow()} method
+     * @param task
+     * @return
+     * @throws Exception 
+     */
+    public Workflow loadWorkflow(Task task,User user) throws Exception;
 }

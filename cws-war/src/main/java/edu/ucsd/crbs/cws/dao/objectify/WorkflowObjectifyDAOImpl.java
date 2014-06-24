@@ -7,6 +7,7 @@ import edu.ucsd.crbs.cws.dao.WorkflowDAO;
 import static edu.ucsd.crbs.cws.dao.objectify.OfyService.ofy;
 import edu.ucsd.crbs.cws.gae.WorkflowParameterDataFetcher;
 import edu.ucsd.crbs.cws.gae.URLFetcherImpl;
+import edu.ucsd.crbs.cws.workflow.Task;
 import edu.ucsd.crbs.cws.workflow.Workflow;
 import edu.ucsd.crbs.cws.workflow.WorkflowParameter;
 import java.util.Date;
@@ -152,4 +153,19 @@ public class WorkflowObjectifyDAOImpl implements WorkflowDAO {
         }
         return resWorkflow;
     }
+
+    @Override
+    public Workflow loadWorkflow(Task task,User user) throws Exception {
+        if (task == null || task.getWorkflow() == null || task.getWorkflow().getId() == null){
+            return null;
+        }
+        Workflow w = this.getWorkflowById(task.getWorkflow().getId().toString(), user);
+        if (w != null){
+            task.setWorkflow(w);
+        }
+        return w;
+    }
+    
+    
 }
+
