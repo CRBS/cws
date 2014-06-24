@@ -16,6 +16,11 @@ public class Parameter {
         
     }
     
+    public Parameter(final String name, final String value){
+        _name = name;
+        _value = value;
+    }
+    
     /**
      * Sets name
      * @param name Name to set, can be null
