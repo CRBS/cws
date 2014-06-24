@@ -12,6 +12,8 @@ import edu.ucsd.crbs.cws.log.Event;
 import edu.ucsd.crbs.cws.log.EventBuilder;
 import edu.ucsd.crbs.cws.log.EventBuilderImpl;
 import edu.ucsd.crbs.cws.workflow.Task;
+import edu.ucsd.crbs.cws.workflow.validate.TaskValidator;
+import edu.ucsd.crbs.cws.workflow.validate.TaskValidatorImpl;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -46,6 +48,8 @@ public class TaskRestService {
     static Authenticator _authenticator = new AuthenticatorImpl();
 
     static EventBuilder _eventBuilder = new EventBuilderImpl();
+    
+    static TaskValidator _validator = new TaskValidatorImpl();
 
     /**
      * HTTP GET call that gets a list of all tasks. The list can be filtered
@@ -229,7 +233,17 @@ public class TaskRestService {
             _log.info(event.getStringOfLocationData());
             
             if (user.isAuthorizedTo(Permission.CREATE_TASK)) {
-                Task task = _taskDAO.insert(t);
+                t = _validator.validateParameters(t,user);
+                // @TODO add failed create task event
+                if (t.getError() != null || t.getParametersWithErrors() != null){
+                    _log.log(Level.WARNING,"Validation of Task failed: {0}",
+                            t.getSummaryOfErrors());
+                    return t;
+                }
+                
+                //do insert, but skip the workflow checks cause validation did it 
+                //already
+                Task task = _taskDAO.insert(t,true);
                 
                 saveEvent(_eventBuilder.setAsCreateTaskEvent(event, task));
                 
