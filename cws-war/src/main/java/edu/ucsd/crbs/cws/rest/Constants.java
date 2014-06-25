@@ -97,6 +97,28 @@ public class Constants {
      * outputs Directory where Tasks should write output
      */
     public static final String OUTPUTS_DIR_NAME = "outputs";
+    
+    
+     /**
+     * Special Canvas parameter that will be set to the user running the job
+     */
+    public static final String CWS_USER = "CWS_user";
+    
+    /**
+     * Special Canvas parameter that will be set to the name of the task
+     */
+    public static final String CWS_TASKNAME = "CWS_taskname";
+    
+    
+    /**
+     * Special Canvas parameter that will be set to the id of the task
+     */
+    public static final String CWS_TASKID = "CWS_taskid";
+    
+    /**
+     * Special Canvas parameter that will be set to the output directory for the running job
+     */
+    public static final String CWS_OUTPUTDIR = "CWS_outputdir";
 
     
 }

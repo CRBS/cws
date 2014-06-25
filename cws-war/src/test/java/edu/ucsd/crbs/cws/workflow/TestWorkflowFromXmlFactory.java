@@ -76,7 +76,7 @@ public class TestWorkflowFromXmlFactory {
         assertTrue(w.getDescription().startsWith("This is an example workflow that can be used as a template\n\nThe Blue"));
         assertTrue(w.getDescription().contains("This text is the description for the workflow."));
         assertTrue(w.getReleaseNotes().contains("-- Some new feature"));
-        assertTrue(w.getParameters().size() == 9);
+        assertTrue(w.getParameters().size() == 10);
 
         //put parameters into a hash to make it easier to test
         HashMap<String,WorkflowParameter> paramHash = new HashMap<>();
@@ -276,6 +276,27 @@ public class TestWorkflowFromXmlFactory {
         assertTrue(wp.getValidationRegex() == null);
         assertTrue(wp.getValidationType() == null);
         assertTrue(wp.getValue().equals("taskname"));
+        assertTrue(wp.getColumns() == 0L);
+        assertTrue(wp.getMaxFileSize() == 0L);
+        assertTrue(wp.getMaxLength() == 0L);
+        assertTrue(wp.getMaxValue() == 0L);
+        assertTrue(wp.getMinValue() == 0L);
+        assertTrue(wp.getRows() == 0L);
+        assertTrue(wp.getValueMap() == null);
+        assertTrue(wp.getSelected() == null);
+        
+        wp = paramHash.get("CWS_taskid");
+        assertTrue(wp != null);
+        assertTrue(wp.getDisplayName().equals("CWS_taskid"));
+        assertTrue(wp.getNameValueDelimiter() == null);
+        assertTrue(wp.getHelp() == null);
+        assertTrue(wp.getIsAdvanced() == false);
+        assertTrue(wp.getIsRequired() == false);
+        assertTrue(wp.getType().equals(WorkflowParameter.Type.HIDDEN));
+        assertTrue(wp.getValidationHelp() == null);
+        assertTrue(wp.getValidationRegex() == null);
+        assertTrue(wp.getValidationType() == null);
+        assertTrue(wp.getValue().equals("taskid"));
         assertTrue(wp.getColumns() == 0L);
         assertTrue(wp.getMaxFileSize() == 0L);
         assertTrue(wp.getMaxLength() == 0L);

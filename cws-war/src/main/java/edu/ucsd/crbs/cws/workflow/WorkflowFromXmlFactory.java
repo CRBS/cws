@@ -1,20 +1,18 @@
 package edu.ucsd.crbs.cws.workflow;
 
+import edu.ucsd.crbs.cws.rest.Constants;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.filter.Filters;
-
 import org.jdom2.input.SAXBuilder;
 import org.jdom2.xpath.XPathExpression;
 import org.jdom2.xpath.XPathFactory;
-
-import java.util.List;
-import java.util.logging.Level;
-
-import java.util.logging.Logger;
 
 
 
@@ -66,20 +64,7 @@ public class WorkflowFromXmlFactory {
     public static final String ATTRIBUTE_NAME_KEY = "name";
     public static final String ATTRIBUTE_VALUE_KEY = "value";
     
-    /**
-     * Special Canvas parameter that will be set to the user running the job
-     */
-    public static final String CWS_USER = "CWS_user";
-    
-    /**
-     * Special Canvas parameter that will be set to the name of the task
-     */
-    public static final String CWS_TASKNAME = "CWS_taskname";
-    
-    /**
-     * Special Canvas parameter that will be set to the output directory for the running job
-     */
-    public static final String CWS_OUTPUTDIR = "CWS_outputdir";
+   
     
     public static final HashMap<String, String> _keplerParameterTypes;
 
@@ -202,36 +187,25 @@ public class WorkflowFromXmlFactory {
             
             String elementNameKey = e.getAttributeValue(ELEMENT_NAME_KEY);
             WorkflowParameter wParam = new WorkflowParameter();
-            switch (keplerParameterType) {
-                case KEPLER_PARAMETER_STRING:
-                    wParam.setType(WorkflowParameter.Type.TEXT);
-                    break;
-                case KEPLER_PARAMETER_NUMBER:
-                    wParam.setType(WorkflowParameter.Type.TEXT);
-                    break;
-                case KEPLER_PARAMETER_FILE:
-                    wParam.setType(WorkflowParameter.Type.FILE);
-                    break;
-                default:
-                    log.log(Level.SEVERE, "Unknown parameter type: {0}", keplerParameterType);
-                    throw new Exception("Unknown Parameter type: "+keplerParameterType);
-            }
                 
             wParam.setName(elementNameKey);
             wParam.setValue(e.getAttributeValue(ELEMENT_VALUE_KEY));
             setDisplayName(e,wParam,elementNameKey);
             setKeplerParameterAttributes(e,wParam);
             
-            //if the parameter name matches one of the 3 special parameters set the type
+            //if the parameter name matches one of the 4 special parameters set the type
             //to hidden cause it should not be displayed to the user
-            if (elementNameKey.equalsIgnoreCase(CWS_USER) || 
-                elementNameKey.equalsIgnoreCase(CWS_TASKNAME) ||
-                elementNameKey.equalsIgnoreCase(CWS_OUTPUTDIR)){
+            if (elementNameKey.equalsIgnoreCase(Constants.CWS_USER) || 
+                elementNameKey.equalsIgnoreCase(Constants.CWS_TASKNAME) ||
+                elementNameKey.equalsIgnoreCase(Constants.CWS_OUTPUTDIR) ||
+                elementNameKey.equalsIgnoreCase(Constants.CWS_TASKID)){
                 wParam.setType(WorkflowParameter.Type.HIDDEN);
             }
             
-            
-            params.add(wParam);
+            //only add parameters with a type
+            if (wParam.getType() != null){
+                params.add(wParam);
+            }
         }
     }
     
@@ -249,20 +223,10 @@ public class WorkflowFromXmlFactory {
     private void setKeplerParameterAttributes(Element element,WorkflowParameter wParam) throws Exception{
          List<Element> subPropElements = element.getChildren(ELEMENT_PROPERTY_KEY);
         for (Element subEl : subPropElements) {
-            if (subEl.getAttributeValue(ATTRIBUTE_NAME_KEY).equalsIgnoreCase("hidden")) {
-                String hiddenVal = subEl.getAttributeValue(ATTRIBUTE_VALUE_KEY);
-                if (hiddenVal != null && hiddenVal.equalsIgnoreCase("true")){
-                       wParam.setType(WorkflowParameter.Type.HIDDEN);
-                }
-            }
-            if (subEl.getAttributeValue(ATTRIBUTE_NAME_KEY).equalsIgnoreCase("popup") ||
-                subEl.getAttributeValue(ATTRIBUTE_NAME_KEY).equalsIgnoreCase("help") ||
-                    subEl.getAttributeValue(ATTRIBUTE_NAME_KEY).equalsIgnoreCase("tooltip")) {
+            if (subEl.getAttributeValue(ATTRIBUTE_NAME_KEY).equalsIgnoreCase("help")){
                 wParam.setHelp(subEl.getAttributeValue(ATTRIBUTE_VALUE_KEY));
-                
             }
-            if (subEl.getAttributeValue(ATTRIBUTE_NAME_KEY).equalsIgnoreCase("displaytype") ||
-                subEl.getAttributeValue(ATTRIBUTE_NAME_KEY).equalsIgnoreCase("type")) {
+            if (subEl.getAttributeValue(ATTRIBUTE_NAME_KEY).equalsIgnoreCase("type")){
                 String theType = subEl.getAttributeValue(ATTRIBUTE_VALUE_KEY);
                 if (theType == null){
                     throw new Exception("value of displaytype attribute for Parameter "+wParam.getName()+" is null. ");
@@ -312,10 +276,10 @@ public class WorkflowFromXmlFactory {
             }
             
             //this checks for the presence of elements for validation properties
-            if (subEl.getAttributeValue(ATTRIBUTE_NAME_KEY).equalsIgnoreCase("inputtype")) {
+            if (subEl.getAttributeValue(ATTRIBUTE_NAME_KEY).equalsIgnoreCase("validationtype")) {
                 wParam.setValidationType(subEl.getAttributeValue(ATTRIBUTE_VALUE_KEY));
             }
-            if (subEl.getAttributeValue(ATTRIBUTE_NAME_KEY).equalsIgnoreCase("inputtypehelp")) {
+            if (subEl.getAttributeValue(ATTRIBUTE_NAME_KEY).equalsIgnoreCase("validationhelp")) {
                 wParam.setValidationHelp(subEl.getAttributeValue(ATTRIBUTE_VALUE_KEY));
             }
             if (subEl.getAttributeValue(ATTRIBUTE_NAME_KEY).equalsIgnoreCase("minvalue")) {
@@ -324,7 +288,7 @@ public class WorkflowFromXmlFactory {
             if (subEl.getAttributeValue(ATTRIBUTE_NAME_KEY).equalsIgnoreCase("maxvalue")) {
                     wParam.setMaxValue(Double.parseDouble(subEl.getAttributeValue(ATTRIBUTE_VALUE_KEY)));
             }
-            if (subEl.getAttributeValue(ATTRIBUTE_NAME_KEY).equalsIgnoreCase("stringregex")) {
+            if (subEl.getAttributeValue(ATTRIBUTE_NAME_KEY).equalsIgnoreCase("validationregex")) {
                     wParam.setValidationRegex(subEl.getAttributeValue(ATTRIBUTE_VALUE_KEY));
             }
             if (subEl.getAttributeValue(ATTRIBUTE_NAME_KEY).equalsIgnoreCase("maxlength")) {
