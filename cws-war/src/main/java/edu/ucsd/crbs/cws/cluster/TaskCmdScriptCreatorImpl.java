@@ -50,21 +50,6 @@ public class TaskCmdScriptCreatorImpl implements TaskCmdScriptCreator, StringRep
     public static final String TASK_ARGS_TOKEN = "@@TASK_ARGS@@";
 
     /**
-     * Special parameter set to output directory of running task
-     */
-    public static final String CWS_OUTPUTDIR = "CWS_outputdir";
-
-    /**
-     * Special parameter set to output directory of running task
-     */
-    public static final String CWS_USER = "CWS_user";
-
-    /**
-     * Special parameter set to output directory of running task
-     */
-    public static final String CWS_TASKNAME = "CWS_taskname";
-
-    /**
      * Base directory under which the Workflow kar files reside
      */
     private final String _workflowsDir;
@@ -170,12 +155,14 @@ public class TaskCmdScriptCreatorImpl implements TaskCmdScriptCreator, StringRep
         for (Parameter param : t.getParameters()) {
 
             //need to deal with special parameters!!!
-            if (param.getName().equals(TaskCmdScriptCreatorImpl.CWS_OUTPUTDIR)) {
+            if (param.getName().equals(Constants.CWS_OUTPUTDIR)) {
                 value = _workingDir;
-            } else if (param.getName().equals(TaskCmdScriptCreatorImpl.CWS_TASKNAME)) {
+            } else if (param.getName().equals(Constants.CWS_TASKNAME)) {
                 value = t.getName();
-            } else if (param.getName().equals(TaskCmdScriptCreatorImpl.CWS_USER)) {
+            } else if (param.getName().equals(Constants.CWS_USER)) {
                 value = t.getOwner();
+            } else if (param.getName().equals(Constants.CWS_TASKID)){
+                value = t.getId().toString();
             } else {
                 value = param.getValue();
             }
