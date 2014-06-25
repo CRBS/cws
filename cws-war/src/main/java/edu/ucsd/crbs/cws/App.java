@@ -18,9 +18,9 @@ import edu.ucsd.crbs.cws.rest.Constants;
 import edu.ucsd.crbs.cws.workflow.Parameter;
 import edu.ucsd.crbs.cws.workflow.Task;
 import edu.ucsd.crbs.cws.workflow.Workflow;
-import edu.ucsd.crbs.cws.workflow.WorkflowFromXmlFactory;
 import edu.ucsd.crbs.cws.workflow.WorkflowParameter;
 import edu.ucsd.crbs.cws.workflow.WorkspaceFile;
+import edu.ucsd.crbs.cws.workflow.kepler.WorkflowFromAnnotatedXmlFactory;
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.File;
@@ -310,7 +310,8 @@ public class App {
                 }
 
                 File workflowFile = (File) optionSet.valueOf(UPLOAD_WF_ARG);
-                WorkflowFromXmlFactory xmlFactory = new WorkflowFromXmlFactory();
+                //WorkflowFromXmlFactory xmlFactory = new WorkflowFromXmlFactory();
+                WorkflowFromAnnotatedXmlFactory xmlFactory = new WorkflowFromAnnotatedXmlFactory();
                 xmlFactory.setWorkflowXml(new BufferedInputStream(KeplerMomlFromKar.getInputStreamOfWorkflowMoml(workflowFile)));
 
                 Workflow w = xmlFactory.getWorkflow();
