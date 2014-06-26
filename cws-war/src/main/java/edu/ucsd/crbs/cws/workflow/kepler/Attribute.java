@@ -33,7 +33,8 @@
 package edu.ucsd.crbs.cws.workflow.kepler;
 
 /**
- *
+ * Represents a Kepler Attribute
+ * 
  * @author Christopher Churas <churas@ncmir.ucsd.edu>
  */
 public class Attribute {
@@ -42,28 +43,57 @@ public class Attribute {
     protected String _displayName;
     protected double _xCoordinate;
     protected double _yCoordinate;
+    protected boolean _centered;
 
     public Attribute(){
         
     }
  
 
+    /**
+     * Gets internal name
+     * @return 
+     */
     public String getName() {
         return _name;
     }
 
+    /**
+     * Sets internal name
+     * @param name 
+     */
     public void setName(String name) {
         this._name = name;
     }
 
+    /**
+     * Gets display name
+     * @return 
+     */
     public String getDisplayName() {
         return _displayName;
     }
 
+    /**
+     * Sets display name
+     */
     public void setDisplayName(String displayName) {
         this._displayName = displayName;
     }
 
+    /**
+     * Parses <b>location</b> extracting coordinates that can later be obtained 
+     * via calls to ({@link #getXCoordinate() } {@link #getYCoordinate()})
+     * <p/>
+     * Format that is parsed:<p/>
+     * [X, Y]<br/>
+     * <br/>
+     * If <b>location</b> does not contain data in above format or if its null 
+     * no change is made to object.  Also <b>[</b> and <b>]</b> are not 
+     * required, but the <b>,</b> is.
+     * 
+     * @param location String containing location data in format <b>[X,Y]</b>
+     */
     public void setCoordinatesViaString(final String location) {
         if (location == null) {
             return;
@@ -94,6 +124,19 @@ public class Attribute {
         this._yCoordinate = yCoordinate;
     }
     
+     public boolean isCentered() {
+        return _centered;
+    }
+
+    public void setCentered(boolean centered) {
+        this._centered = centered;
+    }
+    
+    /**
+     * Gets string representation of object in this format:<p/>
+     * name=NAME,displayname=DISPLAYNAME,x=XCOORD,y=YCOORD,centered=BOOLEAN
+     * @return String in above format, if null fields are encountered <b>null</b> is output
+     */
     public String asString(){
         StringBuilder sb = new StringBuilder();
         
@@ -113,6 +156,7 @@ public class Attribute {
         }
         sb.append(",x=").append(Double.toString(this._xCoordinate));
         sb.append(",y=").append(Double.toString(this._yCoordinate));
+        sb.append(",centered=").append(Boolean.toString(_centered));
         return sb.toString();
     }
 }
