@@ -178,4 +178,27 @@ public class TestEventBuilderImpl {
         assertTrue(resEvent.getWorkflowId() == 2L);
     }
     
+    @Test
+    public void testSetAsFailedCreateTaskEvent(){
+        EventBuilderImpl builder = new EventBuilderImpl();
+        assertTrue(builder.setAsFailedCreateTaskEvent(null, null) == null);
+        Event e = new Event();
+        assertTrue(builder.setAsCreateWorkflowEvent(e, null) == null);
+        
+        Task t = new Task();
+        Event resEvent = builder.setAsFailedCreateTaskEvent(e, t);
+        assertTrue(resEvent != null);
+        assertTrue(resEvent.getEventType().equals(Event.FAILED_CREATE_TASK_EVENT_TYPE));
+        assertTrue(resEvent.getDate() != null);
+        assertTrue(resEvent.getMessage().equals(""));
+        
+        t.setError("someerror");
+        resEvent = builder.setAsFailedCreateTaskEvent(e, t);
+        assertTrue(resEvent != null);
+        assertTrue(resEvent.getEventType().equals(Event.FAILED_CREATE_TASK_EVENT_TYPE));
+        assertTrue(resEvent.getDate() != null);
+        assertTrue(resEvent.getMessage().startsWith("TaskError: someerror"));
+        
+    }
+    
 }

@@ -238,6 +238,7 @@ public class TaskRestService {
                 if (t.getError() != null || t.getParametersWithErrors() != null){
                     _log.log(Level.WARNING,"Validation of Task failed: {0}",
                             t.getSummaryOfErrors());
+                    saveEvent(_eventBuilder.setAsFailedCreateTaskEvent(event, t));
                     return t;
                 }
                 

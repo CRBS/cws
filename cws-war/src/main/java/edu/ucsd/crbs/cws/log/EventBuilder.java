@@ -30,6 +30,14 @@ public interface EventBuilder {
     public Event setAsCreateTaskEvent(Event event,Task task);
     
     /**
+     * Converts Event into what is known as a failed create task event
+     * @param event
+     * @param task
+     * @return 
+     */
+    public Event setAsFailedCreateTaskEvent(Event event,Task task);
+    
+    /**
      * Converts Event into what is known as a Create Workflow Event
      * @param event
      * @param workflow

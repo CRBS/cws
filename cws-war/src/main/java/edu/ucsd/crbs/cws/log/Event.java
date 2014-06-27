@@ -25,6 +25,12 @@ public class Event {
     public static final String CREATE_TASK_EVENT_TYPE = "createtask";
     
     /**
+     * Failed creation of a Task
+     */
+    public static final String FAILED_CREATE_TASK_EVENT_TYPE = "failedcreatetask";
+    
+    
+    /**
      * Creation of a Workflow
      */
     public static final String CREATE_WORKFLOW_EVENT_TYPE = "createworkflow";

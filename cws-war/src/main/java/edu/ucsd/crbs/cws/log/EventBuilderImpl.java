@@ -4,6 +4,7 @@ import edu.ucsd.crbs.cws.auth.User;
 import edu.ucsd.crbs.cws.workflow.Task;
 import edu.ucsd.crbs.cws.workflow.Workflow;
 import edu.ucsd.crbs.cws.workflow.WorkspaceFile;
+import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
@@ -136,6 +137,21 @@ public class EventBuilderImpl implements EventBuilder {
          event.setEventType(Event.CREATE_WORKSPACEFILE_EVENT_TYPE);
          event.setDate(workspaceFile.getCreateDate());
          return event;
+    }
+
+    @Override
+    public Event setAsFailedCreateTaskEvent(Event event, Task task) {
+        if (anyOfTheseObjectsNull(event,task) == true){
+            _log.log(Level.WARNING,"One or more parameters passed in is null.  Unable to log event.");
+            return null;
+        }
+        event.setEventType(Event.FAILED_CREATE_TASK_EVENT_TYPE);
+        event.setDate(new Date());
+        String errorSummary = task.getSummaryOfErrors();
+        if (errorSummary != null){
+            event.setMessage(task.getSummaryOfErrors());
+        }
+        return event;
     }
     
     
