@@ -36,6 +36,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * Represents a Rectangle in a Kepler 2.4 workflow
  *
  * @author Christopher Churas <churas@ncmir.ucsd.edu>
  */
@@ -55,7 +56,7 @@ public class RectangleAttribute extends Attribute {
     }
 
     public void setWidth(double width) {
-        this._width = width;
+        _width = width;
     }
 
     public double getHeight() {
@@ -63,15 +64,11 @@ public class RectangleAttribute extends Attribute {
     }
 
     public void setHeight(double height) {
-        this._height = height;
+        _height = height;
     }
     
     public boolean addTextAttributeIfIntersecting(TextAttribute attrib){
-        if (attrib == null){
-            return false;
-        }
-        
-        if (doesIntersect(attrib) == false){
+        if (isItOkayToAddAttribute(attrib) == false){
             return false;
         }
         
@@ -86,12 +83,19 @@ public class RectangleAttribute extends Attribute {
         return _intersectingTextAttributes;
     }
 
-    public boolean addParameterAttributeIfIntersecting(ParameterAttribute attrib){
-        if (attrib == null){
+    private boolean isItOkayToAddAttribute(Attribute attribute){
+           if (attribute == null){
             return false;
         }
         
-        if (doesIntersect(attrib) == false){
+        if (doesIntersect(attribute) == false){
+            return false;
+        }
+        return true;
+    }
+    
+    public boolean addParameterAttributeIfIntersecting(ParameterAttribute attrib){
+        if (isItOkayToAddAttribute(attrib) == false){
             return false;
         }
         
@@ -106,66 +110,84 @@ public class RectangleAttribute extends Attribute {
         return _intersectingParameterAttributes;
     }
     
+    /**
+     * Checks if the <b>attrib</b> passed in is located within the rectangle of
+     * this object.  The code assumes the coordinates are based on the upper left
+     * corner and not centered.
+     * @param attrib Attribute whose coordinates are extracted and compared to this object
+     * @return true if the <b>attrib</b> lies within the bounds of this object's location false otherwise
+     */
     public boolean doesIntersect(Attribute attrib){
         if (attrib == null){
             return false;
         }
         
         //fail if coordinate is above or to left of upper left corner of rectangle
-        if (attrib.getXCoordinate() < this._xCoordinate ||
-            attrib.getYCoordinate() < this._yCoordinate){
+        if (attrib.getXCoordinate() < _xCoordinate ||
+            attrib.getYCoordinate() < _yCoordinate){
             return false;
         }
         
         // fail if coordinate is below or to right of lower right corner of rectangle
-        if (attrib.getXCoordinate() > this._xCoordinate + this._width ||
-            attrib.getYCoordinate() > this._yCoordinate + this._height){
+        if (attrib.getXCoordinate() > _xCoordinate + _width ||
+            attrib.getYCoordinate() > _yCoordinate + _height){
             return false;
         }
         return true;
     }
     
     public String getTextFromTextAttributes(){
-        if (this._intersectingTextAttributes == null || this._intersectingTextAttributes.isEmpty()){
+        if (_intersectingTextAttributes == null || 
+            _intersectingTextAttributes.isEmpty()){
             return null;
         }
         
         StringBuilder sb = new StringBuilder();
-        for (TextAttribute ta : this._intersectingTextAttributes){
+        for (TextAttribute ta : _intersectingTextAttributes){
             if (sb.length() > 0){
                 sb.append("\n");
             }
-            sb.append(ta.getText());
+            if (ta.getText() != null){
+                sb.append(ta.getText());
+            }
         }
         return sb.toString();
     }
     
+    /**
+     * 
+     * @return 
+     */
+    @Override
     public String asString(){
         StringBuilder sb = new StringBuilder();
         sb.append(super.asString());
         sb.append(",width=").append(Double.toString(_width));
         sb.append(",height=").append(Double.toString(_height));
-        /*
-        sb.append("\ntextattributes=\n");
-        if (this._intersectingTextAttributes == null || this._intersectingTextAttributes.isEmpty()){
-            sb.append("null");
+        
+        sb.append(",numtextattributes=");
+        if (_intersectingTextAttributes == null || 
+            _intersectingTextAttributes.isEmpty()){
+            sb.append("0");
         }
         else {
-            for (Attribute ta : this._intersectingTextAttributes){
-                sb.append("\t").append(ta.asString()).append("\n");
-            }
+            sb.append(_intersectingTextAttributes.size());
         }
-        sb.append("\nparameterattributes=\n");
-        if (this._intersectingParameterAttributes == null || this._intersectingParameterAttributes.isEmpty()){
-            sb.append("null");
+        
+        sb.append(",numparameterattributes=");
+        if (_intersectingParameterAttributes == null || 
+            _intersectingParameterAttributes.isEmpty()){
+            sb.append("0");
         }
         else {
-            for (Attribute pa : this._intersectingParameterAttributes){
-                sb.append("\t").append(pa.asString()).append("\n");
-            }
+            sb.append(_intersectingParameterAttributes.size());
         }
-        */
         return sb.toString();
     }
 
+    public void moveCoordinatesToUpperLeftCornerFromCenter(){
+        _xCoordinate -= (_width/2);
+        _yCoordinate -= (_height/2);
+    }
+    
 }
