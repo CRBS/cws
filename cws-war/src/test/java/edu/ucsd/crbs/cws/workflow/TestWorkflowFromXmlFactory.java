@@ -66,7 +66,7 @@ public class TestWorkflowFromXmlFactory {
     public void testExampleKarInTestResourcesDirectory() throws Exception {
         WorkflowFromXmlFactory xmlFactory = new WorkflowFromXmlFactory();
         
-        URL resourceUrl = getClass().getResource("/example.kar");
+        URL resourceUrl = getClass().getResource("/example.old.kar");
         Path resourcePath = Paths.get(resourceUrl.toURI());
         xmlFactory.setWorkflowXml(KeplerMomlFromKar.getInputStreamOfWorkflowMoml(resourcePath.toFile()));
         

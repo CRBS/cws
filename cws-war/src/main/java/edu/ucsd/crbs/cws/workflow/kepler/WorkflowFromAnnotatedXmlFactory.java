@@ -51,7 +51,12 @@ import org.jdom2.xpath.XPathExpression;
 import org.jdom2.xpath.XPathFactory;
 
 /**
- *
+ * Creates Workflow object from Kepler 2.4 XML document.  This factory
+ * uses the new annotation markup for describing UI mapping for Kepler
+ * parameters
+ * 
+ * 
+ * 
  * @author Christopher Churas <churas@ncmir.ucsd.edu>
  */
 public class WorkflowFromAnnotatedXmlFactory {
@@ -64,26 +69,52 @@ public class WorkflowFromAnnotatedXmlFactory {
     
     // Query to find all TextAttributes
     public static final String MOML_TEXT_ATTRIBUTE = "/entity/property[@class='ptolemy.vergil.kernel.attributes.TextAttribute']";
+    
+    public static final String NAME_ATTRIBUTE = "name";
 
-    public static final String KEPLER_PARAMETER_STRING = "String";
-    public static final String KEPLER_PARAMETER_FILE = "File";
-    public static final String KEPLER_PARAMETER_NUMBER = "Number";
-
-    public static final String KEPLER_CHECKBOX_FALSE = "false";
-    public static final String KEPLER_CHECKBOX_TRUE = "true";
-
-    public static final String ELEMENT_NAME_KEY = "name";
-    public static final String ELEMENT_VALUE_KEY = "value";
-    public static final String ELEMENT_PROPERTY_KEY = "property";
-
-    public static final String ATTRIBUTE_NAME_KEY = "name";
-    public static final String ATTRIBUTE_VALUE_KEY = "value";
-
+    public static final String VALUE_ATTRIBUTE = "value";
+    
+    public static final String LOCATION_ATTRIBUTE = "_location";
+    
+    public static final String DISPLAY_ELEMENT = "display";
+    
+    public static final String CENTERED_ATTRIBUTE = "centered";
+    
+    public static final String WIDTH = "width";
+    
+    public static final String HEIGHT = "height";
+    
+    public static final String CLASS = "class";
+    
+    public static final String TEXT = "text";
+    
+    
+    public static final String WORKFLOW_NAME="workflowname";
+    public static final String RELEASE_NOTES="releasenotes";
+    public static final String DESCRIPTION="description";
+    
+    public static final String TYPE_KEY = "type";
+    public static final String HELP_KEY = "help";
+    public static final String VALIDATIONHELP_KEY = "validationhelp";
+    public static final String VALIDATIONTYPE_KEY = "validationtype";
+    public static final String VALIDATIONREGEX_KEY = "validationregex";
+    public static final String NAMEVALUEDELIMITER_KEY = "namevaluedelimiter";
+    public static final String LINEDELIMITER_KEY = "linedelimiter";
+    public static final String SELECTED_KEY = "selected";
+    public static final String COLUMNS_KEY = "columns";
+    public static final String ISADVANCED_KEY = "isadvanced";
+    public static final String ISREQUIRED_KEY = "isrequired";
+    public static final String MAXFILESIZE_KEY = "maxfilesize";
+    public static final String MAXLENGTH_KEY = "maxlength";
+    public static final String MAXVALUE_KEY = "maxvalue";
+    public static final String MINVALUE_KEY = "minvalue";
+    public static final String ROWS_KEY = "rows";
 
     public static final Logger log = Logger.getLogger(WorkflowFromXmlFactory.class.getName());
 
-   
-
+    /**
+     * Input Stream set via {@link #setWorkflowXml(java.io.InputStream)} 
+     */
     private InputStream _in;
 
     /**
@@ -96,7 +127,8 @@ public class WorkflowFromAnnotatedXmlFactory {
     }
 
     /**
-     *
+     * Parses Kepler 2.4 xml from stream set in {@link #setWorkflowXml(java.io.InputStream)}
+     * to extract a {@link Workflow} object.  
      * @return @throws Exception
      */
     public Workflow getWorkflow() throws Exception {
@@ -180,16 +212,13 @@ public class WorkflowFromAnnotatedXmlFactory {
         //loop through RectangleAttributes and update workflow object with parameters etc
         
         for (RectangleAttribute ra : rectangles) {
-                if (ra.getDisplayName().replace(" ","").equalsIgnoreCase("workflowname") ||
-                    ra.getName().replace(" ","").equalsIgnoreCase("workflowname")){
+                if (doesRectangleNameMatch(ra,WORKFLOW_NAME)){
                     workflow.setName(ra.getTextFromTextAttributes());
                 }
-                else if (ra.getDisplayName().replace(" ","").equalsIgnoreCase("releasenotes") ||
-                    ra.getName().replace(" ","").equalsIgnoreCase("releasenotes")){
+                else if (doesRectangleNameMatch(ra,RELEASE_NOTES)){
                     workflow.setReleaseNotes(ra.getTextFromTextAttributes());
                 }
-                else if (ra.getDisplayName().replace(" ","").equalsIgnoreCase("description") ||
-                    ra.getName().replace(" ","").equalsIgnoreCase("description")){
+                else if (doesRectangleNameMatch(ra,DESCRIPTION)){
                     workflow.setDescription(ra.getTextFromTextAttributes());
                 }
                 else {
@@ -203,31 +232,88 @@ public class WorkflowFromAnnotatedXmlFactory {
             workflow.setParameters(paramList);
         }
         
-        
-        
-        //iterate through rectangles
-        // if key word matches Description, Workflow Name, or Release Notes set appropriate Workflow fields
-        // by reading contents of associated annotation
-        //if rectangle has one or more parameters and annotation attempt to parse annotation
-        // for type information.  If set apply data to parameters and add them to workflow
         return workflow;
     }
     
     
+    /**
+     * Invokes {@link #doSpaceRemovedStringsMatch()} on {@link RectangleAttribute#getDisplayName()} and
+     * {@link RectangleAttribute#getName()} returning true if either return true
+     * @param ra RectangleAttribute to obtain display name and name from
+     * @param name name to compare against the display name and name
+     * @return true if either the name or display name in <b>ra</b> match otherwise false
+     */
+    private boolean doesRectangleNameMatch(RectangleAttribute ra,final String name){
+        if (ra == null){
+            return false;
+        }
+        return doSpaceRemovedStringsMatch(ra.getDisplayName(),name) || doSpaceRemovedStringsMatch(ra.getName(),name);
+    }
+    
+    /**
+     * Removes any spaces from <b>base</b> and then performs an caseless comparison
+     * against <b>match</b> string
+     * 
+     * @param base Base string that has spaces removed
+     * @param match String to compare against base string
+     * @return true if space removed <b>base</b> matches <b>match</b> string 
+     * using the string equalsIgnoreCase method. false if no match or if either 
+     * inputs are null
+     */
+    private boolean doSpaceRemovedStringsMatch(final String base,final String match){
+        if (base == null || match == null){
+            return false;
+        }
+        return base.replace(" ","").equalsIgnoreCase(match);
+    }
+    
+    /**
+     * Generates @{link WorkflowParameter} objects by iterating through all the {@link ParameterAttribute} objects
+     * in <b>ra</b> object passed in.  Each @{link WorkflowParameter} is annotated with data from
+     * the {@link TextAttribute} in the <b>ra</b> extracted from {@link RectangleAttribute#getTextFromTextAttributes()}<br/>
+     * It is assumed the data from the preceeding method is in the <b>key=value<b/> format compatible
+     * with parsing by {@link java.util.Properties}.  This method looks for the following
+     * key words:<p/>
+     * {@link #TYPE_KEY}<br/>
+     * {@link #HELP_KEY}<br/>
+     * {@link #VALIDATIONHELP_KEY}<br/>
+     * {@link #VALIDATIONTYPE_KEY}<br/>
+     * {@link #VALIDATIONREGEX_KEY}<br/>
+     * {@link #NAMEVALUEDELIMITER_KEY}<br/>
+     * {@link #LINEDELIMITER_KEY}<br/>
+     * {@link #SELECTED_KEY}<br/>
+     * {@link #COLUMNS_KEY}<br/>
+     * {@link #ISADVANCED_KEY}<br/>
+     * {@link #ISREQUIRED_KEY}<br/>
+     * {@link #MAXFILESIZE_KEY}<br/>
+     * {@link #MAXLENGTH_KEY}<br/>
+     * {@link #MAXVALUE_KEY}<br/>
+     * {@link #MINVALUE_KEY}<br/>
+     * {@link #ROWS_KEY}<br/>
+     * 
+     * @param ra
+     * @return
+     * @throws Exception 
+     */
     private List<WorkflowParameter> getWorkflowParameters(RectangleAttribute ra) throws Exception {
         
+        // if there isn't a text attribute text then these parameters shouldn't
+        // be displayed to the user so just return
         String text = ra.getTextFromTextAttributes();
         if (text == null){
             return null;
         }
 
-        if (ra.getIntersectingParameterAttributes() == null || ra.getIntersectingParameterAttributes().isEmpty()){
+        //bail if there are no parameters
+        if (ra.getIntersectingParameterAttributes() == null ||
+                ra.getIntersectingParameterAttributes().isEmpty()){
             return null;
         }
         
+        //attempt to extract properties from text attributes
         Properties props = new Properties();
         props.load(new StringReader(text));
-        String type = props.getProperty("type");
+        String type = props.getProperty(TYPE_KEY);
         if (type == null){
             return null;
         }
@@ -242,28 +328,46 @@ public class WorkflowFromAnnotatedXmlFactory {
             wp.setType(type);
             wp.setValue(pa.getValue());
             
-            wp.setHelp(props.getProperty("help"));
-            wp.setValidationHelp(props.getProperty("validationhelp"));
-            wp.setValidationType(props.getProperty("validationtype"));
-            wp.setValidationRegex(props.getProperty("validationregex"));
-            wp.setNameValueDelimiter(props.getProperty("namevaluedelimiter"));
-            wp.setLineDelimiter(props.getProperty("linedelimiter"));
-            wp.setSelected(props.getProperty("selected"));
+            wp.setHelp(props.getProperty(HELP_KEY));
+            wp.setValidationHelp(props.getProperty(VALIDATIONHELP_KEY));
+            wp.setValidationType(props.getProperty(VALIDATIONTYPE_KEY));
+            wp.setValidationRegex(props.getProperty(VALIDATIONREGEX_KEY));
+            wp.setNameValueDelimiter(props.getProperty(NAMEVALUEDELIMITER_KEY));
+            wp.setLineDelimiter(props.getProperty(LINEDELIMITER_KEY));
+            wp.setSelected(props.getProperty(SELECTED_KEY));
             
-            wp.setColumns(Long.parseLong(props.getProperty("columns","0")));
-            wp.setIsAdvanced(Boolean.valueOf(props.getProperty("isadvanced", "false")));
-            wp.setIsRequired(Boolean.valueOf(props.getProperty("isrequired", "false")));
-            wp.setMaxFileSize(Long.parseLong(props.getProperty("maxfilesize", "0")));
-            wp.setMaxLength(Long.parseLong(props.getProperty("maxlength", "0")));
-            wp.setMaxValue(Double.parseDouble(props.getProperty("maxvalue","0")));
-            wp.setMinValue(Double.parseDouble(props.getProperty("minvalue","0")));
-            wp.setRows(Long.parseLong(props.getProperty("rows", "0")));
+            wp.setColumns(Long.parseLong(props.getProperty(COLUMNS_KEY,"0")));
+            wp.setIsAdvanced(Boolean.valueOf(props.getProperty(ISADVANCED_KEY, "false")));
+            wp.setIsRequired(Boolean.valueOf(props.getProperty(ISREQUIRED_KEY, "false")));
+            wp.setMaxFileSize(Long.parseLong(props.getProperty(MAXFILESIZE_KEY, "0")));
+            wp.setMaxLength(Long.parseLong(props.getProperty(MAXLENGTH_KEY, "0")));
+            wp.setMaxValue(Double.parseDouble(props.getProperty(MAXVALUE_KEY,"0")));
+            wp.setMinValue(Double.parseDouble(props.getProperty(MINVALUE_KEY,"0")));
+            wp.setRows(Long.parseLong(props.getProperty(ROWS_KEY, "0")));
             
             params.add(wp);
         }
         return params;
     }
     
+    /**
+     * Runs xpath query {@link #MOML_TEXT_ATTRIBUTE} to get TextAttribute 
+     * elements from document.  The code then parses out the <b>name</b>, 
+     * <b>coordinates<b/>, and <b>text</b> to generate {@link TextAttribute} 
+     * objects.<p/>
+     * The <b>name</b> is the value from the {@link #NAME_ATTRIBUTE} attribute 
+     * in the element returned from the xpath query<br/>
+     * The <b>coordinates</b> is the value obtained from the 
+     * {@link #VALUE_ATTRIBUTE} in the  child element whose value from the 
+     * {@link #NAME_ATTRIBUTE} matches {@link #LOCATION_ATTRIBUTE}<br/>
+     * The <b>text</b> is the value from the {@link #VALUE_ATTRIBUTE} attribute 
+     * in the child element whose value from the {@link #NAME_ATTRIBUTE} matches 
+     * {@link #TEXT}
+     * 
+     * @param doc
+     * @return List of {@link TextAttribute} objects if found
+     * @throws Exception 
+     */
     private List<TextAttribute> getTextAttributes(Document doc) throws Exception {
         XPathExpression<Element> xpath = XPathFactory.instance().compile(MOML_TEXT_ATTRIBUTE, Filters.element());
 
@@ -272,14 +376,14 @@ public class WorkflowFromAnnotatedXmlFactory {
         for (Element e : elements) {
             TextAttribute ta = new TextAttribute();
 
-            ta.setName(e.getAttributeValue(ELEMENT_NAME_KEY));
+            ta.setName(e.getAttributeValue(NAME_ATTRIBUTE));
             List<Element> children = e.getChildren();
             for (Element child : children) {
-                if (child.getAttributeValue(ELEMENT_NAME_KEY).equalsIgnoreCase("_location")) {
-                    ta.setCoordinatesViaString(child.getAttributeValue(ATTRIBUTE_VALUE_KEY));
+                if (child.getAttributeValue(NAME_ATTRIBUTE).equalsIgnoreCase(LOCATION_ATTRIBUTE)) {
+                    ta.setCoordinatesViaString(child.getAttributeValue(VALUE_ATTRIBUTE));
                 }
-                else if (child.getAttributeValue(ELEMENT_NAME_KEY).equalsIgnoreCase("text")){
-                    ta.setText(child.getAttributeValue(ATTRIBUTE_VALUE_KEY));
+                else if (child.getAttributeValue(NAME_ATTRIBUTE).equalsIgnoreCase(TEXT)){
+                    ta.setText(child.getAttributeValue(VALUE_ATTRIBUTE));
                 }
             }
             textAttributes.add(ta);
@@ -293,16 +397,16 @@ public class WorkflowFromAnnotatedXmlFactory {
         ArrayList<ParameterAttribute> parameters = new ArrayList<>();
         for (Element e : elements) {
             ParameterAttribute pa = new ParameterAttribute();
-            pa.setName(e.getAttributeValue(ELEMENT_NAME_KEY));
-            pa.setType(e.getAttributeValue("class"));
-            pa.setValue(e.getAttributeValue(ATTRIBUTE_VALUE_KEY));
+            pa.setName(e.getAttributeValue(NAME_ATTRIBUTE));
+            pa.setType(e.getAttributeValue(CLASS));
+            pa.setValue(e.getAttributeValue(VALUE_ATTRIBUTE));
 
             List<Element> children = e.getChildren();
             for (Element child : children) {
-                if (child.getName().equals("display")) {
-                    pa.setDisplayName(child.getAttributeValue("name"));
-                } else if (child.getAttributeValue(ELEMENT_NAME_KEY).equalsIgnoreCase("_location")) {
-                    pa.setCoordinatesViaString(child.getAttributeValue(ATTRIBUTE_VALUE_KEY));
+                if (child.getName().equals(DISPLAY_ELEMENT)) {
+                    pa.setDisplayName(child.getAttributeValue(NAME_ATTRIBUTE));
+                } else if (child.getAttributeValue(NAME_ATTRIBUTE).equalsIgnoreCase(LOCATION_ATTRIBUTE)) {
+                    pa.setCoordinatesViaString(child.getAttributeValue(VALUE_ATTRIBUTE));
                 }
 
             }
@@ -321,34 +425,33 @@ public class WorkflowFromAnnotatedXmlFactory {
         ArrayList<RectangleAttribute> rectangles = new ArrayList<>();
         for (Element e : elements) {
             RectangleAttribute ra = new RectangleAttribute();
-
-            ra.setName(e.getAttributeValue(ELEMENT_NAME_KEY));
+            boolean centered = false;
+            ra.setName(e.getAttributeValue(NAME_ATTRIBUTE));
             List<Element> children = e.getChildren();
             for (Element child : children) {
-                if (child.getName().equals("display")) {
-                    ra.setDisplayName(child.getAttributeValue("name"));
-                } else if (child.getAttributeValue(ELEMENT_NAME_KEY).equalsIgnoreCase("width")) {
-                    ra.setWidth(Double.parseDouble(child.getAttributeValue(ATTRIBUTE_VALUE_KEY)));
-                } else if (child.getAttributeValue(ELEMENT_NAME_KEY).equalsIgnoreCase("height")) {
-                    ra.setHeight(Double.parseDouble(child.getAttributeValue(ATTRIBUTE_VALUE_KEY)));
-                } else if (child.getAttributeValue(ELEMENT_NAME_KEY).equalsIgnoreCase("_location")) {
-                    ra.setCoordinatesViaString(child.getAttributeValue(ATTRIBUTE_VALUE_KEY));
+                if (child.getName().equals(DISPLAY_ELEMENT)) {
+                    ra.setDisplayName(child.getAttributeValue(NAME_ATTRIBUTE));
+                } else if (child.getAttributeValue(NAME_ATTRIBUTE).equalsIgnoreCase(WIDTH)) {
+                    ra.setWidth(Double.parseDouble(child.getAttributeValue(VALUE_ATTRIBUTE)));
+                } else if (child.getAttributeValue(NAME_ATTRIBUTE).equalsIgnoreCase(HEIGHT)) {
+                    ra.setHeight(Double.parseDouble(child.getAttributeValue(VALUE_ATTRIBUTE)));
+                } else if (child.getAttributeValue(NAME_ATTRIBUTE).equalsIgnoreCase(LOCATION_ATTRIBUTE)) {
+                    ra.setCoordinatesViaString(child.getAttributeValue(VALUE_ATTRIBUTE));
+                } else if (child.getAttributeValue(NAME_ATTRIBUTE).equalsIgnoreCase(CENTERED_ATTRIBUTE)){
+                    centered = Boolean.parseBoolean(child.getAttributeValue(VALUE_ATTRIBUTE));
                 }
             }
             if (ra.getDisplayName() == null) {
                 ra.setDisplayName(ra.getName());
             }
+            
+            //if centered we need to adjust x and y coordinate to be upper left corner
+            if (centered == true){
+                ra.moveCoordinatesToUpperLeftCornerFromCenter();
+            }
+            
             rectangles.add(ra);
         }
         return rectangles;
-    }
-
-    private String getContentOfValueAttributeFromFirstElementInQuery(Document doc, final String query) throws Exception {
-        XPathExpression<Element> xpath = XPathFactory.instance().compile(query, Filters.element());
-        Element e = xpath.evaluateFirst(doc);
-        if (e == null) {
-            return null;
-        }
-        return e.getAttributeValue(ATTRIBUTE_VALUE_KEY);
     }
 };
