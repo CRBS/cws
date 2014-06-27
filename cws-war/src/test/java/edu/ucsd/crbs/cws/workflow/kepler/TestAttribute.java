@@ -79,18 +79,15 @@ public class TestAttribute {
         assertTrue(attrib.getName() == null);
         assertTrue(attrib.getXCoordinate() == 0);
         assertTrue(attrib.getYCoordinate() == 0);
-        assertTrue(attrib.isCentered() == false);
         attrib.setDisplayName("display");
         attrib.setName("name");
         attrib.setXCoordinate(1);
         attrib.setYCoordinate(2);
-        attrib.setCentered(true);
         
         assertTrue(attrib.getDisplayName().equals("display"));
         assertTrue(attrib.getName().equals("name"));
         assertTrue(attrib.getXCoordinate() == 1);
         assertTrue(attrib.getYCoordinate() == 2);
-        assertTrue(attrib.isCentered() == true);
 
     }
     
@@ -136,14 +133,12 @@ public class TestAttribute {
     @Test
     public void testAsString(){
         Attribute attrib = new Attribute();
-        assertTrue(attrib.asString().equals("name=null,displayname=null,x=0.0,y=0.0,centered=false"));
+        assertTrue(attrib.asString().equals("name=null,displayname=null,x=0.0,y=0.0"));
         
         attrib.setDisplayName("display");
         attrib.setName("name");
         attrib.setXCoordinate(1);
         attrib.setYCoordinate(2);
-        attrib.setCentered(true);
-        assertTrue(attrib.asString().equals("name=name,displayname=display,x=1.0,y=2.0,centered=true"));
-        
+        assertTrue(attrib.asString().equals("name=name,displayname=display,x=1.0,y=2.0"));
     }
 }

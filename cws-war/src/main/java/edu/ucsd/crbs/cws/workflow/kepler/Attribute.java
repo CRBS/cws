@@ -43,7 +43,6 @@ public class Attribute {
     protected String _displayName;
     protected double _xCoordinate;
     protected double _yCoordinate;
-    protected boolean _centered;
 
     public Attribute(){
         
@@ -124,14 +123,6 @@ public class Attribute {
         this._yCoordinate = yCoordinate;
     }
     
-     public boolean isCentered() {
-        return _centered;
-    }
-
-    public void setCentered(boolean centered) {
-        this._centered = centered;
-    }
-    
     /**
      * Gets string representation of object in this format:<p/>
      * name=NAME,displayname=DISPLAYNAME,x=XCOORD,y=YCOORD,centered=BOOLEAN
@@ -156,7 +147,6 @@ public class Attribute {
         }
         sb.append(",x=").append(Double.toString(this._xCoordinate));
         sb.append(",y=").append(Double.toString(this._yCoordinate));
-        sb.append(",centered=").append(Boolean.toString(_centered));
         return sb.toString();
     }
 }
