@@ -128,6 +128,7 @@ public class TaskValidatorImpl implements TaskValidator {
                 task.addParameterWithError(new ParameterWithError(p,"No matching WorkflowParameter"));
             }
             else {
+                p.setWorkflowParameter(wParam);
                 linkedMap.put(wParam,p);
             }
         }
