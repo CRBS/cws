@@ -10,6 +10,7 @@ import java.util.List;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Ignore;
+import com.googlecode.objectify.annotation.Index;
 import com.googlecode.objectify.annotation.Load;
 import java.util.Date;
 import java.util.Iterator;
@@ -28,7 +29,7 @@ public class Workflow {
     
     public static class Everything {}
     @Id private Long _id;
-    private String _name;
+    @Index private String _name;
     private int _version;
     private String _description;
     private Date _createDate;
