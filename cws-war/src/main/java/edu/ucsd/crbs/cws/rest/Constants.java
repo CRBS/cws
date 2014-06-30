@@ -25,6 +25,17 @@ public class Constants {
     public static final String WORKSPACEFILE_ID_REST_PATH = SLASH+"{"+
             WORKSPACEFILE_ID_PATH_PARAM+"}";
     
+    
+    public static final String USER_ID_PATH_PARAM = "userid";
+    
+    public static final String USER_ID_REST_PATH = SLASH+"{"+USER_ID_PATH_PARAM+"}";
+    
+    
+    /**
+     * REST URL path for Users
+     */
+    public static final String USERS_PATH = "users";
+    
     /**
      * REST URL path for Tasks
      */
