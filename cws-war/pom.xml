@@ -134,7 +134,7 @@
         <dependency>
             <groupId>com.googlecode.objectify</groupId>
             <artifactId>objectify</artifactId>
-            <version>5.0.2</version>
+            <version>5.0.3</version>
         </dependency>
         
         <!-- only used by the command line program -->
