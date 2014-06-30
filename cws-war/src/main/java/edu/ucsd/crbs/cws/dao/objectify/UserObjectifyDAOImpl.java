@@ -52,4 +52,17 @@ public class UserObjectifyDAOImpl implements UserDAO {
         return null;
     }
 
+    @Override
+    public User getUserById(String userId) throws Exception {
+        long userIdAsLong;
+        try {
+            userIdAsLong = Long.parseLong(userId);
+        }catch(NumberFormatException nfe){
+            throw new Exception(nfe);
+        }
+        return ofy().load().type(User.class).id(userIdAsLong).now();
+    }
+
+    
+    
 }

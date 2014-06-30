@@ -34,4 +34,12 @@ public interface UserDAO {
     public User insert(User u) throws Exception;
     
     
+    /**
+     * Gets User by id passed in
+     * @param userId
+     * @return
+     * @throws Exception 
+     */
+    public User getUserById(final String userId) throws Exception;
+    
 }
