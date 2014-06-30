@@ -11,6 +11,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 public class Parameter {
     protected String _name;
     protected String _value;
+    protected WorkflowParameter _workflowParameter;
 
     public Parameter(){
         
@@ -70,5 +71,15 @@ public class Parameter {
             sb.append(_value);
         }
         return sb.toString();
+    }
+    
+    @JsonIgnore
+    public WorkflowParameter getWorkflowParameter() {
+        return _workflowParameter;
+    }
+
+    @JsonIgnore
+    public void setWorkflowParameter(WorkflowParameter workflowParameter) {
+        _workflowParameter = workflowParameter;
     }
 }
