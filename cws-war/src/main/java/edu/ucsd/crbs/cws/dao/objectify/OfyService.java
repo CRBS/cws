@@ -6,6 +6,7 @@ import com.googlecode.objectify.Objectify;
 import edu.ucsd.crbs.cws.auth.User;
 import edu.ucsd.crbs.cws.log.Event;
 import edu.ucsd.crbs.cws.workflow.Task;
+import edu.ucsd.crbs.cws.workflow.TaskWorkspaceFile;
 import edu.ucsd.crbs.cws.workflow.Workflow;
 import edu.ucsd.crbs.cws.workflow.WorkspaceFile;
 
@@ -28,6 +29,7 @@ public class OfyService {
         factory().register(User.class);
         factory().register(Event.class);
         factory().register(WorkspaceFile.class);
+        factory().register(TaskWorkspaceFile.class);
     }
 
     /**
