@@ -24,6 +24,12 @@ public class Event {
      */
     public static final String CREATE_TASK_EVENT_TYPE = "createtask";
     
+     
+    /**
+     * Creation of a User
+     */
+    public static final String CREATE_USER_EVENT_TYPE = "createuser";
+    
     /**
      * Failed creation of a Task
      */
@@ -51,6 +57,7 @@ public class Event {
     @Index({IfNotNull.class}) private Long _workflowId;
     @Index({IfNotNull.class}) private Long _taskId;
     @Index({IfNotNull.class}) private Long _userId;
+    @Index({IfNotNull.class}) private Long _createdUserId;
     @Index({IfNotNull.class}) private Long _workspaceFileId;
     private String _message;
     
@@ -289,6 +296,16 @@ public class Event {
     public void setWorkspaceFileId(Long _workspaceFileId) {
         this._workspaceFileId = _workspaceFileId;
     }
+    
+    
+    public Long getCreatedUserId() {
+        return _createdUserId;
+    }
+
+    public void setCreatedUserId(Long createdUserId) {
+        _createdUserId = createdUserId;
+    }
+    
     
     /**
      * Creates a human readable string of the location data in this object<p/>
