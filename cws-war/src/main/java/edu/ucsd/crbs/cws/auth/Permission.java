@@ -97,4 +97,14 @@ public class Permission {
      * Permission to download workspace file
      */
     public static final int DOWNLOAD_ALL_WORKSPACEFILES = 32768;
+    
+    /**
+     * Permission to list all users
+     */
+    public static final int LIST_ALL_USERS = 65536;
+    
+    /**
+     * Permission to create user
+     */
+    public static final int CREATE_USER = 131072;
 }
