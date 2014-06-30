@@ -1,5 +1,6 @@
 package edu.ucsd.crbs.cws.auth;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Ignore;
@@ -20,7 +21,7 @@ public class User {
     @Index private String _ipAddress;
     @Index private String _token;
     private Date _createDate;
-    private int _permissions;
+    @Index private int _permissions;
     @Ignore private String _loginToRunTaskAs;
     
     
@@ -91,7 +92,8 @@ public class User {
     public void setLoginToRunTaskAs(final String login){
         _loginToRunTaskAs = login;
     }
-    
+
+    @JsonIgnore
     public boolean isAuthorizedTo(int requestedPermission){
         return ((_permissions & requestedPermission) == requestedPermission);
     }
