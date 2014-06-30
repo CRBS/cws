@@ -246,6 +246,9 @@ public class TaskRestService {
                 //already
                 Task task = _taskDAO.insert(t,true);
                 
+                // _taskWorkspaceFilesDAO.createFromTask(task);
+                
+                
                 saveEvent(_eventBuilder.setAsCreateTaskEvent(event, task));
                 
                 return task;
