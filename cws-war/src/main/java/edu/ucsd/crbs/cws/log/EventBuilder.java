@@ -46,4 +46,6 @@ public interface EventBuilder {
     public Event setAsCreateWorkflowEvent(Event event,Workflow workflow);
     
     public Event setAsCreateWorkspaceFileEvent(Event event,WorkspaceFile workspaceFile);
+    
+    public Event setAsCreateUserEvent(Event event,User user);
 }
