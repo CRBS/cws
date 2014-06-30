@@ -10,6 +10,8 @@ import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.core.impl.provider.entity.StringProvider;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
 import com.sun.jersey.multipart.impl.MultiPartWriter;
+import edu.ucsd.crbs.cws.auth.Permission;
+import edu.ucsd.crbs.cws.auth.User;
 import edu.ucsd.crbs.cws.cluster.TaskStatusUpdater;
 import edu.ucsd.crbs.cws.cluster.TaskSubmitter;
 import edu.ucsd.crbs.cws.dao.rest.TaskRestDAOImpl;
@@ -495,6 +497,12 @@ public class App {
         System.out.println("-----------------------");
         System.out.println(ow.writeValueAsString(getWorkspaceFile()));
         System.out.flush();
+        
+        
+        System.out.println("Json for User");
+        System.out.println("-----------------------");
+        System.out.println(ow.writeValueAsString(getUser()));
+        System.out.flush();
     }
 
     public static Task getTaskWithParametersAndWorkflow() {
@@ -591,5 +599,16 @@ public class App {
         wsp.setPath("/home/foo/bob/123/foo.png");
         wsp.setSize(new Long(123123));
         return wsp;
+    }
+    
+    public static User getUser(){
+        User user = new User();
+        user.setCreateDate(new Date());
+        user.setId(new Long(1));
+        user.setLogin("bob");
+        user.setToken("sometokenxxxxxx");
+        user.setPermissions(Permission.CREATE_USER);
+        user.setIpAddress("127.0.0.1");
+        return user;
     }
 }
