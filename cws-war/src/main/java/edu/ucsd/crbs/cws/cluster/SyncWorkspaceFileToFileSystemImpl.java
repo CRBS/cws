@@ -38,6 +38,8 @@ import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
+import edu.ucsd.crbs.cws.jerseyclient.FileDownloader;
+import edu.ucsd.crbs.cws.jerseyclient.FileDownloaderImpl;
 import edu.ucsd.crbs.cws.rest.Constants;
 import edu.ucsd.crbs.cws.workflow.WorkspaceFile;
 import java.io.File;
@@ -61,6 +63,8 @@ public class SyncWorkspaceFileToFileSystemImpl implements SyncWorkspaceFileToFil
     private final String _userLogin;
     private final String _token;
      
+    static FileDownloader _fileDownloader = new FileDownloaderImpl();
+    
      public  SyncWorkspaceFileToFileSystemImpl(final String workspaceDir,
              final String url, final String userLogin, final String token){
          
@@ -81,32 +85,9 @@ public class SyncWorkspaceFileToFileSystemImpl implements SyncWorkspaceFileToFil
             return;
         }
         
-        //there isnt a workflow file so lets download one from web service
-        ClientConfig cc = new DefaultClientConfig();
-        Client client = Client.create(cc);
-        client.setFollowRedirects(true);
-        WebResource resource = client.resource(_getURL).path("workspacefile").
-                queryParam(Constants.WSFID_PARAM, wsf.getId().toString()).
-                queryParam(Constants.USER_LOGIN_PARAM, _userLogin).
-                queryParam(Constants.USER_TOKEN_PARAM,_token);
-        
-        ClientResponse cr = resource.get(ClientResponse.class);
-        _log.log(Level.INFO, "Status: {0} Reason: {1}", new Object[]{cr.getStatus(), 
-            cr.getStatusInfo().getReasonPhrase()});
-        
-        // @TODO MOVE 200 to constant
-        //try one more time
-        if (cr.getStatus() != 200){
-            _log.log(Level.WARNING,"First request to service for file failed sleeping 2 seconds and trying again");
-            Thread.sleep(2000);
-            cr = resource.get(ClientResponse.class);
-        }
-        
-        if (cr.getStatus() != 200){
-            throw new Exception("Unable to request workspace file");
-        }
-       
-        File wFile = cr.getEntity(File.class);
+        File wFile = _fileDownloader.downloadFile(_getURL+"/workspacefile",
+                Constants.WSFID_PARAM,wsf.getId().toString(),
+                _userLogin, _token);
         
         if (wFile == null){
             throw new Exception("No file obtained from web request to base url: "+_getURL);
