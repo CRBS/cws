@@ -82,6 +82,11 @@ public class Constants {
      */
     public static final String WFID_PARAM = "wfid";
     
+    /**
+     * workspacefile id query parameter name which is passed to {@link WorkspaceFileServlet}
+     */
+    public static final String WSFID_PARAM = "id";
+    
     public static final String STATUS_QUERY_PARAM = "status";
     public static final String OWNER_QUERY_PARAM = "owner";
     public static final String NOPARAMS_QUERY_PARAM = "noparams";
