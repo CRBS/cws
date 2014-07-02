@@ -55,6 +55,8 @@ public class App {
     public static final String OWNER_ARG = "owner";
 
     public static final String SYNC_WITH_CLUSTER_ARG = "syncwithcluster";
+    
+    public static final String SYNC_FILES_WITH_CLUSTER_ARG = "syncfileswithcluster";
 
     public static final String HELP_ARG = "h";
 
@@ -79,7 +81,7 @@ public class App {
     public static final String LOGIN = "login";
 
     public static final String TOKEN = "token";
-
+    
     //public static final String LOAD_TEST = "loadtest";
     public static final String PROGRAM_HELP = "\nCRBS Workflow Service Command Line Tools "
             + "\n\nThis program provides options to run Workflow Tasks on the local cluster as well"
@@ -89,7 +91,9 @@ public class App {
      * CSV string of statuses for jobs that have not completed or failed
      */
     public static final String NOT_COMPLETED_STATUSES = Task.IN_QUEUE_STATUS + ","
-            + Task.PAUSED_STATUS + "," + Task.PENDING_STATUS + "," + Task.RUNNING_STATUS;
+            + Task.PAUSED_STATUS + "," + Task.PENDING_STATUS + "," + Task.RUNNING_STATUS +","+
+            ","+Task.WORKSPACE_SYNC_STATUS;
+   
 
     public static void main(String[] args) {
         Task.REFS_ENABLED = false;
