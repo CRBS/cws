@@ -66,13 +66,24 @@ public class TaskSubmitter {
         if (tasks != null) {
             log.log(Level.INFO, " found {0} tasks need to be submitted", tasks.size());
             for (Task t : tasks) {
+                
+                /* //check if workspace files are syncd.  If not update status
+                   // to workspace sync and move on to the next Task
+                if (_workspaceSyncChecker.areWorkspaceFilesSynced(t) == false){
+                   if (!t.getStatus().equals(Task.WORKSPACE_SYNC_STATUS)){
+                    _taskDAO.update(t.getId(), Task.WORKSPACE_SYNC_STATUS, null, null, null,
+                        null, null, null, false,
+                        null);
+                   next;
+                }*/
+                  
                 log.log(Level.INFO, "\tSubmitting Task: ({0}) {1}", 
                         new Object[]{t.getId(), t.getName()});
                 
                 submitTask(t);
                 
                 _taskDAO.update(t.getId(), Task.PENDING_STATUS, null, null, null,
-                        t.getSubmitDate().getTime(), null, null, true, null,
+                        t.getSubmitDate().getTime(), null, null, true,
                         t.getJobId());
             }
         } else {

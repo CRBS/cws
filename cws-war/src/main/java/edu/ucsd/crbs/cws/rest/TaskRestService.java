@@ -176,7 +176,6 @@ public class TaskRestService {
             @QueryParam(Constants.STARTDATE_QUERY_PARAM) final Long startDate,
             @QueryParam(Constants.FINISHDATE_QUERY_PARAM) final Long finishDate,
             @QueryParam(Constants.SUBMITTED_TO_SCHED_QUERY_PARAM) final Boolean submittedToScheduler,
-            @QueryParam(Constants.DOWNLOADURL_QUERY_PARAM) final String downloadURL,
             @QueryParam(Constants.JOB_ID_QUERY_PARAM) final String jobId,
             @QueryParam(Constants.USER_LOGIN_PARAM) final String userLogin,
             @QueryParam(Constants.USER_TOKEN_PARAM) final String userToken,
@@ -198,7 +197,7 @@ public class TaskRestService {
             if (user.isAuthorizedTo(Permission.UPDATE_ALL_TASKS)) {
                 return _taskDAO.update(taskId, status, estCpu, estRunTime, estDisk,
                         submitDate, startDate, finishDate, submittedToScheduler,
-                        downloadURL, jobId);
+                        jobId);
             }
 
             throw new Exception("Not Authorized");

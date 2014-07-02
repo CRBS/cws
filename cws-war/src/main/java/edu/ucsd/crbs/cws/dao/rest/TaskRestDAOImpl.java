@@ -103,7 +103,7 @@ public class TaskRestDAOImpl implements TaskDAO {
     @Override
     public Task update(long taskId, final String status, Long estCpu, Long estRunTime,
             Long estDisk, Long submitDate, Long startDate, Long finishDate,
-            Boolean submittedToScheduler, final String downloadURL,
+            Boolean submittedToScheduler,
             final String jobId) throws Exception {
         ClientConfig cc = new DefaultClientConfig();
         cc.getClasses().add(StringProvider.class);
@@ -142,10 +142,6 @@ public class TaskRestDAOImpl implements TaskDAO {
         }
         if (submittedToScheduler != null){
             queryParams.add(Constants.SUBMITTED_TO_SCHED_QUERY_PARAM, submittedToScheduler.toString());
-        }
-
-        if (downloadURL != null) {
-            queryParams.add(Constants.DOWNLOADURL_QUERY_PARAM, downloadURL);
         }
         
         if (jobId != null){

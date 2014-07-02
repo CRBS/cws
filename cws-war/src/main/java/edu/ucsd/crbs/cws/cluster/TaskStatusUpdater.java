@@ -72,7 +72,7 @@ public class TaskStatusUpdater {
                             finishDate = t.getFinishDate().getTime();
                         }
                         _taskDAO.update(t.getId(), t.getStatus(), null, null, null,
-                                null, startDate, finishDate, true, null, null);
+                                null, startDate, finishDate, true, null);
                     }
                 }
             }
