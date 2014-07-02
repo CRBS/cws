@@ -69,7 +69,7 @@ public class TaskSubmitter {
                 
                 /* //check if workspace files are syncd.  If not update status
                    // to workspace sync and move on to the next Task
-                if (_workspaceSyncChecker.areWorkspaceFilesSynced(t) == false){
+                if (_workspaceFilePathSetter.setPaths(t) == false){
                    if (!t.getStatus().equals(Task.WORKSPACE_SYNC_STATUS)){
                     _taskDAO.update(t.getId(), Task.WORKSPACE_SYNC_STATUS, null, null, null,
                         null, null, null, false,
