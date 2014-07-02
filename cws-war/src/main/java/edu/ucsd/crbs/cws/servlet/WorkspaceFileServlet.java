@@ -41,6 +41,7 @@ import edu.ucsd.crbs.cws.auth.User;
 import edu.ucsd.crbs.cws.dao.WorkspaceFileDAO;
 import edu.ucsd.crbs.cws.dao.objectify.WorkspaceFileObjectifyDAOImpl;
 import edu.ucsd.crbs.cws.gae.BlobStoreServiceUtil;
+import edu.ucsd.crbs.cws.rest.Constants;
 import edu.ucsd.crbs.cws.workflow.WorkspaceFile;
 import java.io.IOException;
 import java.util.logging.Level;
@@ -59,9 +60,6 @@ public class WorkspaceFileServlet extends HttpServlet  {
     
     private static final Logger _log = Logger.getLogger(WorkspaceFileServlet.class.getName());
     
-    public static final String WORKSPACE_FILE_ID="id";
-    
-    
     Authenticator _authenticator = new AuthenticatorImpl();
     
     WorkspaceFileDAO _workspaceFileDAO = new WorkspaceFileObjectifyDAOImpl();
@@ -70,10 +68,10 @@ public class WorkspaceFileServlet extends HttpServlet  {
     
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        if (req.getParameter(WORKSPACE_FILE_ID) == null){
-            _log.warning(WORKSPACE_FILE_ID+ " query parameter not set.  No workspacefile id found");
+        if (req.getParameter(Constants.WSFID_PARAM) == null){
+            _log.warning(Constants.WSFID_PARAM+ " query parameter not set.  No workspacefile id found");
             resp.sendError(HttpServletResponse.SC_BAD_GATEWAY,
-                           WORKSPACE_FILE_ID+ 
+                           Constants.WSFID_PARAM+ 
                            " query parameter not set.  No workspacefile id found");
         }
         try {
@@ -84,12 +82,12 @@ public class WorkspaceFileServlet extends HttpServlet  {
                 return;
             }
 
-            String id = req.getParameter(WORKSPACE_FILE_ID);
+            String id = req.getParameter(Constants.WSFID_PARAM);
             if (id.trim().isEmpty()) {
-                _log.warning("WorkspaceFile Id passed in via " + WORKSPACE_FILE_ID
+                _log.warning("WorkspaceFile Id passed in via " + Constants.WSFID_PARAM
                         + " query parameter is empty");
                 resp.sendError(HttpServletResponse.SC_BAD_REQUEST,
-                        "WorkspaceFile Id passed in via " + WORKSPACE_FILE_ID + " query parameter is empty");
+                        "WorkspaceFile Id passed in via " + Constants.WSFID_PARAM + " query parameter is empty");
                 return;
             }
 
