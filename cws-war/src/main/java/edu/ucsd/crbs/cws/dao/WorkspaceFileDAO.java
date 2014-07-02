@@ -88,4 +88,13 @@ public interface WorkspaceFileDAO {
      * @throws Exception 
      */
     public WorkspaceFile updatePath(long workspaceFileId,final String path) throws Exception;
+
+    /**
+     * Updates data store with <b>wsp</b> {@link WorkspaceFile}  The {@link WorkspaceFile#getId()} must
+     * be set for this to work properly
+     * @param wsp
+     * @return
+     * @throws Exception 
+     */
+    public WorkspaceFile update(WorkspaceFile wsp) throws Exception;
 }

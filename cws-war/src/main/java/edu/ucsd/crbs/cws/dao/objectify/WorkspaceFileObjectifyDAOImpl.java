@@ -166,4 +166,19 @@ public class WorkspaceFileObjectifyDAOImpl implements WorkspaceFileDAO {
         return resWsp;
     }
 
+    @Override
+    public WorkspaceFile update(WorkspaceFile wsp) throws Exception {
+        if (wsp == null){
+            throw new IllegalArgumentException("WorkspaceFile cannot be null");
+        }
+        if (wsp.getId() == null){
+            throw new Exception("Id must be set");
+        }
+
+        ofy().save().entity(wsp).now();
+        return wsp;
+    }
+    
+    
+    
 }
