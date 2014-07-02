@@ -73,12 +73,10 @@ public class Parameter {
         return sb.toString();
     }
     
-    @JsonIgnore
     public WorkflowParameter getWorkflowParameter() {
         return _workflowParameter;
     }
 
-    @JsonIgnore
     public void setWorkflowParameter(WorkflowParameter workflowParameter) {
         _workflowParameter = workflowParameter;
     }
