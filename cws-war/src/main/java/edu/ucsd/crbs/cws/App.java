@@ -52,12 +52,12 @@ public class App {
     
     public static final String UPLOAD_FILE_ARG = "uploadfile";
     
+    public static final String DOWNLOAD_FILE_ARG = "downloadfile";
+    
     public static final String OWNER_ARG = "owner";
 
     public static final String SYNC_WITH_CLUSTER_ARG = "syncwithcluster";
     
-    public static final String SYNC_FILES_WITH_CLUSTER_ARG = "syncfileswithcluster";
-
     public static final String HELP_ARG = "h";
 
     public static final String URL_ARG = "url";
@@ -106,6 +106,7 @@ public class App {
                     //accepts(LOAD_TEST,"creates lots of workflows and tasks");
                     accepts(SYNC_WITH_CLUSTER_ARG, "Submits & Synchronizes Workflow Tasks on local cluster with CRBS Workflow Webservice").withRequiredArg().ofType(String.class).describedAs("URL");
                     accepts(UPLOAD_FILE_ARG,"Adds Workspace file").withRequiredArg().ofType(File.class);
+                    accepts(DOWNLOAD_FILE_ARG,"Downloads Workspace file").withRequiredArg().ofType(String.class).describedAs("workspace file id");
                     accepts(URL_ARG, "URL to use with --" + UPLOAD_WF_ARG + " or --"+UPLOAD_FILE_ARG+" flag").withRequiredArg().ofType(String.class).describedAs("URL");
                     accepts(PARENT_WFID_ARG, "Parent Workflow ID").withRequiredArg().ofType(Long.class).describedAs("Workflow ID");
                     accepts(EXAMPLE_JSON_ARG, "Outputs JSON of Task & Workflow objects");
