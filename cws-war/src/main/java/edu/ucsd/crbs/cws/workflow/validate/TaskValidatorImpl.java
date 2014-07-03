@@ -40,9 +40,7 @@ import edu.ucsd.crbs.cws.workflow.Parameter;
 import edu.ucsd.crbs.cws.workflow.ParameterWithError;
 import edu.ucsd.crbs.cws.workflow.Task;
 import edu.ucsd.crbs.cws.workflow.WorkflowParameter;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.logging.Level;
+import java.util.Iterator;
 import java.util.logging.Logger;
 
 /**
@@ -56,9 +54,9 @@ public class TaskValidatorImpl implements TaskValidator {
     
     static WorkflowDAO _workflowDAO = new WorkflowObjectifyDAOImpl();
     
-    static TaskParametersChecker _taskParamNullChecker = new TaskParametersNullChecker();
+    static TaskParametersChecker _taskParamNullChecker = new TaskParametersNullNameChecker();
     static TaskParametersChecker _taskParamDuplicateChecker = new TaskParametersDuplicateChecker();
-    
+    static ParameterValidator _parameterValidator = new ParameterValidatorImpl();
     
     /**
      * Performs validation of {@link Task} against the {@link Workflow} the task is supposed
@@ -89,16 +87,23 @@ public class TaskValidatorImpl implements TaskValidator {
         
         // iterate again through all parameters and find corresponding workflowparameter
         // if no match set error
-        Map<WorkflowParameter,Parameter> paramToWorkflowParamMap = linkTaskParametersWithWorkflowParameters(task);
-        
-        if (paramToWorkflowParamMap == null){
+        if (linkTaskParametersWithWorkflowParameters(task) == 0){
             return task;
         }
         
         // for match verify value is within bounds of workflow parameter if not set error
         // keep track of workflow parameters already covered and if there are
         // any extra note those in the error
-        validateParameterMap(task,paramToWorkflowParamMap);
+        Parameter param;
+        Iterator pIterator = task.getParameters().iterator();
+        for (; pIterator.hasNext();) {
+           param = (Parameter) pIterator.next();
+           String res = _parameterValidator.validate(param);
+           if (res != null){
+               task.addParameterWithError(new ParameterWithError(param,res));
+               pIterator.remove();
+           }
+        }
         
         return task;
     }
@@ -116,11 +121,10 @@ public class TaskValidatorImpl implements TaskValidator {
      * @param task Task to examine
      * @return Map with {@link WorkflowParameter} as key and {@link Parameter} as value 
      */
-    private Map<WorkflowParameter,Parameter> linkTaskParametersWithWorkflowParameters(Task task){
+    private int linkTaskParametersWithWorkflowParameters(Task task){
         
-        HashMap<WorkflowParameter,Parameter> linkedMap = new HashMap<>();
         WorkflowParameter wParam;
-
+        int count = 0;
         for (Parameter p : task.getParameters()){
             
             wParam = task.getWorkflow().removeWorkflowParameterMatchingName(p.getName());
@@ -129,12 +133,12 @@ public class TaskValidatorImpl implements TaskValidator {
             }
             else {
                 p.setWorkflowParameter(wParam);
-                linkedMap.put(wParam,p);
+                count++;
             }
         }
         
         if (task.getWorkflow().getParameters().isEmpty() == true){
-            return linkedMap;
+            return count;
         }
         
         for (WorkflowParameter wParameter : task.getWorkflow().getParameters()){
@@ -142,59 +146,6 @@ public class TaskValidatorImpl implements TaskValidator {
                 task.addParameterWithError(new ParameterWithError(wParameter.getName(),null,"Required parameter not found"));
             }
         }
-        return linkedMap;
-    }
-    
-    private void validateParameterMap(Task task, Map<WorkflowParameter,Parameter> paramMap){
-        
-        Parameter param;
-        for (WorkflowParameter wParam : paramMap.keySet()){
-            param = paramMap.get(wParam);
-            String res = validateParameter(wParam,param.getValue());
-            if (res != null){
-                _log.log(Level.INFO,"Validation error {0} {1}",new Object[]{param.asString(),res});
-                task.addParameterWithError(new ParameterWithError(param,res));
-            }
-        }
-    }
-    
-    private String validateParameter(WorkflowParameter parameter,final String value){
-        
-        if (parameter.getValidationType() == null){
-            return null;
-        }
-        
-        if (parameter.getIsRequired() == true && value == null){
-            return "Required Parameter cannot be null";
-        }
-        else if (parameter.getValidationType().equals(WorkflowParameter.ValidationType.STRING)){
-            return validateStringParameter(parameter,value);
-        }
-        else if (parameter.getValidationType().equals(WorkflowParameter.ValidationType.DIGITS)){
-            return validateDigitsParameter(parameter,value);
-        }
-        else if (parameter.getValidationType().equals(WorkflowParameter.ValidationType.NUMBER)){
-            return validateNumberParameter(parameter,value);
-        }
-        return "Unknown type of validation";
-    }
-    
-    /**
-     * Checks regular expression in {@link WorkflowParameter#getValidationRegex()} and verify
-     * <b>value</b> matches 
-     * @param parameter
-     * @param value 
-     * @return null if <b>value</b> is fine with regular expression otherwise String describing the error
-     */
-    private String validateStringParameter(WorkflowParameter parameter,final String value){
-        return null;
-    }
-
-    private String validateNumberParameter(WorkflowParameter parameter,final String value){
-        return null;
-    }
-    
-    private String validateDigitsParameter(WorkflowParameter parameter,final String value){
-        return null;
+        return count;
     }
 }
