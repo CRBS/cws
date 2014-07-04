@@ -44,7 +44,9 @@ import java.util.Iterator;
 import java.util.logging.Logger;
 
 /**
- *
+ * Validates {@link Task} by examining all the parameters and verifying they meet the
+ * constraints set by the {@link WorkflowParameter} objects in the associated {@link Workflow}
+ * 
  * @author Christopher Churas <churas@ncmir.ucsd.edu>
  */
 public class TaskValidatorImpl implements TaskValidator {
@@ -52,11 +54,11 @@ public class TaskValidatorImpl implements TaskValidator {
     private static final Logger _log
             = Logger.getLogger(TaskValidatorImpl.class.getName());
     
-    static WorkflowDAO _workflowDAO = new WorkflowObjectifyDAOImpl();
+    WorkflowDAO _workflowDAO = new WorkflowObjectifyDAOImpl();
     
-    static TaskParametersChecker _taskParamNullChecker = new TaskParametersNullNameChecker();
-    static TaskParametersChecker _taskParamDuplicateChecker = new TaskParametersDuplicateChecker();
-    static ParameterValidator _parameterValidator = new ParameterValidatorImpl();
+    TaskParametersChecker _taskParamNullChecker = new TaskParametersNullNameChecker();
+    TaskParametersChecker _taskParamDuplicateChecker = new TaskParametersDuplicateChecker();
+    ParameterValidator _parameterValidator = new ParameterValidatorImpl();
     
     /**
      * Performs validation of {@link Task} against the {@link Workflow} the task is supposed
@@ -82,6 +84,7 @@ public class TaskValidatorImpl implements TaskValidator {
         //load Workflow For Task and if this has problems bail cause we need the
         // Workflow object to do anything else
         if (_workflowDAO.loadWorkflow(task,user) == null){
+            task.setError("Unable to load workflow for task");
             return task;
         }
         

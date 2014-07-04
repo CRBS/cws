@@ -33,6 +33,11 @@
 
 package edu.ucsd.crbs.cws.workflow.validate;
 
+import com.google.appengine.tools.development.testing.LocalDatastoreServiceTestConfig;
+import com.google.appengine.tools.development.testing.LocalServiceTestHelper;
+import edu.ucsd.crbs.cws.auth.User;
+import edu.ucsd.crbs.cws.dao.WorkflowDAO;
+import edu.ucsd.crbs.cws.workflow.Task;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -43,8 +48,6 @@ import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import static org.mockito.Mockito.*;
 
-
-
 /**
  *
  * @author Christopher Churas <churas@ncmir.ucsd.edu>
@@ -52,6 +55,9 @@ import static org.mockito.Mockito.*;
 @RunWith(JUnit4.class)
 public class TestTaskValidatorImpl {
 
+     private final LocalServiceTestHelper _helper =
+        new LocalServiceTestHelper(new LocalDatastoreServiceTestConfig());
+    
     public TestTaskValidatorImpl() {
     }
 
@@ -65,15 +71,41 @@ public class TestTaskValidatorImpl {
 
     @Before
     public void setUp() {
+        _helper.setUp();
     }
 
     @After
     public void tearDown() {
+        _helper.tearDown();
     }
 
    @Test
-   public void test(){
-       assertTrue(1 == 1);
+   public void testNullTask(){
+       TaskValidatorImpl tvi = new TaskValidatorImpl();
+       try {
+        tvi.validateParameters(null, null);
+        fail("Expected exception");
+       }catch(Exception ex){
+           assertTrue(ex.getMessage().startsWith("Task cannot be null"));
+       }
+   }
+   
+   @Test
+   public void testUnableToLoadWorkflow() throws Exception{
+       TaskValidatorImpl tvi = new TaskValidatorImpl();
+       TaskParametersChecker mockNullChecker = mock(TaskParametersChecker.class);
+       TaskParametersChecker mockDupChecker = mock(TaskParametersChecker.class);
+       tvi._taskParamNullChecker = mockNullChecker;
+       tvi._taskParamDuplicateChecker = mockDupChecker;
+       
+       WorkflowDAO mockDAO = mock(WorkflowDAO.class);
+       Task t = new Task();
+       User u = new User();
+       when(mockDAO.loadWorkflow(t,u)).thenReturn(null);
+       
+       Task res = tvi.validateParameters(t, u);
+       assertTrue(res.getError().equals("Unable to load workflow for task"));
+      
    }
 
 }
