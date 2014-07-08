@@ -39,8 +39,10 @@ import edu.ucsd.crbs.cws.dao.objectify.WorkflowObjectifyDAOImpl;
 import edu.ucsd.crbs.cws.workflow.Parameter;
 import edu.ucsd.crbs.cws.workflow.ParameterWithError;
 import edu.ucsd.crbs.cws.workflow.Task;
+import edu.ucsd.crbs.cws.workflow.Workflow;
 import edu.ucsd.crbs.cws.workflow.WorkflowParameter;
 import java.util.Iterator;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -83,14 +85,25 @@ public class TaskValidatorImpl implements TaskValidator {
         
         //load Workflow For Task and if this has problems bail cause we need the
         // Workflow object to do anything else
-        if (_workflowDAO.loadWorkflow(task,user) == null){
-            task.setError("Unable to load workflow for task");
+        try {
+            Workflow w = _workflowDAO.getWorkflowForTask(task, user);
+            if (w != null){
+                task.setWorkflow(w);
+            }
+            else {
+                task.setError("Unable to load workflow for task");
+                return task;
+            }
+        } catch(Exception ex){
+            _log.log(Level.SEVERE, "caught exception",ex);
+            task.setError(ex.getMessage());
             return task;
         }
         
         // iterate again through all parameters and find corresponding workflowparameter
         // if no match set error
         if (linkTaskParametersWithWorkflowParameters(task) == 0){
+            _log.log(Level.INFO,"No parameters linked with WorkflowParameters");
             return task;
         }
         
@@ -128,6 +141,11 @@ public class TaskValidatorImpl implements TaskValidator {
         
         WorkflowParameter wParam;
         int count = 0;
+        
+        if (task.getParameters() == null){
+            return 0;
+        }
+        
         for (Parameter p : task.getParameters()){
             
             wParam = task.getWorkflow().removeWorkflowParameterMatchingName(p.getName());
@@ -145,7 +163,7 @@ public class TaskValidatorImpl implements TaskValidator {
         }
         
         for (WorkflowParameter wParameter : task.getWorkflow().getParameters()){
-            if (wParameter.getIsAdvanced()){
+            if (wParameter.getIsRequired()){
                 task.addParameterWithError(new ParameterWithError(wParameter.getName(),null,"Required parameter not found"));
             }
         }
