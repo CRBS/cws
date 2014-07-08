@@ -51,14 +51,13 @@ public interface WorkflowDAO {
      */
     public Workflow updateBlobKey(long workflowId,final String key) throws Exception;
 
-    
     /**
-     * Examines <b>task</b> passed in and attempts to load workflow from {@link Task#getWorkflow()} object
-     * which is assumed to have at least a valid {@link Workflow#getId()}  The
-     * method sets this {@link Workflow} object in the <b>task</b> {@link Task#setWorkflow()} method
+     * Given a <b>task</b> this method looks at the {@link Workflow} object within
+     * and uses its id to load the {@link Workflow} from the data store.  
      * @param task
-     * @return
-     * @throws Exception 
+     * @param user
+     * @throws Exception if there is no {@link Workflow} object with id
+     * @return 
      */
-    public Workflow loadWorkflow(Task task,User user) throws Exception;
+    public Workflow getWorkflowForTask(Task task,User user) throws Exception;
 }

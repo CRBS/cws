@@ -155,15 +155,17 @@ public class WorkflowObjectifyDAOImpl implements WorkflowDAO {
     }
 
     @Override
-    public Workflow loadWorkflow(Task task,User user) throws Exception {
-        if (task == null || task.getWorkflow() == null || task.getWorkflow().getId() == null){
-            return null;
+    public Workflow getWorkflowForTask(Task task, User user) throws Exception {
+        if (task == null){
+            throw new IllegalArgumentException("Task cannot be null");
         }
-        Workflow w = this.getWorkflowById(task.getWorkflow().getId().toString(), user);
-        if (w != null){
-            task.setWorkflow(w);
+        if (task.getWorkflow() == null){
+            throw new IllegalArgumentException("Workflow cannot be null");
         }
-        return w;
+        if (task.getWorkflow().getId() == null){
+            throw new IllegalArgumentException("Workflow id cannot be null");
+        }
+        return getWorkflowById(task.getWorkflow().getId().toString(), user);
     }
     
     
