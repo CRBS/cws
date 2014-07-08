@@ -36,6 +36,7 @@ package edu.ucsd.crbs.cws.log;
 import edu.ucsd.crbs.cws.auth.User;
 import edu.ucsd.crbs.cws.workflow.Task;
 import edu.ucsd.crbs.cws.workflow.Workflow;
+import edu.ucsd.crbs.cws.workflow.WorkspaceFile;
 import java.util.Date;
 import javax.servlet.http.HttpServletRequest;
 import org.junit.After;
@@ -177,6 +178,35 @@ public class TestEventBuilderImpl {
         assertTrue(resEvent.getDate().compareTo(curDate) == 0);
         assertTrue(resEvent.getWorkflowId() == 2L);
     }
+    
+    @Test
+    public void testSetAsCreateWorkspaceFileEvent(){
+        EventBuilderImpl builder = new EventBuilderImpl();
+        assertTrue(builder.setAsCreateWorkspaceFileEvent(null, null) == null);
+        
+        Event e = new Event();
+        assertTrue(builder.setAsCreateWorkspaceFileEvent(e, null)  == null);
+        WorkspaceFile wsf = new WorkspaceFile();
+        Event resEvent = builder.setAsCreateWorkspaceFileEvent(e, wsf);
+        assertTrue(resEvent != null);
+        assertTrue(resEvent.getEventType().equals(Event.CREATE_WORKSPACEFILE_EVENT_TYPE));
+        assertTrue(resEvent.getDate() == null);
+        assertTrue(resEvent.getMessage() == null);
+        assertTrue(resEvent.getWorkspaceFileId() == null);
+        
+        Date curDate = new Date();
+
+        wsf.setCreateDate(curDate);
+        wsf.setId(new Long(1));
+        resEvent = builder.setAsCreateWorkspaceFileEvent(e, wsf);
+        assertTrue(resEvent != null);
+        assertTrue(resEvent.getEventType().equals(Event.CREATE_WORKSPACEFILE_EVENT_TYPE));
+        assertTrue(resEvent.getDate().equals(curDate));
+        assertTrue(resEvent.getMessage() == null);
+        assertTrue(resEvent.getWorkspaceFileId() == 1);
+        
+    }
+    
     
     @Test
     public void testSetAsFailedCreateTaskEvent(){
