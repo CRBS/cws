@@ -68,11 +68,13 @@ public class WorkspaceFileServlet extends HttpServlet  {
     
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        
         if (req.getParameter(Constants.WSFID_PARAM) == null){
             _log.warning(Constants.WSFID_PARAM+ " query parameter not set.  No workspacefile id found");
-            resp.sendError(HttpServletResponse.SC_BAD_GATEWAY,
+            resp.sendError(HttpServletResponse.SC_BAD_REQUEST,
                            Constants.WSFID_PARAM+ 
                            " query parameter not set.  No workspacefile id found");
+            return;
         }
         try {
             User user = _authenticator.authenticate(req);
@@ -95,7 +97,7 @@ public class WorkspaceFileServlet extends HttpServlet  {
             _downloader.send(id, resp);
             
         } catch (Exception ex) {
-            _log.log(Level.SEVERE, "Unable to load workflow", ex);
+            _log.log(Level.SEVERE, "Unable to load workspacefile", ex);
             resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error retreiving workspacefile: " + ex.getMessage());
         }
     }
