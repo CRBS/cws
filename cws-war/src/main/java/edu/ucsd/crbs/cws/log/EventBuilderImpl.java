@@ -160,8 +160,9 @@ public class EventBuilderImpl implements EventBuilder {
             _log.log(Level.WARNING,"One or more parameters passed in is null.  Unable to log event.");
             return null;
         }
+        
         event.setEventType(Event.CREATE_USER_EVENT_TYPE);
-        event.setDate(new Date());
+        event.setDate(user.getCreateDate());
         event.setCreatedUserId(user.getId());
         event.setMessage("perms("+user.getPermissions()+")");
         return event;

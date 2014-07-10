@@ -33,6 +33,7 @@
 
 package edu.ucsd.crbs.cws.log;
 
+import edu.ucsd.crbs.cws.auth.Permission;
 import edu.ucsd.crbs.cws.auth.User;
 import edu.ucsd.crbs.cws.workflow.Task;
 import edu.ucsd.crbs.cws.workflow.Workflow;
@@ -213,7 +214,7 @@ public class TestEventBuilderImpl {
         EventBuilderImpl builder = new EventBuilderImpl();
         assertTrue(builder.setAsFailedCreateTaskEvent(null, null) == null);
         Event e = new Event();
-        assertTrue(builder.setAsCreateWorkflowEvent(e, null) == null);
+        assertTrue(builder.setAsFailedCreateTaskEvent(e, null) == null);
         
         Task t = new Task();
         Event resEvent = builder.setAsFailedCreateTaskEvent(e, t);
@@ -229,6 +230,29 @@ public class TestEventBuilderImpl {
         assertTrue(resEvent.getDate() != null);
         assertTrue(resEvent.getMessage().startsWith("TaskError: someerror"));
         
+    }
+    
+    @Test
+    public void testSetAsCreateUserEvent(){
+        EventBuilderImpl builder = new EventBuilderImpl();
+        assertTrue(builder.setAsCreateUserEvent(null, null) == null);
+        Event e = new Event();
+        assertTrue(builder.setAsCreateUserEvent(e, null) == null);
+        User u = new User();
+        u.setId(new Long(1));
+        Event resEvent = builder.setAsCreateUserEvent(e, u);
+        assertTrue(resEvent != null);
+        assertTrue(resEvent.getCreatedUserId() == 1);
+        assertTrue(resEvent.getDate() == null);
+        assertTrue(resEvent.getMessage().equals("perms(0)"));
+        Date curDate = new Date();
+        u.setCreateDate(curDate);
+        u.setPermissions(Permission.CREATE_TASK);
+        resEvent = builder.setAsCreateUserEvent(e, u);
+        assertTrue(resEvent != null);
+        assertTrue(resEvent.getCreatedUserId() == 1);
+        assertTrue(resEvent.getDate().equals(curDate));
+        assertTrue(resEvent.getMessage().equals("perms(16)"));
     }
     
 }
