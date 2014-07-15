@@ -16,6 +16,7 @@ import edu.ucsd.crbs.cws.cluster.MapOfTaskStatusFactoryImpl;
 import edu.ucsd.crbs.cws.cluster.TaskStatusUpdater;
 import edu.ucsd.crbs.cws.cluster.TaskSubmitter;
 import edu.ucsd.crbs.cws.dao.rest.TaskRestDAOImpl;
+import edu.ucsd.crbs.cws.dao.rest.WorkspaceFileRestDAOImpl;
 import edu.ucsd.crbs.cws.io.KeplerMomlFromKar;
 import edu.ucsd.crbs.cws.rest.Constants;
 import edu.ucsd.crbs.cws.workflow.Parameter;
@@ -54,6 +55,8 @@ public class App {
     public static final String UPLOAD_FILE_ARG = "uploadfile";
     
     public static final String DOWNLOAD_FILE_ARG = "downloadfile";
+    
+    public static final String GET_WORKSPACE_FILE_INFO_ARG = "fileinfo";
     
     public static final String OWNER_ARG = "owner";
 
@@ -107,8 +110,9 @@ public class App {
                     //accepts(LOAD_TEST,"creates lots of workflows and tasks");
                     accepts(SYNC_WITH_CLUSTER_ARG, "Submits & Synchronizes Workflow Tasks on local cluster with CRBS Workflow Webservice").withRequiredArg().ofType(String.class).describedAs("URL");
                     accepts(UPLOAD_FILE_ARG,"Adds Workspace file").withRequiredArg().ofType(File.class);
+                    accepts(GET_WORKSPACE_FILE_INFO_ARG,"Outputs JSON of specified workspace file(s)").withRequiredArg().ofType(String.class).describedAs("workspace file id");
                     accepts(DOWNLOAD_FILE_ARG,"Downloads Workspace file").withRequiredArg().ofType(String.class).describedAs("workspace file id");
-                    accepts(URL_ARG, "URL to use with --" + UPLOAD_WF_ARG + " or --"+UPLOAD_FILE_ARG+" flag").withRequiredArg().ofType(String.class).describedAs("URL");
+                    accepts(URL_ARG, "URL to use with --" + UPLOAD_WF_ARG + ", --"+UPLOAD_FILE_ARG+", --"+GET_WORKSPACE_FILE_INFO_ARG+" flags").withRequiredArg().ofType(String.class).describedAs("URL");
                     accepts(PARENT_WFID_ARG, "Parent Workflow ID").withRequiredArg().ofType(Long.class).describedAs("Workflow ID");
                     accepts(EXAMPLE_JSON_ARG, "Outputs JSON of Task & Workflow objects");
                     accepts(WF_EXEC_DIR, "Workflow Execution Directory").withRequiredArg().ofType(File.class).describedAs("Directory");
@@ -135,7 +139,8 @@ public class App {
 
             if (optionSet.has(HELP_ARG)
                     || (!optionSet.has(SYNC_WITH_CLUSTER_ARG) && !optionSet.has(UPLOAD_WF_ARG))
-                    && !optionSet.has(EXAMPLE_JSON_ARG) && !optionSet.has(UPLOAD_FILE_ARG)) {
+                    && !optionSet.has(EXAMPLE_JSON_ARG) && !optionSet.has(UPLOAD_FILE_ARG) &&
+                    !optionSet.has(GET_WORKSPACE_FILE_INFO_ARG)) {
                 System.out.println(PROGRAM_HELP + "\n");
                 parser.printHelpOn(System.out);
                 System.exit(0);
@@ -219,7 +224,7 @@ public class App {
 
                 submitter.submitTasks();
 
-                // Update task status
+                // Update task status for all tasks in system
                 MapOfTaskStatusFactoryImpl taskStatusFactory = new MapOfTaskStatusFactoryImpl(statPath);
                 TaskStatusUpdater updater = new TaskStatusUpdater(taskDAO, taskStatusFactory);
                 updater.updateTasks();
@@ -227,16 +232,60 @@ public class App {
                 System.exit(0);
             }
 
+            
+            if (optionSet.has(App.GET_WORKSPACE_FILE_INFO_ARG)){
+                if (!optionSet.has(URL_ARG)){
+                    System.err.println("--"+URL_ARG+" is required with --"+GET_WORKSPACE_FILE_INFO_ARG+" flag");
+                    System.exit(20);
+                }
+                if (!optionSet.has(LOGIN)) {
+                        System.err.println("--" + LOGIN + " is required with --" + GET_WORKSPACE_FILE_INFO_ARG + " flag");
+                        System.exit(21);
+                }
+                if (!optionSet.has(TOKEN)) {
+                        System.err.println("--" + TOKEN + " is required with --" + GET_WORKSPACE_FILE_INFO_ARG + " flag");
+                        System.exit(22);
+                }
+                
+                WorkspaceFileRestDAOImpl workspaceFileDAO = new WorkspaceFileRestDAOImpl();
+                workspaceFileDAO.setLogin((String)optionSet.valueOf(LOGIN));
+                workspaceFileDAO.setToken((String)optionSet.valueOf(TOKEN));
+                workspaceFileDAO.setRestURL((String)optionSet.valueOf(URL_ARG));
+
+                List<WorkspaceFile> wsFiles = workspaceFileDAO.getWorkspaceFilesById((String)optionSet.valueOf(GET_WORKSPACE_FILE_INFO_ARG),null);
+                
+                if (wsFiles != null){
+                    ObjectMapper om = new ObjectMapper();
+                    ObjectWriter ow = om.writerWithDefaultPrettyPrinter();
+                    System.out.print("[");
+                    boolean first = true;
+                    for (WorkspaceFile wsf : wsFiles){
+                        if (first == false){
+                            System.out.println(",");
+                        }
+                        else {
+                            first = false;
+                        }
+                        System.out.print(ow.writeValueAsString(wsf));
+                    }
+                    System.out.println("]");
+                }
+                else {
+                    System.err.println("[]");
+                }
+                System.exit(0);
+            }
+            
             if (optionSet.has(UPLOAD_FILE_ARG)){
                  String postURL = null;
                 if (optionSet.has(URL_ARG)) {
                     postURL = (String) optionSet.valueOf(URL_ARG);
                     if (!optionSet.has(LOGIN)) {
-                        System.err.println("-" + LOGIN + " is required with -" + UPLOAD_FILE_ARG + " and -"+URL_ARG+" flag");
+                        System.err.println("--" + LOGIN + " is required with --" + UPLOAD_FILE_ARG + " and --"+URL_ARG+" flag");
                         System.exit(10);
                     }
                     if (!optionSet.has(TOKEN)) {
-                        System.err.println("-" + TOKEN + " is required with -" + UPLOAD_FILE_ARG + " and -"+URL_ARG+" flag");
+                        System.err.println("--" + TOKEN + " is required with --" + UPLOAD_FILE_ARG + " and --"+URL_ARG+" flag");
                         System.exit(11);
                     }
                 }
