@@ -41,7 +41,7 @@ import java.util.Map;
  * Interface for getting map of job statuses
  * @author Christopher Churas <churas@ncmir.ucsd.edu>
  */
-public interface MapOfJobStatusFactory {
+public interface MapOfTaskStatusFactory {
     
     /**
      * Given a list of <b>tasks</b> implementors return a map with job ids as keys
