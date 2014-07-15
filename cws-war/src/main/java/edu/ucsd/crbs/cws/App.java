@@ -12,6 +12,7 @@ import com.sun.jersey.core.util.MultivaluedMapImpl;
 import com.sun.jersey.multipart.impl.MultiPartWriter;
 import edu.ucsd.crbs.cws.auth.Permission;
 import edu.ucsd.crbs.cws.auth.User;
+import edu.ucsd.crbs.cws.cluster.MapOfTaskStatusFactoryImpl;
 import edu.ucsd.crbs.cws.cluster.TaskStatusUpdater;
 import edu.ucsd.crbs.cws.cluster.TaskSubmitter;
 import edu.ucsd.crbs.cws.dao.rest.TaskRestDAOImpl;
@@ -219,7 +220,8 @@ public class App {
                 submitter.submitTasks();
 
                 // Update task status
-                TaskStatusUpdater updater = new TaskStatusUpdater(taskDAO, statPath);
+                MapOfTaskStatusFactoryImpl taskStatusFactory = new MapOfTaskStatusFactoryImpl(statPath);
+                TaskStatusUpdater updater = new TaskStatusUpdater(taskDAO, taskStatusFactory);
                 updater.updateTasks();
 
                 System.exit(0);

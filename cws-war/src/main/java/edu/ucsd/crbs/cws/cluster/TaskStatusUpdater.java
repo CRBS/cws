@@ -1,12 +1,42 @@
+/*
+ * COPYRIGHT AND LICENSE
+ * 
+ * Copyright 2014 The Regents of the University of California All Rights Reserved
+ * 
+ * Permission to copy, modify and distribute any part of this CRBS Workflow 
+ * Service for educational, research and non-profit purposes, without fee, and
+ * without a written agreement is hereby granted, provided that the above 
+ * copyright notice, this paragraph and the following three paragraphs appear
+ * in all copies.
+ * 
+ * Those desiring to incorporate this CRBS Workflow Service into commercial 
+ * products or use for commercial purposes should contact the Technology
+ * Transfer Office, University of California, San Diego, 9500 Gilman Drive, 
+ * Mail Code 0910, La Jolla, CA 92093-0910, Ph: (858) 534-5815, 
+ * FAX: (858) 534-7345, E-MAIL:invent@ucsd.edu.
+ * 
+ * IN NO EVENT SHALL THE UNIVERSITY OF CALIFORNIA BE LIABLE TO ANY PARTY FOR 
+ * DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES, INCLUDING 
+ * LOST PROFITS, ARISING OUT OF THE USE OF THIS CRBS Workflow Service, EVEN IF 
+ * THE UNIVERSITY OF CALIFORNIA HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH
+ * DAMAGE.
+ * 
+ * THE CRBS Workflow Service PROVIDED HEREIN IS ON AN "AS IS" BASIS, AND THE
+ * UNIVERSITY OF CALIFORNIA HAS NO OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, 
+ * UPDATES, ENHANCEMENTS, OR MODIFICATIONS. THE UNIVERSITY OF CALIFORNIA MAKES
+ * NO REPRESENTATIONS AND EXTENDS NO WARRANTIES OF ANY KIND, EITHER IMPLIED OR 
+ * EXPRESS, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF 
+ * MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE, OR THAT THE USE OF 
+ * THE CRBS Workflow Service WILL NOT INFRINGE ANY PATENT, TRADEMARK OR OTHER
+ * RIGHTS. 
+ */
+
 package edu.ucsd.crbs.cws.cluster;
 
 import static edu.ucsd.crbs.cws.App.NOT_COMPLETED_STATUSES;
 import edu.ucsd.crbs.cws.dao.TaskDAO;
 import edu.ucsd.crbs.cws.workflow.Task;
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -19,21 +49,21 @@ import java.util.logging.Logger;
  */
 public class TaskStatusUpdater {
 
-    private static final Logger log
+    private static final Logger _log
             = Logger.getLogger(TaskStatusUpdater.class.getName());
 
-    private TaskDAO _taskDAO;
-    private String _panfishStat;
+    TaskDAO _taskDAO;
+    MapOfTaskStatusFactory _jobStatusFactory;
 
     /**
      * Constructor
      *
      * @param taskDAO Used to get Task objects and update Task objects
-     * @param panfishStat Path to panfishstat binary used to get status of jobs
+     * @param jobStatusFactory class to obtain status of Tasks from
      */
-    public TaskStatusUpdater(TaskDAO taskDAO, final String panfishStat) {
+    public TaskStatusUpdater(TaskDAO taskDAO,MapOfTaskStatusFactory jobStatusFactory) {
         _taskDAO = taskDAO;
-        _panfishStat = panfishStat;
+        _jobStatusFactory = jobStatusFactory;
     }
 
     /**
@@ -44,19 +74,22 @@ public class TaskStatusUpdater {
      */
     public void updateTasks() throws Exception {
 
-        log.log(Level.INFO, "Updating status for uncompleted tasks...");
+        _log.log(Level.INFO, "Updating status for uncompleted tasks...");
         List<Task> tasks = _taskDAO.getTasks(null, NOT_COMPLETED_STATUSES, false, false, false);
         if (tasks != null && tasks.isEmpty() == false) {
 
-            log.log(Level.INFO, " found {0} tasks to possibly update", tasks.size());
-            Map<String, String> jobStatusMap = getMapOfJobStatusFromPanfish(getCommaDelimitedStringOfJobIds(tasks));
-
+            _log.log(Level.INFO, " found {0} tasks to possibly update", tasks.size());
+            Map<String, String> jobStatusMap = _jobStatusFactory.getJobStatusMap(tasks);
+            
             for (Task t : tasks) {
                 if (jobStatusMap.containsKey(t.getJobId())) {
                     String returnedStatus = jobStatusMap.get(t.getJobId());
                     if (!returnedStatus.equals(t.getStatus())) {
-                        log.log(Level.INFO, "\tTask: (" + t.getId() + ") "
-                                + t.getName() + " old status: " + t.getStatus() + " new status: " + returnedStatus);
+                        _log.log(Level.INFO, 
+                                "\tTask: ({0}) {1} old status: {2} new status: {3}", 
+                                new Object[]{t.getId(), t.getName(), 
+                                    t.getStatus(), returnedStatus});
+                        
                         t.setStatus(returnedStatus);
                         
                         Long startDate = null;
@@ -77,74 +110,7 @@ public class TaskStatusUpdater {
                 }
             }
         } else {
-            log.log(Level.INFO, "no tasks to update");
+            _log.log(Level.INFO, "no tasks to update");
         }
     }
-
-    /**
-     * Invokes panfishstat to get job statuses
-     *
-     * @param csvString Comma delimited string of job ids to query status on
-     * @return Map where key is job id and status as the value
-     * @throws Exception
-     */
-    private Map<String, String> getMapOfJobStatusFromPanfish(final String csvString) throws Exception {
-        ProcessBuilder pb = new ProcessBuilder(_panfishStat,
-                "--statusofjobid", csvString);
-        pb.redirectErrorStream(true);
-        Process p = pb.start();
-        BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
-
-        Map<String, String> jobStatusMap = new HashMap<>();
-        StringBuilder sb = new StringBuilder();
-        
-        String line = reader.readLine();
-        while (line != null) {
-            sb.append(line+"\n");
-            int equalPos = line.indexOf('=');
-            if (equalPos > 0 && equalPos < line.length() - 1) {
-                String id = line.substring(0, equalPos);
-                String status = line.substring(equalPos + 1);
-                String convertedStatus = Task.IN_QUEUE_STATUS;
-
-                if (status.equalsIgnoreCase("running")) {
-                    convertedStatus = Task.RUNNING_STATUS;
-                } else if (status.equalsIgnoreCase("done")) {
-                    convertedStatus = Task.COMPLETED_STATUS;
-                } else if (status.equalsIgnoreCase("failed")) {
-                    convertedStatus = Task.ERROR_STATUS;
-                }
-
-                jobStatusMap.put(id, convertedStatus);
-            }
-
-            line = reader.readLine();
-        }
-        reader.close();
-
-        if (p.waitFor() != 0) {
-            throw new Exception("Non zero exit code received from Panfish: " + sb.toString());
-        }
-        log.log(Level.INFO, "Output from panfishstat:\n" + sb.toString());
-        return jobStatusMap;
-    }
-
-    /**
-     * Examines the list of Task objects building a CSV list from the
-     * Task.getJobId() strings
-     *
-     * @param tasks
-     * @return CSV delimited list of jobIds
-     */
-    private String getCommaDelimitedStringOfJobIds(List<Task> tasks) {
-        StringBuilder sb = new StringBuilder();
-        for (Task t : tasks) {
-            if (sb.length() > 0) {
-                sb.append(',');
-            }
-            sb.append(t.getJobId());
-        }
-        return sb.toString();
-    }
-
 }
