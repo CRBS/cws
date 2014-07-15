@@ -48,7 +48,7 @@ import java.util.logging.Logger;
  * 
  * @author Christopher Churas <churas@ncmir.ucsd.edu>
  */
-public class MapOfJobStatusFactoryImpl implements MapOfJobStatusFactory {
+public class MapOfTaskStatusFactoryImpl implements MapOfTaskStatusFactory {
 
     static final String NEW_LINE = "\n";
     
@@ -80,7 +80,7 @@ public class MapOfJobStatusFactoryImpl implements MapOfJobStatusFactory {
     static final String STATUSOFJOBID = "--statusofjobid";
     
     private static final Logger _log
-            = Logger.getLogger(MapOfJobStatusFactoryImpl.class.getName());
+            = Logger.getLogger(MapOfTaskStatusFactoryImpl.class.getName());
     
     /**
      * Panfishstat binary path
@@ -89,7 +89,7 @@ public class MapOfJobStatusFactoryImpl implements MapOfJobStatusFactory {
 
     RunCommandLineProcess _runCommandLineProcess = new RunCommandLineProcessImpl();
     
-    public MapOfJobStatusFactoryImpl(final String panfishStat){
+    public MapOfTaskStatusFactoryImpl(final String panfishStat){
         _panfishStat = panfishStat;
     }
     
@@ -106,6 +106,8 @@ public class MapOfJobStatusFactoryImpl implements MapOfJobStatusFactory {
     @Override
     public Map<String, String> getJobStatusMap(List<Task> tasks) throws Exception {
         
+        // @TODO need to handle case where there are 2,000+ tasks to get status for
+        // cause the bash command line will fail with too many arguments errors
         String delimStringOfJobIds = getCommaDelimitedStringOfJobIds(tasks);
         Map<String, String> jobStatusMap = new HashMap<>();
         
