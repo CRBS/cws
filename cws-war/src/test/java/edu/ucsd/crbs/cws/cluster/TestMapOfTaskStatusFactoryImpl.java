@@ -55,9 +55,9 @@ import static org.mockito.Mockito.when;
  * @author Christopher Churas <churas@ncmir.ucsd.edu>
  */
 @RunWith(JUnit4.class)
-public class TestMapOfJobStatusFactoryImpl {
+public class TestMapOfTaskStatusFactoryImpl {
 
-    public TestMapOfJobStatusFactoryImpl() {
+    public TestMapOfTaskStatusFactoryImpl() {
     }
 
     @BeforeClass
@@ -78,7 +78,7 @@ public class TestMapOfJobStatusFactoryImpl {
 
     @Test
     public void testgetJobStatusMapWithNullEmptyTasksList() throws Exception {
-        MapOfJobStatusFactoryImpl mapFac = new MapOfJobStatusFactoryImpl("/bin/false");
+        MapOfTaskStatusFactoryImpl mapFac = new MapOfTaskStatusFactoryImpl("/bin/false");
         Map<String,String> resMap = mapFac.getJobStatusMap(null);
         assertTrue(resMap.isEmpty() == true);
         
@@ -89,7 +89,7 @@ public class TestMapOfJobStatusFactoryImpl {
     
     @Test
     public void testgetJobStatusMapWithNTaskThatHasNullJobId() throws Exception {
-        MapOfJobStatusFactoryImpl mapFac = new MapOfJobStatusFactoryImpl("/bin/false");
+        MapOfTaskStatusFactoryImpl mapFac = new MapOfTaskStatusFactoryImpl("/bin/false");
         ArrayList<Task> taskList = new ArrayList<>();
         taskList.add(new Task());
         
@@ -105,7 +105,7 @@ public class TestMapOfJobStatusFactoryImpl {
     //test where panfishstat fails (non zero exit code)
     @Test
     public void testgetJobStatusMapWherePanfishstatfails() throws Exception {
-        MapOfJobStatusFactoryImpl mapFac = new MapOfJobStatusFactoryImpl("/bin/false");
+        MapOfTaskStatusFactoryImpl mapFac = new MapOfTaskStatusFactoryImpl("/bin/false");
         
         Task myTask = new Task();
         myTask.setJobId("1");
@@ -123,7 +123,7 @@ public class TestMapOfJobStatusFactoryImpl {
     //test where panfishstat has no output
     @Test
     public void testgetJobStatusMapWherePanfishstatHasNoOutput() throws Exception {
-        MapOfJobStatusFactoryImpl mapFac = new MapOfJobStatusFactoryImpl("/bin/true");
+        MapOfTaskStatusFactoryImpl mapFac = new MapOfTaskStatusFactoryImpl("/bin/true");
         
         Task myTask = new Task();
         myTask.setJobId("1");
@@ -136,7 +136,7 @@ public class TestMapOfJobStatusFactoryImpl {
     //test where we have valid output for tasks
     @Test
     public void testgetJobStatusMapWithOneTask() throws Exception {
-        MapOfJobStatusFactoryImpl mapFac = new MapOfJobStatusFactoryImpl("cmd");
+        MapOfTaskStatusFactoryImpl mapFac = new MapOfTaskStatusFactoryImpl("cmd");
         
         Task myTask = new Task();
         myTask.setJobId("1");
@@ -146,8 +146,8 @@ public class TestMapOfJobStatusFactoryImpl {
         RunCommandLineProcess mockCmdRunner = mock(RunCommandLineProcess.class);
         
         when(mockCmdRunner.runCommandLineProcess("cmd",
-                MapOfJobStatusFactoryImpl.STATUSOFJOBID,"1")).thenReturn("1="+
-                        MapOfJobStatusFactoryImpl.RUNNING+"\n");
+                MapOfTaskStatusFactoryImpl.STATUSOFJOBID,"1")).thenReturn("1="+
+                        MapOfTaskStatusFactoryImpl.RUNNING+"\n");
         
         mapFac._runCommandLineProcess = mockCmdRunner;
         
@@ -161,7 +161,7 @@ public class TestMapOfJobStatusFactoryImpl {
     //test where we have valid output for tasks
     @Test
     public void testgetJobStatusMapWithTwoTasks() throws Exception {
-        MapOfJobStatusFactoryImpl mapFac = new MapOfJobStatusFactoryImpl("cmd");
+        MapOfTaskStatusFactoryImpl mapFac = new MapOfTaskStatusFactoryImpl("cmd");
         
         Task myTask = new Task();
         myTask.setJobId("1");
@@ -175,9 +175,9 @@ public class TestMapOfJobStatusFactoryImpl {
         RunCommandLineProcess mockCmdRunner = mock(RunCommandLineProcess.class);
         
         when(mockCmdRunner.runCommandLineProcess("cmd",
-                MapOfJobStatusFactoryImpl.STATUSOFJOBID,"1,2")).thenReturn("1="+
-                        MapOfJobStatusFactoryImpl.RUNNING+"\n"+"2="+
-                        MapOfJobStatusFactoryImpl.DONE+"\n");
+                MapOfTaskStatusFactoryImpl.STATUSOFJOBID,"1,2")).thenReturn("1="+
+                        MapOfTaskStatusFactoryImpl.RUNNING+"\n"+"2="+
+                        MapOfTaskStatusFactoryImpl.DONE+"\n");
         
         mapFac._runCommandLineProcess = mockCmdRunner;
         
@@ -190,5 +190,43 @@ public class TestMapOfJobStatusFactoryImpl {
         assertTrue(resMap.get("2").equals(Task.COMPLETED_STATUS));
     }
     
+    //test where we have valid output for tasks
+    @Test
+    public void testgetJobStatusMapWithThreeTasks() throws Exception {
+        MapOfTaskStatusFactoryImpl mapFac = new MapOfTaskStatusFactoryImpl("cmd");
+        
+        Task myTask = new Task();
+        myTask.setJobId("1");
+        ArrayList<Task> taskList = new ArrayList<>();
+        taskList.add(myTask);
+        
+        myTask = new Task();
+        myTask.setJobId("2");
+        taskList.add(myTask);
+
+        myTask = new Task();
+        myTask.setJobId("3");
+        taskList.add(myTask);
+
+        RunCommandLineProcess mockCmdRunner = mock(RunCommandLineProcess.class);
+        
+        when(mockCmdRunner.runCommandLineProcess("cmd",
+                MapOfTaskStatusFactoryImpl.STATUSOFJOBID,"1,2,3")).thenReturn("1="+
+                        MapOfTaskStatusFactoryImpl.RUNNING+"\n"+"3=unknown\n2="+
+                        MapOfTaskStatusFactoryImpl.DONE+"\n");
+        
+        mapFac._runCommandLineProcess = mockCmdRunner;
+        
+        Map<String,String> resMap = mapFac.getJobStatusMap(taskList);
+        assertTrue(resMap.isEmpty() == false);
+        assertTrue(resMap.keySet().size() == 3);
+        assertTrue(resMap.containsKey("1") == true);
+        assertTrue(resMap.get("1").equals(Task.RUNNING_STATUS));
+        assertTrue(resMap.containsKey("2") == true);
+        assertTrue(resMap.get("2").equals(Task.COMPLETED_STATUS));
+        assertTrue(resMap.containsKey("3") == true);
+        assertTrue(resMap.get("3").equals(Task.IN_QUEUE_STATUS));
+
+    }
 
 }
