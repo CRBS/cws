@@ -33,7 +33,7 @@
 
 package edu.ucsd.crbs.cws.cluster;
 
-import static edu.ucsd.crbs.cws.App.NOT_COMPLETED_STATUSES;
+import edu.ucsd.crbs.cws.App;
 import edu.ucsd.crbs.cws.dao.TaskDAO;
 import edu.ucsd.crbs.cws.workflow.Task;
 import java.util.Date;
@@ -75,7 +75,7 @@ public class TaskStatusUpdater {
     public void updateTasks() throws Exception {
 
         _log.log(Level.INFO, "Updating status for uncompleted tasks...");
-        List<Task> tasks = _taskDAO.getTasks(null, NOT_COMPLETED_STATUSES, false, false, false);
+        List<Task> tasks = _taskDAO.getTasks(null, App.NOT_COMPLETED_STATUSES, false, false, false);
         if (tasks != null && tasks.isEmpty() == false) {
 
             _log.log(Level.INFO, " found {0} tasks to possibly update", tasks.size());
