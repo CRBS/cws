@@ -15,11 +15,12 @@ public class TaskSubmitter {
 
     private static final Logger log
             = Logger.getLogger(TaskSubmitter.class.getName());
-    
+
     TaskDirectoryCreator _directoryCreator;
     TaskCmdScriptCreator _cmdScriptCreator;
     TaskCmdScriptSubmitter _cmdScriptSubmitter;
     SyncWorkflowFileToFileSystem _workflowSync;
+    WorkspaceFilePathSetter _workspacePathSetter;
     private TaskDAO _taskDAO;
 
     /**
@@ -35,19 +36,20 @@ public class TaskSubmitter {
      * @param token
      * @param url
      */
-    public TaskSubmitter(TaskDAO taskDAO, 
-                         final String workflowExecDir, 
-                         final String workflowsDir,
-                         final String keplerScript, 
-                         final String panfishCast,
-                         final String queue,
-                         final String login,
-                         final String token,
-                         final String url) {
+    public TaskSubmitter(TaskDAO taskDAO,
+            final String workflowExecDir,
+            final String workflowsDir,
+            final String keplerScript,
+            final String panfishCast,
+            final String queue,
+            final String login,
+            final String token,
+            final String url) {
         _directoryCreator = new TaskDirectoryCreatorImpl(workflowExecDir);
         _cmdScriptCreator = new TaskCmdScriptCreatorImpl(workflowsDir, keplerScript);
         _cmdScriptSubmitter = new TaskCmdScriptSubmitterImpl(panfishCast, queue);
-        _workflowSync = new SyncWorkflowFileToFileSystemImpl(workflowsDir,url,login,token);
+        _workflowSync = new SyncWorkflowFileToFileSystemImpl(workflowsDir, url, login, token);
+
         _taskDAO = taskDAO;
     }
 
@@ -59,29 +61,30 @@ public class TaskSubmitter {
      * @throws Exception If there was a problem creating or submitting the Task
      */
     public void submitTasks() throws Exception {
-       log.log(Level.INFO, "Looking for new tasks to submit...");
-       
+        log.log(Level.INFO, "Looking for new tasks to submit...");
+
         List<Task> tasks = _taskDAO.getTasks(null, null, true, false, false);
-       
+
         if (tasks != null) {
             log.log(Level.INFO, " found {0} tasks need to be submitted", tasks.size());
             for (Task t : tasks) {
-                
-                /* //check if workspace files are syncd.  If not update status
-                   // to workspace sync and move on to the next Task
-                if (_workspaceFilePathSetter.setPaths(t) == false){
-                   if (!t.getStatus().equals(Task.WORKSPACE_SYNC_STATUS)){
-                    _taskDAO.update(t.getId(), Task.WORKSPACE_SYNC_STATUS, null, null, null,
-                        null, null, null, false,
-                        null);
-                   next;
-                }*/
-                  
-                log.log(Level.INFO, "\tSubmitting Task: ({0}) {1}", 
+
+                //check if workspace files are syncd.  If not update status
+                // to workspace sync and move on to the next Task
+                if (_workspacePathSetter.setPaths(t) == false) {
+                    if (!t.getStatus().equals(Task.WORKSPACE_SYNC_STATUS)) {
+                        _taskDAO.update(t.getId(), Task.WORKSPACE_SYNC_STATUS, null, null, null,
+                                null, null, null, false,
+                                null);
+                        continue;
+                    }
+                }
+
+                log.log(Level.INFO, "\tSubmitting Task: ({0}) {1}",
                         new Object[]{t.getId(), t.getName()});
-                
+
                 submitTask(t);
-                
+
                 _taskDAO.update(t.getId(), Task.PENDING_STATUS, null, null, null,
                         t.getSubmitDate().getTime(), null, null, true,
                         t.getJobId());
