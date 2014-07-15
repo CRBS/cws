@@ -50,7 +50,8 @@ public interface WorkspaceFileDAO {
      * @return
      * @throws Exception 
      */
-    public List<WorkspaceFile> getWorkspaceFiles(final String owner,final Boolean synced) throws Exception;
+    public List<WorkspaceFile> getWorkspaceFiles(final String owner,
+            final Boolean synced) throws Exception;
     
     /**
      * Gets {@link WorkspaceFile} by id
@@ -60,6 +61,9 @@ public interface WorkspaceFileDAO {
      * @throws Exception 
      */
     public WorkspaceFile getWorkspaceFileById(final String workspaceFileId,User user) throws Exception;
+    
+    
+    public List<WorkspaceFile> getWorkspaceFilesById(final String workspaceFileIds,User user) throws Exception;
     
     /**
      * Adds a new {@link WorkspaceFile} to the data store.  

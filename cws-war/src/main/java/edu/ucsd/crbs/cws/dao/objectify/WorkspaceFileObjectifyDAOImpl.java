@@ -30,7 +30,6 @@
  * THE CRBS Workflow Service WILL NOT INFRINGE ANY PATENT, TRADEMARK OR OTHER
  * RIGHTS. 
  */
-
 package edu.ucsd.crbs.cws.dao.objectify;
 
 import com.googlecode.objectify.Key;
@@ -40,9 +39,13 @@ import edu.ucsd.crbs.cws.auth.User;
 import edu.ucsd.crbs.cws.dao.WorkspaceFileDAO;
 import static edu.ucsd.crbs.cws.dao.objectify.OfyService.ofy;
 import edu.ucsd.crbs.cws.workflow.WorkspaceFile;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -50,52 +53,81 @@ import java.util.List;
  */
 public class WorkspaceFileObjectifyDAOImpl implements WorkspaceFileDAO {
 
+    
+    private static final Logger _log
+            = Logger.getLogger(WorkspaceFileObjectifyDAOImpl.class.getName());
+    
     @Override
     public List<WorkspaceFile> getWorkspaceFiles(final String owner,
             final Boolean synced) throws Exception {
+
         Query<WorkspaceFile> q = ofy().load().type(WorkspaceFile.class);
-        if (owner != null){
-            q = q.filter("_owner in ",Arrays.asList(owner.split(",")));
+
+        if (owner != null) {
+            q = q.filter("_owner in ", Arrays.asList(owner.split(",")));
         }
-        
-        if (synced != null){
-            if (synced == true){
-                q = q.filter("_path !=",null);
-            }
-            else {
-                q = q.filter("_path ==",null);
+
+        if (synced != null) {
+            if (synced == true) {
+                q = q.filter("_path !=", null);
+            } else {
+                q = q.filter("_path ==", null);
             }
         }
         return q.list();
     }
-   
+
+    @Override
+    public List<WorkspaceFile> getWorkspaceFilesById(String workspaceFileIds, User user) throws Exception {
+        if (workspaceFileIds == null) {
+            _log.log(Level.INFO,"workspaceFileIds was null");
+            return null;
+        }
+        _log.log(Level.INFO,"Querying with id(s): "+workspaceFileIds);
+        
+        ArrayList<Long> idList = new ArrayList<>();
+        //need to split ids by comma and then convert them into longs
+        for (String id : workspaceFileIds.split(",")){
+           idList.add(new Long(id));
+        }
+        
+        Map<Long, WorkspaceFile> res = ofy().load().type(WorkspaceFile.class).ids(idList);
+        if (res == null) {
+            _log.log(Level.INFO,"query returned null");
+            return null;
+        }
+        _log.log(Level.INFO,"Found "+res.values().size()+" workspace files");
+        ArrayList<WorkspaceFile> workspaceFiles = new ArrayList<>();
+        workspaceFiles.addAll(res.values());
+        return workspaceFiles;
+    }
 
     @Override
     public WorkspaceFile getWorkspaceFileById(String workspaceFileId, User user) throws Exception {
         long wspId;
-        if (workspaceFileId == null){
+        if (workspaceFileId == null) {
             throw new IllegalArgumentException("workspace file id cannot be null");
         }
-        
+
         try {
             wspId = Long.parseLong(workspaceFileId);
-        } catch(NumberFormatException nfe){
-            throw new NumberFormatException("Unable to parse workspacefile id from: "+workspaceFileId+" : "+nfe.getMessage());
+        } catch (NumberFormatException nfe) {
+            throw new NumberFormatException("Unable to parse workspacefile id from: " + workspaceFileId + " : " + nfe.getMessage());
         }
-        if (wspId <= 0){
-            throw new Exception(workspaceFileId+" is not a valid workspace file id");
+        if (wspId <= 0) {
+            throw new Exception(workspaceFileId + " is not a valid workspace file id");
         }
-        
+
         return ofy().load().type(WorkspaceFile.class).id(wspId).now();
     }
 
     @Override
     public WorkspaceFile insert(WorkspaceFile wsp) throws Exception {
-        if (wsp == null){
+        if (wsp == null) {
             throw new Exception("WorkspaceFile passed in is null");
         }
-        
-        if (wsp.getCreateDate() == null){
+
+        if (wsp.getCreateDate() == null) {
             wsp.setCreateDate(new Date());
         }
         Key<WorkspaceFile> wspKey = ofy().save().entity(wsp).now();
@@ -110,57 +142,57 @@ public class WorkspaceFileObjectifyDAOImpl implements WorkspaceFileDAO {
             @Override
             public WorkspaceFile run() {
                 WorkspaceFile wsp = ofy().load().type(WorkspaceFile.class).id(workspaceFileId).now();
-                if (wsp == null){
+                if (wsp == null) {
                     return null;
                 }
-                
-                if (wsp.getBlobKey() == null && key == null){
+
+                if (wsp.getBlobKey() == null && key == null) {
                     return wsp;
                 }
-                
-                if (wsp.getBlobKey() != null && key != null && 
-                        wsp.getBlobKey().equals(key)){
+
+                if (wsp.getBlobKey() != null && key != null
+                        && wsp.getBlobKey().equals(key)) {
                     return wsp;
                 }
-                
+
                 wsp.setBlobKey(key);
                 Key<WorkspaceFile> wspKey = ofy().save().entity(wsp).now();
                 return wsp;
             }
         });
-        if (resWsp == null){
+        if (resWsp == null) {
             throw new Exception("There was a problem updating the WorkspaceFile");
         }
         return resWsp;
     }
-    
+
     @Override
-    public WorkspaceFile updatePath(final long workspaceFileId,final String path) throws Exception {
+    public WorkspaceFile updatePath(final long workspaceFileId, final String path) throws Exception {
         WorkspaceFile resWsp;
         resWsp = ofy().transact(new Work<WorkspaceFile>() {
             @Override
             public WorkspaceFile run() {
                 WorkspaceFile wsp = ofy().load().type(WorkspaceFile.class).id(workspaceFileId).now();
-                if (wsp == null){
+                if (wsp == null) {
                     return null;
                 }
-                
-                if (wsp.getPath() == null && path == null){
+
+                if (wsp.getPath() == null && path == null) {
                     return wsp;
                 }
-                
-                if (wsp.getPath() != null){
-                    if (path != null && wsp.getPath().equals(path)){
+
+                if (wsp.getPath() != null) {
+                    if (path != null && wsp.getPath().equals(path)) {
                         return wsp;
                     }
                 }
-                
+
                 wsp.setPath(path);
                 Key<WorkspaceFile> wspKey = ofy().save().entity(wsp).now();
                 return wsp;
             }
         });
-        if (resWsp == null){
+        if (resWsp == null) {
             throw new Exception("There was a problem updating the WorkspaceFile");
         }
         return resWsp;
@@ -168,17 +200,15 @@ public class WorkspaceFileObjectifyDAOImpl implements WorkspaceFileDAO {
 
     @Override
     public WorkspaceFile update(WorkspaceFile wsp) throws Exception {
-        if (wsp == null){
+        if (wsp == null) {
             throw new IllegalArgumentException("WorkspaceFile cannot be null");
         }
-        if (wsp.getId() == null){
+        if (wsp.getId() == null) {
             throw new Exception("Id must be set");
         }
 
         ofy().save().entity(wsp).now();
         return wsp;
     }
-    
-    
-    
+
 }
