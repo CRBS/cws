@@ -243,10 +243,20 @@ public class TaskRestService {
                 
                 //do insert, but skip the workflow checks cause validation did it 
                 //already
+                
+                //clear start submit and finish dates also set status in queue
+                //and make sure submitted to scheduler is set to false
+                // @TODO should this be put in validator?
+                t.setHasJobBeenSubmittedToScheduler(false);
+                t.setStartDate(null);
+                t.setSubmitDate(null);
+                t.setDownloadURL(null);
+                t.setFinishDate(null);
+                t.setStatus(Task.IN_QUEUE_STATUS);
+                
+                
+                
                 Task task = _taskDAO.insert(t,true);
-                
-                // _taskWorkspaceFilesDAO.createFromTask(task);
-                
                 
                 saveEvent(_eventBuilder.setAsCreateTaskEvent(event, task));
                 
