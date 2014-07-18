@@ -27,6 +27,7 @@ public class TaskSubmitter {
      * Constructor
      *
      * @param taskDAO
+     * @param workspaceFilePathSetter
      * @param workflowExecDir Directory under where workflow Tasks should be run
      * @param workflowsDir Directory where workflows are stored
      * @param keplerScript Full path to Kepler program
@@ -37,6 +38,7 @@ public class TaskSubmitter {
      * @param url
      */
     public TaskSubmitter(TaskDAO taskDAO,
+            WorkspaceFilePathSetter workspaceFilePathSetter,
             final String workflowExecDir,
             final String workflowsDir,
             final String keplerScript,
@@ -49,6 +51,7 @@ public class TaskSubmitter {
         _cmdScriptCreator = new TaskCmdScriptCreatorImpl(workflowsDir, keplerScript);
         _cmdScriptSubmitter = new TaskCmdScriptSubmitterImpl(panfishCast, queue);
         _workflowSync = new SyncWorkflowFileToFileSystemImpl(workflowsDir, url, login, token);
+        _workspacePathSetter = workspaceFilePathSetter;
 
         _taskDAO = taskDAO;
     }
