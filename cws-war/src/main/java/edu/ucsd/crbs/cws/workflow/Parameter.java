@@ -11,6 +11,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 public class Parameter {
     protected String _name;
     protected String _value;
+    protected boolean _isWorkspaceId;
+    
     protected WorkflowParameter _workflowParameter;
 
     public Parameter(){
@@ -79,5 +81,13 @@ public class Parameter {
 
     public void setWorkflowParameter(WorkflowParameter workflowParameter) {
         _workflowParameter = workflowParameter;
+    }
+    
+    public boolean isIsWorkspaceId() {
+        return _isWorkspaceId;
+    }
+
+    public void setIsWorkspaceId(boolean isWorkspaceId) {
+        _isWorkspaceId = isWorkspaceId;
     }
 }
