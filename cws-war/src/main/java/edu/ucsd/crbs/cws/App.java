@@ -15,6 +15,7 @@ import edu.ucsd.crbs.cws.auth.User;
 import edu.ucsd.crbs.cws.cluster.MapOfTaskStatusFactoryImpl;
 import edu.ucsd.crbs.cws.cluster.TaskStatusUpdater;
 import edu.ucsd.crbs.cws.cluster.TaskSubmitter;
+import edu.ucsd.crbs.cws.cluster.WorkspaceFilePathSetterImpl;
 import edu.ucsd.crbs.cws.dao.rest.TaskRestDAOImpl;
 import edu.ucsd.crbs.cws.dao.rest.WorkspaceFileRestDAOImpl;
 import edu.ucsd.crbs.cws.io.KeplerMomlFromKar;
@@ -58,6 +59,10 @@ public class App {
     
     public static final String GET_WORKSPACE_FILE_INFO_ARG = "fileinfo";
     
+    public static final String UPDATE_PATH = "updatepath";
+    
+    public static final String PATH = "path";
+    
     public static final String OWNER_ARG = "owner";
 
     public static final String SYNC_WITH_CLUSTER_ARG = "syncwithcluster";
@@ -86,6 +91,8 @@ public class App {
 
     public static final String TOKEN = "token";
     
+    public static final String RUN_AS = "runas";
+    
     //public static final String LOAD_TEST = "loadtest";
     public static final String PROGRAM_HELP = "\nCRBS Workflow Service Command Line Tools "
             + "\n\nThis program provides options to run Workflow Tasks on the local cluster as well"
@@ -112,6 +119,8 @@ public class App {
                     accepts(UPLOAD_FILE_ARG,"Adds Workspace file").withRequiredArg().ofType(File.class);
                     accepts(GET_WORKSPACE_FILE_INFO_ARG,"Outputs JSON of specified workspace file(s)").withRequiredArg().ofType(String.class).describedAs("workspace file id");
                     accepts(DOWNLOAD_FILE_ARG,"Downloads Workspace file").withRequiredArg().ofType(String.class).describedAs("workspace file id");
+                    accepts(UPDATE_PATH,"Updates Workspace file path").withRequiredArg().ofType(String.class).describedAs("workspace file id");
+                    accepts(PATH,"Workspace file path").withRequiredArg().ofType(String.class).describedAs("file path");
                     accepts(URL_ARG, "URL to use with --" + UPLOAD_WF_ARG + ", --"+UPLOAD_FILE_ARG+", --"+GET_WORKSPACE_FILE_INFO_ARG+" flags").withRequiredArg().ofType(String.class).describedAs("URL");
                     accepts(PARENT_WFID_ARG, "Parent Workflow ID").withRequiredArg().ofType(Long.class).describedAs("Workflow ID");
                     accepts(EXAMPLE_JSON_ARG, "Outputs JSON of Task & Workflow objects");
@@ -123,6 +132,7 @@ public class App {
                     accepts(STAT, "Panfishstat binary").withRequiredArg().ofType(File.class).describedAs("panfishstat");
                     accepts(LOGIN, "User Login").withRequiredArg().ofType(String.class).describedAs("username");
                     accepts(TOKEN, "User Token").withRequiredArg().ofType(String.class).describedAs("token");
+                    accepts(TOKEN, "Run As").withRequiredArg().ofType(String.class).describedAs("runas");
                     accepts(OWNER_ARG,"Owner").withRequiredArg().ofType(String.class);
                     accepts(HELP_ARG).forHelp();
                 }
@@ -140,7 +150,8 @@ public class App {
             if (optionSet.has(HELP_ARG)
                     || (!optionSet.has(SYNC_WITH_CLUSTER_ARG) && !optionSet.has(UPLOAD_WF_ARG))
                     && !optionSet.has(EXAMPLE_JSON_ARG) && !optionSet.has(UPLOAD_FILE_ARG) &&
-                    !optionSet.has(GET_WORKSPACE_FILE_INFO_ARG)) {
+                    !optionSet.has(GET_WORKSPACE_FILE_INFO_ARG) &&
+                    !optionSet.has(UPDATE_PATH)) {
                 System.out.println(PROGRAM_HELP + "\n");
                 parser.printHelpOn(System.out);
                 System.exit(0);
@@ -152,6 +163,36 @@ public class App {
                 System.exit(0);
             }
 
+            if (optionSet.has(UPDATE_PATH)){
+                  if (!optionSet.has(URL_ARG)){
+                    System.err.println("--"+URL_ARG+" is required with --"+UPDATE_PATH+" flag");
+                    System.exit(30);
+                  }
+                 if (!optionSet.has(LOGIN)) {
+                    System.err.println("-" + LOGIN + " is required with -" + UPDATE_PATH + " flag");
+                    System.exit(31);
+                }
+                if (!optionSet.has(TOKEN)) {
+                    System.err.println("-" + TOKEN + " is required with -" + UPDATE_PATH + " flag");
+                    System.exit(32);
+                }
+                
+                String login = (String) optionSet.valueOf(LOGIN);
+                String token = (String) optionSet.valueOf(TOKEN);
+                String workspaceId = (String)optionSet.valueOf(UPDATE_PATH);
+                String path = null;
+                if (optionSet.has(PATH)){
+                    path = (String)optionSet.valueOf(PATH);
+                }
+                
+                WorkspaceFileRestDAOImpl workspaceFileDAO = new WorkspaceFileRestDAOImpl();
+                workspaceFileDAO.setLogin(login);
+                workspaceFileDAO.setRestURL((String)optionSet.valueOf(URL_ARG));
+                workspaceFileDAO.setToken(token);
+                workspaceFileDAO.updatePath(Long.parseLong(workspaceId), path);
+                System.exit(0);
+            }
+            
             if (optionSet.has(SYNC_WITH_CLUSTER_ARG)) {
                 // @TODO NEED TO MAKE JOPT DO THIS REQUIRED FLAG CHECKING STUFF
                 if (!optionSet.has(WF_EXEC_DIR)) {
@@ -203,17 +244,28 @@ public class App {
                 File wfDir = (File) optionSet.valueOf(WF_DIR);
                 File keplerScript = (File) optionSet.valueOf(KEPLER_SCRIPT);
 
+                String login = (String) optionSet.valueOf(LOGIN);
+                String token = (String) optionSet.valueOf(TOKEN);
+                
                 ObjectifyService.ofy();
                 String url = (String) optionSet.valueOf(SYNC_WITH_CLUSTER_ARG);
                 TaskRestDAOImpl taskDAO = new TaskRestDAOImpl();
                 taskDAO.setRestURL(url);
-                taskDAO.setLogin((String) optionSet.valueOf(LOGIN));
-                taskDAO.setToken((String) optionSet.valueOf(TOKEN));
+                taskDAO.setLogin(login);
+                taskDAO.setToken(token);
 
                 System.out.println("Running sync with cluster");
 
+                WorkspaceFileRestDAOImpl workspaceFileDAO = new WorkspaceFileRestDAOImpl();
+                workspaceFileDAO.setRestURL(url);
+                workspaceFileDAO.setLogin(login);
+                workspaceFileDAO.setToken(token);
+                
+                WorkspaceFilePathSetterImpl pathSetter = new WorkspaceFilePathSetterImpl(workspaceFileDAO);
+                
                 // Submit tasks to scheduler
                 TaskSubmitter submitter = new TaskSubmitter(taskDAO,
+                        pathSetter,
                         wfExecDir.getAbsolutePath(),
                         wfDir.getAbsolutePath(),
                         keplerScript.getAbsolutePath(),
