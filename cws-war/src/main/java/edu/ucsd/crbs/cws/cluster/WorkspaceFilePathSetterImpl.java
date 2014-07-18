@@ -41,7 +41,9 @@ import java.util.List;
 import java.util.Map;
 
 /**
- *
+ * Iterates through {@link Task#getParameters()} and updates their {@link Parameter#getValue()}
+ * with proper filesystem paths by querying the data store for their location on the file system
+ * 
  * @author Christopher Churas <churas@ncmir.ucsd.edu>
  */
 public class WorkspaceFilePathSetterImpl implements WorkspaceFilePathSetter {
@@ -54,13 +56,17 @@ public class WorkspaceFilePathSetterImpl implements WorkspaceFilePathSetter {
     }
 
     /**
-     * For all {@link Parameter} objects in {@link Task} <b>t</b> where is
-     * workspace file is set to true. This method gets the path of the
-     * {@link WorkspaceFile} that matches id in {@link Parameter#getValue()}.
+     * Examines all {@link Parameter} objects in {@link Task} <b>t</b> 
+     * where {@link Parameter#isIsWorkspaceId()} is set to true.  The method
+     * assumes {@link Parameter#getValue()} is a 
+     * {@link WorkspaceFile#getId()}.  The method then retrieves these WorkspaceFile
+     * objects from the data store and replaces the {@link Parameter#getValue()} with the
+     * value of {@link WorkspaceFile#getPath()} if that path is not null. 
      *
      * @param t Task to update
-     * @return true if all files were successfully updated, otherwise false.
-     * @throws Exception
+     * @return true if all files {@link Parameter} were updated successfully with valid paths otherwise false
+     * @throws NullPointerException if a Parameter value is null or if {@link WorkspaceFileDAO} set via constructor is null
+     * @throws NumberFormatException if a Parameter value cannot be converted to a workspace id which is a Long
      */
     @Override
     public boolean setPaths(Task t) throws Exception {
@@ -87,7 +93,7 @@ public class WorkspaceFilePathSetterImpl implements WorkspaceFilePathSetter {
             sb.append(param.getValue());
         }
         
-        if (this._workspaceFileDAO == null){
+        if (_workspaceFileDAO == null){
             throw new NullPointerException("WorkspaceFileDAO must be set via constructor");
         }
         
@@ -112,6 +118,13 @@ public class WorkspaceFilePathSetterImpl implements WorkspaceFilePathSetter {
         return true;
     }
 
+    /**
+     * Uses {@link WorkspaceFileDAO} to query data store for {@link WorkspaceFile} objects
+     * generating a Map of the results.
+     * @param workspaceIds Comma delimited list of {@link WorkspaceFile#getId()} values
+     * @return Map with key set to {@link WorkspaceFile#getId()} and value set to {@link WorkspaceFile}
+     * @throws Exception 
+     */
     private Map<Long, WorkspaceFile> getMapOfWorkspaceFiles(final String workspaceIds) throws Exception {
         List<WorkspaceFile> wsFiles = _workspaceFileDAO.getWorkspaceFilesById(workspaceIds, null);
         HashMap<Long, WorkspaceFile> wspMap = new HashMap<>();
