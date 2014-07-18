@@ -8,8 +8,10 @@ import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.core.impl.provider.entity.StringProvider;
-import com.sun.jersey.core.util.MultivaluedMapImpl;
 import com.sun.jersey.multipart.impl.MultiPartWriter;
+import static edu.ucsd.crbs.cws.App.LOGIN;
+import static edu.ucsd.crbs.cws.App.RUN_AS;
+import static edu.ucsd.crbs.cws.App.TOKEN;
 import edu.ucsd.crbs.cws.auth.Permission;
 import edu.ucsd.crbs.cws.auth.User;
 import edu.ucsd.crbs.cws.cluster.MapOfTaskStatusFactoryImpl;
@@ -19,7 +21,11 @@ import edu.ucsd.crbs.cws.cluster.WorkspaceFilePathSetterImpl;
 import edu.ucsd.crbs.cws.dao.rest.TaskRestDAOImpl;
 import edu.ucsd.crbs.cws.dao.rest.WorkspaceFileRestDAOImpl;
 import edu.ucsd.crbs.cws.io.KeplerMomlFromKar;
+import edu.ucsd.crbs.cws.jerseyclient.MultivaluedMapFactory;
+import edu.ucsd.crbs.cws.jerseyclient.MultivaluedMapFactoryImpl;
 import edu.ucsd.crbs.cws.rest.Constants;
+import edu.ucsd.crbs.cws.util.RunCommandLineProcess;
+import edu.ucsd.crbs.cws.util.RunCommandLineProcessImpl;
 import edu.ucsd.crbs.cws.workflow.Parameter;
 import edu.ucsd.crbs.cws.workflow.Task;
 import edu.ucsd.crbs.cws.workflow.Workflow;
@@ -27,9 +33,7 @@ import edu.ucsd.crbs.cws.workflow.WorkflowParameter;
 import edu.ucsd.crbs.cws.workflow.WorkspaceFile;
 import edu.ucsd.crbs.cws.workflow.kepler.WorkflowFromAnnotatedXmlFactory;
 import java.io.BufferedInputStream;
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -56,6 +60,8 @@ public class App {
     public static final String UPLOAD_FILE_ARG = "uploadfile";
     
     public static final String DOWNLOAD_FILE_ARG = "downloadfile";
+    
+    public static final String REGISTER_FILE_ARG = "registerfile";
     
     public static final String GET_WORKSPACE_FILE_INFO_ARG = "fileinfo";
     
@@ -116,14 +122,15 @@ public class App {
                     accepts(UPLOAD_WF_ARG, "Add/Update Workflow").withRequiredArg().ofType(File.class).describedAs(".kar");
                     //accepts(LOAD_TEST,"creates lots of workflows and tasks");
                     accepts(SYNC_WITH_CLUSTER_ARG, "Submits & Synchronizes Workflow Tasks on local cluster with CRBS Workflow Webservice").withRequiredArg().ofType(String.class).describedAs("URL");
-                    accepts(UPLOAD_FILE_ARG,"Adds Workspace file").withRequiredArg().ofType(File.class);
+                    accepts(UPLOAD_FILE_ARG,"Registers and uploads Workspace file to REST service").withRequiredArg().ofType(File.class);
+                    accepts(REGISTER_FILE_ARG,"Registers Workspace file to REST service (DOES NOT UPLOAD FILE TO REST SERVICE)").withRequiredArg().ofType(File.class);
                     accepts(GET_WORKSPACE_FILE_INFO_ARG,"Outputs JSON of specified workspace file(s)").withRequiredArg().ofType(String.class).describedAs("workspace file id");
                     accepts(DOWNLOAD_FILE_ARG,"Downloads Workspace file").withRequiredArg().ofType(String.class).describedAs("workspace file id");
                     accepts(UPDATE_PATH,"Updates Workspace file path").withRequiredArg().ofType(String.class).describedAs("workspace file id");
-                    accepts(PATH,"Workspace file path").withRequiredArg().ofType(String.class).describedAs("file path");
+                    accepts(PATH,"Sets WorkspaceFile file path.  Used in coordination with --"+UPDATE_PATH).withRequiredArg().ofType(String.class).describedAs("file path");
                     accepts(URL_ARG, "URL to use with --" + UPLOAD_WF_ARG + ", --"+UPLOAD_FILE_ARG+", --"+GET_WORKSPACE_FILE_INFO_ARG+" flags").withRequiredArg().ofType(String.class).describedAs("URL");
-                    accepts(PARENT_WFID_ARG, "Parent Workflow ID").withRequiredArg().ofType(Long.class).describedAs("Workflow ID");
-                    accepts(EXAMPLE_JSON_ARG, "Outputs JSON of Task & Workflow objects");
+                    accepts(PARENT_WFID_ARG, "Used to set parent workflow id when invoking --"+UPLOAD_WF_ARG).withRequiredArg().ofType(Long.class).describedAs("Workflow ID");
+                    accepts(EXAMPLE_JSON_ARG, "Outputs example JSON of Task, User, Workflow, and WorkspaceFile objects");
                     accepts(WF_EXEC_DIR, "Workflow Execution Directory").withRequiredArg().ofType(File.class).describedAs("Directory");
                     accepts(WF_DIR, "Workflows Directory").withRequiredArg().ofType(File.class).describedAs("Directory");
                     accepts(KEPLER_SCRIPT, "Kepler").withRequiredArg().ofType(File.class).describedAs("Script");
@@ -132,8 +139,8 @@ public class App {
                     accepts(STAT, "Panfishstat binary").withRequiredArg().ofType(File.class).describedAs("panfishstat");
                     accepts(LOGIN, "User Login").withRequiredArg().ofType(String.class).describedAs("username");
                     accepts(TOKEN, "User Token").withRequiredArg().ofType(String.class).describedAs("token");
-                    accepts(TOKEN, "Run As").withRequiredArg().ofType(String.class).describedAs("runas");
-                    accepts(OWNER_ARG,"Owner").withRequiredArg().ofType(String.class);
+                    accepts(RUN_AS, "User to run as (for power accounts that can run as other users)").withRequiredArg().ofType(String.class).describedAs("runas");
+                    accepts(OWNER_ARG,"Sets owner when creating Workspace files and Workflows").withRequiredArg().ofType(String.class);
                     accepts(HELP_ARG).forHelp();
                 }
             };
@@ -163,6 +170,9 @@ public class App {
                 System.exit(0);
             }
 
+            MultivaluedMapFactory multivaluedMapFactory = new MultivaluedMapFactoryImpl();
+            
+            
             if (optionSet.has(UPDATE_PATH)){
                   if (!optionSet.has(URL_ARG)){
                     System.err.println("--"+URL_ARG+" is required with --"+UPDATE_PATH+" flag");
@@ -177,8 +187,7 @@ public class App {
                     System.exit(32);
                 }
                 
-                String login = (String) optionSet.valueOf(LOGIN);
-                String token = (String) optionSet.valueOf(TOKEN);
+                User u = getUserFromOptionSet(optionSet);
                 String workspaceId = (String)optionSet.valueOf(UPDATE_PATH);
                 String path = null;
                 if (optionSet.has(PATH)){
@@ -186,9 +195,8 @@ public class App {
                 }
                 
                 WorkspaceFileRestDAOImpl workspaceFileDAO = new WorkspaceFileRestDAOImpl();
-                workspaceFileDAO.setLogin(login);
+                workspaceFileDAO.setUser(u);
                 workspaceFileDAO.setRestURL((String)optionSet.valueOf(URL_ARG));
-                workspaceFileDAO.setToken(token);
                 workspaceFileDAO.updatePath(Long.parseLong(workspaceId), path);
                 System.exit(0);
             }
@@ -244,22 +252,18 @@ public class App {
                 File wfDir = (File) optionSet.valueOf(WF_DIR);
                 File keplerScript = (File) optionSet.valueOf(KEPLER_SCRIPT);
 
-                String login = (String) optionSet.valueOf(LOGIN);
-                String token = (String) optionSet.valueOf(TOKEN);
+                User u = getUserFromOptionSet(optionSet);
                 
                 ObjectifyService.ofy();
                 String url = (String) optionSet.valueOf(SYNC_WITH_CLUSTER_ARG);
                 TaskRestDAOImpl taskDAO = new TaskRestDAOImpl();
                 taskDAO.setRestURL(url);
-                taskDAO.setLogin(login);
-                taskDAO.setToken(token);
+                taskDAO.setUser(u);
 
                 System.out.println("Running sync with cluster");
 
                 WorkspaceFileRestDAOImpl workspaceFileDAO = new WorkspaceFileRestDAOImpl();
                 workspaceFileDAO.setRestURL(url);
-                workspaceFileDAO.setLogin(login);
-                workspaceFileDAO.setToken(token);
                 
                 WorkspaceFilePathSetterImpl pathSetter = new WorkspaceFilePathSetterImpl(workspaceFileDAO);
                 
@@ -269,9 +273,7 @@ public class App {
                         wfExecDir.getAbsolutePath(),
                         wfDir.getAbsolutePath(),
                         keplerScript.getAbsolutePath(),
-                        castPath, queue,
-                        (String) optionSet.valueOf(LOGIN),
-                        (String) optionSet.valueOf(TOKEN),
+                        castPath, queue,u,
                         url);
 
                 submitter.submitTasks();
@@ -300,8 +302,7 @@ public class App {
                 }
                 
                 WorkspaceFileRestDAOImpl workspaceFileDAO = new WorkspaceFileRestDAOImpl();
-                workspaceFileDAO.setLogin((String)optionSet.valueOf(LOGIN));
-                workspaceFileDAO.setToken((String)optionSet.valueOf(TOKEN));
+                
                 workspaceFileDAO.setRestURL((String)optionSet.valueOf(URL_ARG));
 
                 List<WorkspaceFile> wsFiles = workspaceFileDAO.getWorkspaceFilesById((String)optionSet.valueOf(GET_WORKSPACE_FILE_INFO_ARG),null);
@@ -342,62 +343,40 @@ public class App {
                     }
                 }
                 
-                File file = (File)optionSet.valueOf(UPLOAD_FILE_ARG);
+                File file = (File) optionSet.valueOf(UPLOAD_FILE_ARG);
                 WorkspaceFile wsp = new WorkspaceFile();
                 wsp.setName(file.getName());
                 wsp.setSize(file.length());
                 wsp.setDir(file.isDirectory());
-                if (optionSet.has(OWNER_ARG)){
-                    wsp.setOwner((String)optionSet.valueOf(OWNER_ARG));
+                if (optionSet.has(OWNER_ARG)) {
+                    wsp.setOwner((String) optionSet.valueOf(OWNER_ARG));
                 }
-                
+
                 ObjectMapper om = new ObjectMapper();
-                if (postURL == null){
-                       System.out.println("\n--- JSON Representation of WorkspaceFile ---");
-                        ObjectWriter ow = om.writerWithDefaultPrettyPrinter();
-                        System.out.println(ow.writeValueAsString(wsp));
-                        System.out.flush();
-                        System.out.println("---------------------------------------");
-                        System.exit(0);
+                ObjectWriter ow = om.writerWithDefaultPrettyPrinter();
+                if (postURL == null) {
+                    System.out.println("\n--- JSON Representation of WorkspaceFile ---");
+                    System.out.println(ow.writeValueAsString(wsp));
+                    System.out.flush();
+                    System.out.println("---------------------------------------");
+                    System.exit(0);
                 }
-                postURL = new StringBuilder().append(postURL).append(Constants.SLASH).
-                        append(Constants.REST_PATH).append(Constants.SLASH).
-                        append(Constants.WORKSPACEFILES_PATH).toString();
-                
-                ClientConfig cc = new DefaultClientConfig();
-                        cc.getClasses().add(StringProvider.class);
-                        cc.getClasses().add(MultiPartWriter.class);
-                        Client client = Client.create(cc);
-                        client.setFollowRedirects(true);
-                        WebResource resource = client.resource(postURL);
-                        String workspaceFileAsJson = om.writeValueAsString(wsp);
+                User u = getUserFromOptionSet(optionSet);
+                WorkspaceFileRestDAOImpl workspaceFileDAO = new WorkspaceFileRestDAOImpl();
+                workspaceFileDAO.setRestURL(postURL);
+                workspaceFileDAO.setUser(u);
 
-                        MultivaluedMap queryParams = new MultivaluedMapImpl();
+                WorkspaceFile workspaceFileRes = workspaceFileDAO.insert(wsp);
 
-                        //add authentication tokens
-                        queryParams.add(Constants.USER_LOGIN_PARAM, (String) optionSet.valueOf(LOGIN));
-                        queryParams.add(Constants.USER_TOKEN_PARAM, (String) optionSet.valueOf(TOKEN));
+                if (workspaceFileRes.getUploadURL() == null) {
+                    throw new Exception("No upload url found for workflow!!!"
+                            + ow.writeValueAsString(workspaceFileRes));
+                }
+                uploadWorkspaceFile(workspaceFileRes, file);
 
-                        String response = resource.queryParams(queryParams).type(MediaType.APPLICATION_JSON_TYPE)
-                                .entity(workspaceFileAsJson)
-                                .post(String.class);
-                        WorkspaceFile workspaceFileRes = om.readValue(response, WorkspaceFile.class);
-                        ObjectWriter ow = om.writerWithDefaultPrettyPrinter();
-                        //System.out.println(ow.writeValueAsString(workflowRes));
-
-                        if (workspaceFileRes.getUploadURL() == null) {
-                            throw new Exception("No upload url found for workflow!!!"
-                                    + ow.writeValueAsString(workspaceFileRes));
-                        }
-
-                        // TODO FIX THIS
-                        // I gave up trying to get the jersey client to post the
-                        // file so as a backup I'm just calling curl
-                        uploadWorkspaceFile(workspaceFileRes,file);
-                
                 System.exit(0);
             }
-            
+
             if (optionSet.has(UPLOAD_WF_ARG)) {
 
                 Long parentWfId = null;
@@ -426,6 +405,11 @@ public class App {
 
                 Workflow w = xmlFactory.getWorkflow();
                 if (w != null) {
+
+                    if (optionSet.has(OWNER_ARG)) {
+                        w.setOwner((String) optionSet.valueOf(OWNER_ARG));
+                    }
+
                     ObjectMapper om = new ObjectMapper();
                     if (parentWfId != null) {
                         w.setId(parentWfId);
@@ -450,11 +434,8 @@ public class App {
                         WebResource resource = client.resource(postURL);
                         String workflowAsJson = om.writeValueAsString(w);
 
-                        MultivaluedMap queryParams = new MultivaluedMapImpl();
-
-                        //add authentication tokens
-                        queryParams.add(Constants.USER_LOGIN_PARAM, (String) optionSet.valueOf(LOGIN));
-                        queryParams.add(Constants.USER_TOKEN_PARAM, (String) optionSet.valueOf(TOKEN));
+                        User u = getUserFromOptionSet(optionSet);
+                        MultivaluedMap queryParams = multivaluedMapFactory.getMultivaluedMap(u);
 
                         String response = resource.queryParams(queryParams).type(MediaType.APPLICATION_JSON_TYPE)
                                 .entity(workflowAsJson)
@@ -501,82 +482,85 @@ public class App {
 
         System.exit(0);
     }
-
+    
+    /**
+     * Parses <b>optionSet</b> for {@link LOGIN}, {@link TOKEN}, and {@link RUN_AS} 
+     * to generate {@link User} object
+     * @param optionSet
+     * @return User object with {@link User#getLogin()}, {@link User#getLoginToRunTaskAs()}, and
+     * {@link User#getToken()} set to values from <b>optionSet</b>
+     */
+    public static User getUserFromOptionSet(OptionSet optionSet){
+        User u = new User();
+        if (optionSet.has(LOGIN)){
+            u.setLogin((String)optionSet.valueOf(LOGIN));
+        }
+        
+        if (optionSet.has(TOKEN)){
+            u.setToken((String)optionSet.valueOf(TOKEN));
+        }
+        
+        if (optionSet.has(RUN_AS)){
+            u.setLoginToRunTaskAs((String)optionSet.valueOf(RUN_AS));
+        }
+        return u;
+    }
+    
+    /**
+     * Using curl this method uploads via POST a {@link Workflow} file to REST
+     * service
+     * @param w
+     * @param workflowFile
+     * @throws Exception 
+     */
     public static void uploadWorkflowFile(Workflow w, File workflowFile) throws Exception {
 
-        System.out.println("TODO SWITCH THIS TO USE JERSEY CLIENT!!!\nAttempting to run this command: curl -i -X POST --form '"
-                + w.getId().toString() + "=@" + workflowFile.getAbsolutePath() + "' "
+        RunCommandLineProcess procRunner = new RunCommandLineProcessImpl();
+        System.out.println("TODO SWITCH THIS TO USE JERSEY CLIENT!!!\nAttempting to run this command: curl -i -X POST --form '" + 
+                w.getId().toString() + "=@" + workflowFile.getAbsolutePath() + "' "
                 + w.getWorkflowFileUploadURL());
-        ProcessBuilder pb = new ProcessBuilder("curl",
+
+        String res = procRunner.runCommandLineProcess("curl",
                 "-i", "-X", "POST", "--form",
                 w.getId().toString() + "=@" + workflowFile.getAbsolutePath(),
                 w.getWorkflowFileUploadURL());
-
-        pb.redirectErrorStream(true);
-
-        Process p = pb.start();
-
-        BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
-
-        StringBuilder sb = new StringBuilder();
-
-        String line = reader.readLine();
-        boolean firstLine = true;
-        String jobId = null;
-        while (line != null) {
-            sb.append(line).append("\n");
-            line = reader.readLine();
-        }
-        reader.close();
-
-        if (p.waitFor() != 0) {
-            throw new Exception("Non zero exit code from curl: " + sb.toString());
-        }
+        
         System.out.println("\n");
         System.out.println("--------------- OUTPUT FROM CURL ----------------");
-        System.out.println(sb.toString());
+        System.out.println(res);
         System.out.println("--------------- END OF OUTPUT FROM CURL ---------");
 
     }
 
-    
+    /**
+     * Using a curl this method uploads via POST a 
+     * {@link WorkspaceFile} file to REST service
+     * @param w
+     * @param file
+     * @throws Exception 
+     */
     public static void uploadWorkspaceFile(WorkspaceFile w, File file) throws Exception {
-
+        RunCommandLineProcess procRunner = new RunCommandLineProcessImpl();
         System.out.println("TODO SWITCH THIS TO USE JERSEY CLIENT!!!\nAttempting to run this command: curl -i -X POST --form '"
                 + w.getId().toString() + "=@" + file.getAbsolutePath() + "' "
                 + w.getUploadURL());
-        ProcessBuilder pb = new ProcessBuilder("curl",
+        String res = procRunner.runCommandLineProcess("curl",
                 "-i", "-X", "POST", "--form",
                 w.getId().toString() + "=@" + file.getAbsolutePath(),
                 w.getUploadURL());
 
-        pb.redirectErrorStream(true);
-
-        Process p = pb.start();
-
-        BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
-
-        StringBuilder sb = new StringBuilder();
-
-        String line = reader.readLine();
-        boolean firstLine = true;
-        String jobId = null;
-        while (line != null) {
-            sb.append(line).append("\n");
-            line = reader.readLine();
-        }
-        reader.close();
-
-        if (p.waitFor() != 0) {
-            throw new Exception("Non zero exit code from curl: " + sb.toString());
-        }
         System.out.println("\n");
         System.out.println("--------------- OUTPUT FROM CURL ----------------");
-        System.out.println(sb.toString());
+        System.out.println(res);
         System.out.println("--------------- END OF OUTPUT FROM CURL ---------");
     }
     
 
+    /**
+     * Prints out examples of {@link Workflow}, {@link WorkspaceFile}, {@link Task}, {@link WorkspaceFile}
+     * objects in pretty JSON format
+     * @throws Exception 
+     */
     public static void renderExampleWorkflowsAndTasksAsJson() throws Exception {
 
         ObjectMapper om = new ObjectMapper();
@@ -613,6 +597,11 @@ public class App {
         System.out.flush();
     }
 
+    /**
+     * Creates example {@link Task} with {@link Parameter} objects and a
+     * {@link Workflow}
+     * @return 
+     */
     public static Task getTaskWithParametersAndWorkflow() {
         Task t = new Task();
         t.setCreateDate(new Date());
@@ -639,6 +628,10 @@ public class App {
         return t;
     }
 
+    /**
+     * Creates example {@link Workflow} object with no {@link WorkflowParameter} objects
+     * @return 
+     */
     public static Workflow getWorkflowWithNoParameters() {
         Workflow w = new Workflow();
         w.setId(new Long(10));
@@ -650,6 +643,11 @@ public class App {
         return w;
     }
 
+    /**
+     * Creates example {@link Workflow} object with {@link WorkflowParameter} objects
+     * all filled with fake data
+     * @return example {@link Workflow}
+     */
     public static Workflow getWorkflowWithParameters() {
         Workflow w = getWorkflowWithNoParameters();
 
@@ -693,6 +691,10 @@ public class App {
         return w;
     }
     
+    /**
+     * Creates example {@link WorkspaceFile} object with some fake data
+     * @return Example {@link WorkspaceFile}
+     */
     public static WorkspaceFile getWorkspaceFile(){
         WorkspaceFile wsp = new WorkspaceFile();
         wsp.setId(new Long(123123));
@@ -709,6 +711,10 @@ public class App {
         return wsp;
     }
     
+    /**
+     * Creates an example {@link User} object with some fake data
+     * @return Example {@link User}
+     */
     public static User getUser(){
         User user = new User();
         user.setCreateDate(new Date());
