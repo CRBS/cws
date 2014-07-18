@@ -122,7 +122,7 @@ public class WorkspaceFileObjectifyDAOImpl implements WorkspaceFileDAO {
     }
 
     @Override
-    public WorkspaceFile insert(WorkspaceFile wsp) throws Exception {
+    public WorkspaceFile insert(WorkspaceFile wsp,boolean generateUploadURL) throws Exception {
         if (wsp == null) {
             throw new Exception("WorkspaceFile passed in is null");
         }
