@@ -132,7 +132,7 @@ public class WorkspaceFileRestDAOImpl implements WorkspaceFileDAO {
     }
 
     @Override
-    public WorkspaceFile insert(WorkspaceFile wsp) throws Exception {
+    public WorkspaceFile insert(WorkspaceFile wsp,boolean generateUploadURL) throws Exception {
         ObjectMapper om = new ObjectMapper();
         ClientConfig cc = new DefaultClientConfig();
         cc.getClasses().add(StringProvider.class);
@@ -145,6 +145,10 @@ public class WorkspaceFileRestDAOImpl implements WorkspaceFileDAO {
         String workspaceFileAsJson = om.writeValueAsString(wsp);
 
         MultivaluedMap queryParams = _multivaluedMapFactory.getMultivaluedMap(_user);
+        
+        if (generateUploadURL == false){
+            queryParams.add(Constants.ADD_UPLOAD_URL_PARAM, "false");
+        }
 
         String response = resource.queryParams(queryParams).type(MediaType.APPLICATION_JSON_TYPE)
                 .entity(workspaceFileAsJson)
