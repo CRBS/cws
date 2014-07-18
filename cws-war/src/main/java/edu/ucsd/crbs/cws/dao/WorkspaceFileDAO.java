@@ -71,7 +71,7 @@ public interface WorkspaceFileDAO {
      * @return WorkspaceFile object with id set to value from datastore
      * @throws Exception 
      */
-    public WorkspaceFile insert(WorkspaceFile wsp) throws Exception;
+    public WorkspaceFile insert(WorkspaceFile wsp,boolean generateUploadURL) throws Exception;
 
     
     /**
