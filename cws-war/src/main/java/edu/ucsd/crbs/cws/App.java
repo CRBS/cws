@@ -140,7 +140,7 @@ public class App {
                     accepts(LOGIN, "User Login").withRequiredArg().ofType(String.class).describedAs("username");
                     accepts(TOKEN, "User Token").withRequiredArg().ofType(String.class).describedAs("token");
                     accepts(RUN_AS, "User to run as (for power accounts that can run as other users)").withRequiredArg().ofType(String.class).describedAs("runas");
-                    accepts(OWNER_ARG,"Sets owner when creating Workspace files and Workflows").withRequiredArg().ofType(String.class);
+                    accepts(OWNER_ARG,"Sets owner when creating Workspace files and Workflows").withRequiredArg().ofType(String.class).describedAs("username");
                     accepts(HELP_ARG).forHelp();
                 }
             };
@@ -158,7 +158,8 @@ public class App {
                     || (!optionSet.has(SYNC_WITH_CLUSTER_ARG) && !optionSet.has(UPLOAD_WF_ARG))
                     && !optionSet.has(EXAMPLE_JSON_ARG) && !optionSet.has(UPLOAD_FILE_ARG) &&
                     !optionSet.has(GET_WORKSPACE_FILE_INFO_ARG) &&
-                    !optionSet.has(UPDATE_PATH)) {
+                    !optionSet.has(UPDATE_PATH) &&
+                    !optionSet.has(REGISTER_FILE_ARG)) {
                 System.out.println(PROGRAM_HELP + "\n");
                 parser.printHelpOn(System.out);
                 System.exit(0);
@@ -172,20 +173,15 @@ public class App {
 
             MultivaluedMapFactory multivaluedMapFactory = new MultivaluedMapFactoryImpl();
             
+            if (optionSet.has(REGISTER_FILE_ARG)){
+                addNewWorkspaceFile(optionSet,false,REGISTER_FILE_ARG);
+                System.exit(0);
+            }
             
-            if (optionSet.has(UPDATE_PATH)){
-                  if (!optionSet.has(URL_ARG)){
-                    System.err.println("--"+URL_ARG+" is required with --"+UPDATE_PATH+" flag");
-                    System.exit(30);
-                  }
-                 if (!optionSet.has(LOGIN)) {
-                    System.err.println("-" + LOGIN + " is required with -" + UPDATE_PATH + " flag");
-                    System.exit(31);
-                }
-                if (!optionSet.has(TOKEN)) {
-                    System.err.println("-" + TOKEN + " is required with -" + UPDATE_PATH + " flag");
-                    System.exit(32);
-                }
+            if (optionSet.has(UPDATE_PATH)) {
+                failIfOptionSetMissingURL(optionSet,"--"+UPDATE_PATH+" flag");
+                
+                failIfOptionSetMissingLoginOrToken(optionSet, "--" + UPDATE_PATH + " flag");
                 
                 User u = getUserFromOptionSet(optionSet);
                 String workspaceId = (String)optionSet.valueOf(UPDATE_PATH);
@@ -230,15 +226,8 @@ public class App {
                     System.err.println("-" + QUEUE + " is required with -" + SYNC_WITH_CLUSTER_ARG + " flag");
                     System.exit(7);
                 }
-
-                if (!optionSet.has(LOGIN)) {
-                    System.err.println("-" + LOGIN + " is required with -" + SYNC_WITH_CLUSTER_ARG + " flag");
-                    System.exit(8);
-                }
-                if (!optionSet.has(TOKEN)) {
-                    System.err.println("-" + TOKEN + " is required with -" + SYNC_WITH_CLUSTER_ARG + " flag");
-                    System.exit(9);
-                }
+                
+                failIfOptionSetMissingLoginOrToken(optionSet,"--" + SYNC_WITH_CLUSTER_ARG + " flag");
 
                 File castFile = (File) optionSet.valueOf(CAST);
                 String castPath = castFile.getAbsolutePath();
@@ -285,21 +274,10 @@ public class App {
 
                 System.exit(0);
             }
-
             
             if (optionSet.has(App.GET_WORKSPACE_FILE_INFO_ARG)){
-                if (!optionSet.has(URL_ARG)){
-                    System.err.println("--"+URL_ARG+" is required with --"+GET_WORKSPACE_FILE_INFO_ARG+" flag");
-                    System.exit(20);
-                }
-                if (!optionSet.has(LOGIN)) {
-                        System.err.println("--" + LOGIN + " is required with --" + GET_WORKSPACE_FILE_INFO_ARG + " flag");
-                        System.exit(21);
-                }
-                if (!optionSet.has(TOKEN)) {
-                        System.err.println("--" + TOKEN + " is required with --" + GET_WORKSPACE_FILE_INFO_ARG + " flag");
-                        System.exit(22);
-                }
+                failIfOptionSetMissingURL(optionSet,"--"+GET_WORKSPACE_FILE_INFO_ARG+" flag");
+                failIfOptionSetMissingLoginOrToken(optionSet,"--"+GET_WORKSPACE_FILE_INFO_ARG+" flag");
                 
                 WorkspaceFileRestDAOImpl workspaceFileDAO = new WorkspaceFileRestDAOImpl();
                 
@@ -330,50 +308,7 @@ public class App {
             }
             
             if (optionSet.has(UPLOAD_FILE_ARG)){
-                 String postURL = null;
-                if (optionSet.has(URL_ARG)) {
-                    postURL = (String) optionSet.valueOf(URL_ARG);
-                    if (!optionSet.has(LOGIN)) {
-                        System.err.println("--" + LOGIN + " is required with --" + UPLOAD_FILE_ARG + " and --"+URL_ARG+" flag");
-                        System.exit(10);
-                    }
-                    if (!optionSet.has(TOKEN)) {
-                        System.err.println("--" + TOKEN + " is required with --" + UPLOAD_FILE_ARG + " and --"+URL_ARG+" flag");
-                        System.exit(11);
-                    }
-                }
-                
-                File file = (File) optionSet.valueOf(UPLOAD_FILE_ARG);
-                WorkspaceFile wsp = new WorkspaceFile();
-                wsp.setName(file.getName());
-                wsp.setSize(file.length());
-                wsp.setDir(file.isDirectory());
-                if (optionSet.has(OWNER_ARG)) {
-                    wsp.setOwner((String) optionSet.valueOf(OWNER_ARG));
-                }
-
-                ObjectMapper om = new ObjectMapper();
-                ObjectWriter ow = om.writerWithDefaultPrettyPrinter();
-                if (postURL == null) {
-                    System.out.println("\n--- JSON Representation of WorkspaceFile ---");
-                    System.out.println(ow.writeValueAsString(wsp));
-                    System.out.flush();
-                    System.out.println("---------------------------------------");
-                    System.exit(0);
-                }
-                User u = getUserFromOptionSet(optionSet);
-                WorkspaceFileRestDAOImpl workspaceFileDAO = new WorkspaceFileRestDAOImpl();
-                workspaceFileDAO.setRestURL(postURL);
-                workspaceFileDAO.setUser(u);
-
-                WorkspaceFile workspaceFileRes = workspaceFileDAO.insert(wsp);
-
-                if (workspaceFileRes.getUploadURL() == null) {
-                    throw new Exception("No upload url found for workflow!!!"
-                            + ow.writeValueAsString(workspaceFileRes));
-                }
-                uploadWorkspaceFile(workspaceFileRes, file);
-
+                addNewWorkspaceFile(optionSet,true,UPLOAD_FILE_ARG);
                 System.exit(0);
             }
 
@@ -384,14 +319,7 @@ public class App {
                 String postURL = null;
                 if (optionSet.has(URL_ARG)) {
                     postURL = (String) optionSet.valueOf(URL_ARG);
-                    if (!optionSet.has(LOGIN)) {
-                        System.err.println("-" + LOGIN + " is required with -" + UPLOAD_WF_ARG + " and -"+URL_ARG+" flag");
-                        System.exit(10);
-                    }
-                    if (!optionSet.has(TOKEN)) {
-                        System.err.println("-" + TOKEN + " is required with -" + UPLOAD_WF_ARG + " and -"+URL_ARG+" flag");
-                        System.exit(11);
-                    }
+                    failIfOptionSetMissingLoginOrToken(optionSet,"--"+UPLOAD_WF_ARG+" and --"+URL_ARG+" flag");
                 }
 
                 if (optionSet.has(PARENT_WFID_ARG)) {
@@ -442,34 +370,13 @@ public class App {
                                 .post(String.class);
                         Workflow workflowRes = om.readValue(response, Workflow.class);
                         ObjectWriter ow = om.writerWithDefaultPrettyPrinter();
-                        //System.out.println(ow.writeValueAsString(workflowRes));
 
                         if (workflowRes.getWorkflowFileUploadURL() == null) {
                             throw new Exception("No upload url found for workflow!!!"
                                     + ow.writeValueAsString(workflowRes));
                         }
 
-                        // TODO FIX THIS
-                        // I gave up trying to get the jersey client to post the
-                        // file so as a backup I'm just calling curl
                         uploadWorkflowFile(workflowRes, workflowFile);
-
-                        /* TODO GET THIS WORKING!!!! Keep getting
-                         No MessageBodyWriter for body part of type 'java.io.File' and media type 'application/octet-stream'
-                         client = Client.create(cc);
-                         client.setFollowRedirects(true);
-                         resource = client.resource(workflowRes.getWorkflowFileUploadURL());
-                         FormDataMultiPart formDataMultiPart = new FormDataMultiPart();
-                         formDataMultiPart.field("filename",workflowRes.getId().toString()+".kar");
-                        
-                         FileDataBodyPart fdp = new FileDataBodyPart("file",workflowFile);
-                         formDataMultiPart.bodyPart(fdp);
-                        
-                         String res = resource.type(MediaType.MULTIPART_FORM_DATA).
-                         accept(MediaType.TEXT_HTML).post(String.class,formDataMultiPart);
-                        
-                         System.out.println(res);
-                         */
                     }
                 }
             }
@@ -481,6 +388,70 @@ public class App {
         }
 
         System.exit(0);
+    }
+    
+    public static void addNewWorkspaceFile(OptionSet optionSet,boolean uploadFile,final String theArg) throws Exception {
+        String postURL = null;
+        if (optionSet.has(URL_ARG)) {
+            postURL = (String) optionSet.valueOf(URL_ARG);
+            failIfOptionSetMissingLoginOrToken(optionSet, "--" + theArg + " and --" + URL_ARG + " flag");
+        }
+
+        File file = (File) optionSet.valueOf(theArg);
+        WorkspaceFile wsp = new WorkspaceFile();
+        wsp.setName(file.getName());
+        wsp.setSize(file.length());
+        wsp.setDir(file.isDirectory());
+        if (optionSet.has(OWNER_ARG)) {
+            wsp.setOwner((String) optionSet.valueOf(OWNER_ARG));
+        }
+        if (optionSet.has(PATH)){
+            wsp.setPath((String)optionSet.valueOf(PATH));
+        }
+
+        ObjectMapper om = new ObjectMapper();
+        ObjectWriter ow = om.writerWithDefaultPrettyPrinter();
+        if (postURL == null) {
+            System.out.println("\n--- JSON Representation of WorkspaceFile ---");
+            System.out.println(ow.writeValueAsString(wsp));
+            System.out.flush();
+            System.out.println("---------------------------------------");
+            System.exit(0);
+        }
+        User u = getUserFromOptionSet(optionSet);
+        WorkspaceFileRestDAOImpl workspaceFileDAO = new WorkspaceFileRestDAOImpl();
+        workspaceFileDAO.setRestURL(postURL);
+        workspaceFileDAO.setUser(u);
+        
+        WorkspaceFile workspaceFileRes = workspaceFileDAO.insert(wsp,uploadFile);
+        
+        if (uploadFile == false){
+            return;
+        }
+        
+        if (workspaceFileRes.getUploadURL() == null) {
+            throw new Exception("No upload url found for workflow!!!"
+                    + ow.writeValueAsString(workspaceFileRes));
+        }
+        uploadWorkspaceFile(workspaceFileRes, file);
+    }
+    
+    public static void failIfOptionSetMissingURL(OptionSet optionSet, final String message) {
+        if (!optionSet.has(URL_ARG)) {
+            System.err.println("--" + URL_ARG + " is required with " + message);
+            System.exit(12);
+        }
+    }
+   
+    public static void failIfOptionSetMissingLoginOrToken(OptionSet optionSet,final String message){
+        if (!optionSet.has(LOGIN)){
+            System.err.println("--"+LOGIN+" is required with "+message);
+            System.exit(10);
+        }
+        if (!optionSet.has(TOKEN)){
+           System.err.println("--"+TOKEN+" is required with "+message);
+            System.exit(11);
+        }
     }
     
     /**
