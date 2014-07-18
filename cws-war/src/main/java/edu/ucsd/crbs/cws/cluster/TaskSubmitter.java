@@ -1,5 +1,6 @@
 package edu.ucsd.crbs.cws.cluster;
 
+import edu.ucsd.crbs.cws.auth.User;
 import edu.ucsd.crbs.cws.dao.TaskDAO;
 import edu.ucsd.crbs.cws.workflow.Task;
 import java.util.List;
@@ -44,13 +45,12 @@ public class TaskSubmitter {
             final String keplerScript,
             final String panfishCast,
             final String queue,
-            final String login,
-            final String token,
+            final User user,
             final String url) {
         _directoryCreator = new TaskDirectoryCreatorImpl(workflowExecDir);
         _cmdScriptCreator = new TaskCmdScriptCreatorImpl(workflowsDir, keplerScript);
         _cmdScriptSubmitter = new TaskCmdScriptSubmitterImpl(panfishCast, queue);
-        _workflowSync = new SyncWorkflowFileToFileSystemImpl(workflowsDir, url, login, token);
+        _workflowSync = new SyncWorkflowFileToFileSystemImpl(workflowsDir, url, user.getLogin(), user.getToken());
         _workspacePathSetter = workspaceFilePathSetter;
 
         _taskDAO = taskDAO;
@@ -72,6 +72,7 @@ public class TaskSubmitter {
             log.log(Level.INFO, " found {0} tasks need to be submitted", tasks.size());
             for (Task t : tasks) {
 
+                try {
                 //check if workspace files are syncd.  If not update status
                 // to workspace sync and move on to the next Task
                 if (_workspacePathSetter.setPaths(t) == false) {
@@ -91,6 +92,10 @@ public class TaskSubmitter {
                 _taskDAO.update(t.getId(), Task.PENDING_STATUS, null, null, null,
                         t.getSubmitDate().getTime(), null, null, true,
                         t.getJobId());
+                }
+                catch(Exception ex){
+                    log.log(Level.SEVERE,"Problems submitting task: {0}.  Skipping...",t.getId());
+                }
             }
         } else {
             log.log(Level.INFO, " no tasks need to be submitted");
