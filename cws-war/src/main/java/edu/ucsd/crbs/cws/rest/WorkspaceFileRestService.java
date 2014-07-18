@@ -99,7 +99,8 @@ public class WorkspaceFileRestService {
                     _log.log(Level.INFO,"calling getWorkspaceFiles");
                     return _workspaceFileDAO.getWorkspaceFiles(owner,synced);
                 }
-                _log.log(Level.INFO,"calling getWorkspaceFilesById: "+workspaceFileIdList);
+                _log.log(Level.INFO, "calling getWorkspaceFilesById: {0}", 
+                        workspaceFileIdList);
 
                 return _workspaceFileDAO.getWorkspaceFilesById(workspaceFileIdList, user);
             }
@@ -165,7 +166,8 @@ public class WorkspaceFileRestService {
                 if (addUploadURL == null || addUploadURL == true){
                     resWorkspaceFile = setFileUploadURL(resWorkspaceFile);
                 }
-                saveEvent(_eventBuilder.setAsCreateWorkspaceFileEvent(event, resWorkspaceFile));
+                saveEvent(_eventBuilder.setAsCreateWorkspaceFileEvent(event, 
+                        resWorkspaceFile));
                 
                 return resWorkspaceFile;
             }
@@ -194,7 +196,12 @@ public class WorkspaceFileRestService {
             _log.info(event.getStringOfLocationData());
             
             if (user.isAuthorizedTo(Permission.UPDATE_ALL_WORKSPACEFILES)) {
-                WorkspaceFile resWorkspaceFile = _workspaceFileDAO.updatePath(workspaceFileId, path);
+                String adjustedPath = path;
+                if (path != null && path.equals("")){
+                    adjustedPath = null;
+                }
+                WorkspaceFile resWorkspaceFile = _workspaceFileDAO.updatePath(workspaceFileId, 
+                        adjustedPath);
                 return resWorkspaceFile;
             }
             throw new Exception("Not Authorized");
