@@ -42,9 +42,12 @@ import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.api.json.JSONConfiguration;
 import com.sun.jersey.core.impl.provider.entity.StringProvider;
-import com.sun.jersey.core.util.MultivaluedMapImpl;
+import com.sun.jersey.multipart.impl.MultiPartWriter;
+import static edu.ucsd.crbs.cws.App.getUserFromOptionSet;
 import edu.ucsd.crbs.cws.auth.User;
 import edu.ucsd.crbs.cws.dao.WorkspaceFileDAO;
+import edu.ucsd.crbs.cws.jerseyclient.MultivaluedMapFactoryImpl;
+import edu.ucsd.crbs.cws.jerseyclient.MultivaluedMapFactory;
 import edu.ucsd.crbs.cws.rest.Constants;
 import edu.ucsd.crbs.cws.workflow.WorkspaceFile;
 import java.util.List;
@@ -58,10 +61,9 @@ import javax.ws.rs.core.MultivaluedMap;
 public class WorkspaceFileRestDAOImpl implements WorkspaceFileDAO {
     
     private String _restURL;
-    private String _login;
-    private String _token;
+    private User _user;
     
-    
+    MultivaluedMapFactory _multivaluedMapFactory = new MultivaluedMapFactoryImpl();
     
     /**
      * Sets the base REST URL
@@ -71,16 +73,11 @@ public class WorkspaceFileRestDAOImpl implements WorkspaceFileDAO {
     public void setRestURL(final String url) {
         _restURL = url;
     }
-
     
-    public void setLogin(final String login){
-        _login = login;
+    public void setUser(User user){
+        _user = user;
     }
-    
-    public void setToken(final String token){
-        _token = token;
-    }
-
+ 
     @Override
     public List<WorkspaceFile> getWorkspaceFilesById(String workspaceFileIds, User user) throws Exception {
         ClientConfig cc = new DefaultClientConfig();
@@ -88,11 +85,7 @@ public class WorkspaceFileRestDAOImpl implements WorkspaceFileDAO {
         Client client = Client.create(cc);
         client.setFollowRedirects(true);
         WebResource resource = client.resource(_restURL).path(Constants.REST_PATH).path(Constants.WORKSPACEFILES_PATH);
-        MultivaluedMap queryParams = new MultivaluedMapImpl();
-
-        //add authentication tokens
-        queryParams.add(Constants.USER_LOGIN_PARAM, _login);
-        queryParams.add(Constants.USER_TOKEN_PARAM, _token);
+        MultivaluedMap queryParams = _multivaluedMapFactory.getMultivaluedMap(user);
         
         if (workspaceFileIds != null){
             queryParams.add(Constants.WSFID_PARAM,workspaceFileIds);
@@ -115,11 +108,8 @@ public class WorkspaceFileRestDAOImpl implements WorkspaceFileDAO {
         Client client = Client.create(cc);
         client.setFollowRedirects(true);
         WebResource resource = client.resource(_restURL).path(Constants.REST_PATH).path(Constants.WORKSPACEFILES_PATH);
-        MultivaluedMap queryParams = new MultivaluedMapImpl();
-
-        //add authentication tokens
-        queryParams.add(Constants.USER_LOGIN_PARAM, _login);
-        queryParams.add(Constants.USER_TOKEN_PARAM, _token);
+        
+        MultivaluedMap queryParams = _multivaluedMapFactory.getMultivaluedMap(_user);
         
         if (owner != null) {
             queryParams.add(Constants.OWNER_QUERY_PARAM, owner);
@@ -143,7 +133,23 @@ public class WorkspaceFileRestDAOImpl implements WorkspaceFileDAO {
 
     @Override
     public WorkspaceFile insert(WorkspaceFile wsp) throws Exception {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        ObjectMapper om = new ObjectMapper();
+        ClientConfig cc = new DefaultClientConfig();
+        cc.getClasses().add(StringProvider.class);
+        cc.getClasses().add(MultiPartWriter.class);
+        Client client = Client.create(cc);
+        client.setFollowRedirects(true);
+        WebResource resource = client.resource(_restURL).
+                path(Constants.REST_PATH).path(Constants.WORKSPACEFILES_PATH);
+
+        String workspaceFileAsJson = om.writeValueAsString(wsp);
+
+        MultivaluedMap queryParams = _multivaluedMapFactory.getMultivaluedMap(_user);
+
+        String response = resource.queryParams(queryParams).type(MediaType.APPLICATION_JSON_TYPE)
+                .entity(workspaceFileAsJson)
+                .post(String.class);
+        return om.readValue(response, WorkspaceFile.class);
     }
 
     @Override
@@ -162,11 +168,7 @@ public class WorkspaceFileRestDAOImpl implements WorkspaceFileDAO {
                 path(Constants.REST_PATH).path(Constants.WORKSPACEFILES_PATH).
                 path(Long.toString(workspaceFileId));
         
-        MultivaluedMap queryParams = new MultivaluedMapImpl();
-
-        //add authentication tokens
-        queryParams.add(Constants.USER_LOGIN_PARAM, _login);
-        queryParams.add(Constants.USER_TOKEN_PARAM, _token);
+        MultivaluedMap queryParams = _multivaluedMapFactory.getMultivaluedMap(_user);
         queryParams.add(Constants.PATH_QUERY_PARAM, path);
         
          String json = resource.queryParams(queryParams)
