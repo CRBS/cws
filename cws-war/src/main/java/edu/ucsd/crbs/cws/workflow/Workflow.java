@@ -34,6 +34,7 @@ public class Workflow {
     private String _description;
     private Date _createDate;
     private String _releaseNotes;
+    private String _owner;
     private List<WorkflowParameter> _parameters;
     private @Load(Workflow.Everything.class) Ref<Workflow> _parent;
     @Ignore private Workflow _rawParent;
@@ -164,6 +165,14 @@ public class Workflow {
             }
         }
         return null;
+    }
+    
+    public String getOwner() {
+        return _owner;
+    }
+
+    public void setOwner(String owner) {
+        _owner = owner;
     }
 }
 
