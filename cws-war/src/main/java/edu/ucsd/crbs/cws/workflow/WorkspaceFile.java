@@ -137,8 +137,8 @@ public class WorkspaceFile {
         return _Dir;
     }
 
-    public void setDir(boolean _isDir) {
-        this._Dir = _isDir;
+    public void setDir(boolean isDir) {
+        _Dir = isDir;
     }
 
     public String getPath() {
