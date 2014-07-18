@@ -41,11 +41,11 @@ import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.api.json.JSONConfiguration;
+import com.sun.jersey.core.impl.provider.entity.StringProvider;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
 import edu.ucsd.crbs.cws.auth.User;
 import edu.ucsd.crbs.cws.dao.WorkspaceFileDAO;
 import edu.ucsd.crbs.cws.rest.Constants;
-import edu.ucsd.crbs.cws.workflow.Task;
 import edu.ucsd.crbs.cws.workflow.WorkspaceFile;
 import java.util.List;
 import javax.ws.rs.core.MediaType;
@@ -153,7 +153,32 @@ public class WorkspaceFileRestDAOImpl implements WorkspaceFileDAO {
 
     @Override
     public WorkspaceFile updatePath(long workspaceFileId, String path) throws Exception {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        ClientConfig cc = new DefaultClientConfig();
+        cc.getClasses().add(StringProvider.class);
+        cc.getFeatures().put(JSONConfiguration.FEATURE_POJO_MAPPING, Boolean.TRUE);
+        Client client = Client.create(cc);
+        client.setFollowRedirects(true);
+        WebResource resource = client.resource(_restURL).
+                path(Constants.REST_PATH).path(Constants.WORKSPACEFILES_PATH).
+                path(Long.toString(workspaceFileId));
+        
+        MultivaluedMap queryParams = new MultivaluedMapImpl();
+
+        //add authentication tokens
+        queryParams.add(Constants.USER_LOGIN_PARAM, _login);
+        queryParams.add(Constants.USER_TOKEN_PARAM, _token);
+        queryParams.add(Constants.PATH_QUERY_PARAM, path);
+        
+         String json = resource.queryParams(queryParams)
+                .accept(MediaType.APPLICATION_JSON)
+                .type(MediaType.APPLICATION_JSON_TYPE)
+                .entity("{}")
+                .post(String.class);
+         
+           ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new ObjectifyJacksonModule());
+        return mapper.readValue(json, new TypeReference<WorkspaceFile>() {
+        });
     }
 
     @Override
