@@ -104,8 +104,15 @@ public class TaskStatusUpdater {
                             t.setFinishDate(new Date());
                             finishDate = t.getFinishDate().getTime();
                         }
-                        _taskDAO.update(t.getId(), t.getStatus(), null, null, null,
-                                null, startDate, finishDate, true, null);
+                        try {
+                            _taskDAO.update(t.getId(), t.getStatus(), null, null, null,
+                                    null, startDate, finishDate, true, null);
+                        }
+                        catch(Exception ex){
+                           _log.log(Level.SEVERE,
+                                   "There was a problem updating task: {0} Skipping...",
+                                   t.getId());
+                        }
                     }
                 }
             }
