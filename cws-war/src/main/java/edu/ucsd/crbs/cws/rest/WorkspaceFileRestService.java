@@ -162,7 +162,7 @@ public class WorkspaceFileRestService {
             _log.info(event.getStringOfLocationData());
             
             if (user.isAuthorizedTo(Permission.CREATE_TASK)) {
-                WorkspaceFile resWorkspaceFile = _workspaceFileDAO.insert(workspaceFile);
+                WorkspaceFile resWorkspaceFile = _workspaceFileDAO.insert(workspaceFile,false);
                 if (addUploadURL == null || addUploadURL == true){
                     resWorkspaceFile = setFileUploadURL(resWorkspaceFile);
                 }
