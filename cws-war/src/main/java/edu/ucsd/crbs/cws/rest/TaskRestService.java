@@ -159,6 +159,7 @@ public class TaskRestService {
      * @param jobId
      * @param userLogin
      * @param userToken
+     * @param resave
      * @param userLoginToRunAs
      * @param request
      * @return
@@ -180,6 +181,7 @@ public class TaskRestService {
             @QueryParam(Constants.USER_LOGIN_PARAM) final String userLogin,
             @QueryParam(Constants.USER_TOKEN_PARAM) final String userToken,
             @QueryParam(Constants.USER_LOGIN_TO_RUN_AS_PARAM) final String userLoginToRunAs,
+            @QueryParam(Constants.RESAVE_QUERY_PARAM) final String resave,
             @Context HttpServletRequest request) {
 
         try {
@@ -195,6 +197,9 @@ public class TaskRestService {
             }
 
             if (user.isAuthorizedTo(Permission.UPDATE_ALL_TASKS)) {
+                if (resave != null && resave.equalsIgnoreCase("true")){
+                    return _taskDAO.resave(taskId);
+                }
                 return _taskDAO.update(taskId, status, estCpu, estRunTime, estDisk,
                         submitDate, startDate, finishDate, submittedToScheduler,
                         jobId);
@@ -237,7 +242,7 @@ public class TaskRestService {
                 if (t.getError() != null || t.getParametersWithErrors() != null){
                     _log.log(Level.WARNING,"Validation of Task failed: {0}",
                             t.getSummaryOfErrors());
-                    saveEvent(_eventBuilder.setAsFailedCreateTaskEvent(event, t));
+                    _eventDAO.neverComplainInsert(_eventBuilder.setAsFailedCreateTaskEvent(event, t));
                     return t;
                 }
                 
@@ -258,7 +263,7 @@ public class TaskRestService {
                 
                 Task task = _taskDAO.insert(t,true);
                 
-                saveEvent(_eventBuilder.setAsCreateTaskEvent(event, task));
+                _eventDAO.neverComplainInsert(_eventBuilder.setAsCreateTaskEvent(event, task));
                 
                 return task;
             }
@@ -266,15 +271,6 @@ public class TaskRestService {
         } catch (Exception ex) {
             _log.log(Level.SEVERE,"Caught Exception",ex);
             throw new WebApplicationException(ex);
-        }
-    }
-    
-    private void saveEvent(Event event){
-        try {
-           _eventDAO.insert(event);
-        }
-        catch(Exception ex){
-            _log.log(Level.WARNING, "Unable to save Event", ex);
         }
     }
 }
