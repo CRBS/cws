@@ -31,6 +31,9 @@ public class Constants {
     public static final String USER_ID_REST_PATH = SLASH+"{"+USER_ID_PATH_PARAM+"}";
     
     
+    public static final String WORKFLOW_ID_PATH_PARAM = "wfid";
+    public static final String WORKFLOW_ID_REST_PATH = SLASH+"{"+WORKFLOW_ID_PATH_PARAM+"}";
+    
     /**
      * REST URL path for Users
      */
