@@ -103,9 +103,9 @@ public class WorkflowRestService {
      * @return
      */
     @GET
-    @Path("/{wfid}")
+    @Path(Constants.WORKFLOW_ID_REST_PATH)
     @Produces(MediaType.APPLICATION_JSON)
-    public Workflow getWorkflow(@PathParam("wfid") String wfid,
+    public Workflow getWorkflow(@PathParam(Constants.WORKFLOW_ID_PATH_PARAM) String wfid,
             @QueryParam(Constants.USER_LOGIN_PARAM) final String userLogin,
             @QueryParam(Constants.USER_TOKEN_PARAM) final String userToken,
             @QueryParam(Constants.USER_LOGIN_TO_RUN_AS_PARAM) final String userLoginToRunAs,
@@ -186,6 +186,37 @@ public class WorkflowRestService {
 
         } catch (Exception ex) {
             _log.log(Level.SEVERE,"Caught Exception",ex);
+            throw new WebApplicationException(ex);
+        }
+    }
+    
+    @POST
+    @Path(Constants.WORKFLOW_ID_REST_PATH)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Workflow updateWorkflow(@PathParam(Constants.WORKFLOW_ID_PATH_PARAM)final Long workflowId,
+            @QueryParam(Constants.USER_LOGIN_PARAM) final String userLogin,
+            @QueryParam(Constants.USER_TOKEN_PARAM) final String userToken,
+            @QueryParam(Constants.USER_LOGIN_TO_RUN_AS_PARAM) final String userLoginToRunAs,
+            @QueryParam(Constants.RESAVE_QUERY_PARAM) final String resave,
+            @Context HttpServletRequest request) {
+        
+        try {
+            User user = _authenticator.authenticate(request, userLogin, userToken,
+                    userLoginToRunAs);
+            Event event = _eventBuilder.createEvent(request, user);
+            _log.info(event.getStringOfLocationData());
+            
+            if (user.isAuthorizedTo(Permission.UPDATE_ALL_WORKFLOWS)){
+                if (resave != null && resave.equalsIgnoreCase(Boolean.TRUE.toString())){
+                    return _workflowDAO.resave(workflowId);
+                }
+                return null;
+            }
+            
+            throw new Exception("Not Authorized");
+        } catch(Exception ex){
+             _log.log(Level.SEVERE,"Caught Exception",ex);
             throw new WebApplicationException(ex);
         }
     }
