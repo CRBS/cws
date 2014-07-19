@@ -116,13 +116,12 @@ public class UserRestService {
                 if (u.getLogin() == null || u.getLogin().trim().equals("")){
                     throw new Exception("Login must be set");
                 }
-                //if no token is set create one
-                if (u.getToken() == null){
-                    u.setToken(java.util.UUID.randomUUID().toString());
-                }
-                
+                //create token
+                u.setToken(java.util.UUID.randomUUID().toString());
+                u.setCreateDate(null);
+               
                 u = _userDAO.insert(u);
-                saveEvent(_eventBuilder.setAsCreateUserEvent(event, u));
+                _eventDAO.neverComplainInsert(_eventBuilder.setAsCreateUserEvent(event, u));
                 return u;
             }
             throw new Exception("Not Authorized");
@@ -134,13 +133,5 @@ public class UserRestService {
     }
     
     
-     private void saveEvent(Event event){
-        try {
-           _eventDAO.insert(event);
-        }
-        catch(Exception ex){
-            _log.log(Level.WARNING, "Unable to save Event", ex);
-        }
-    }
 
 }
