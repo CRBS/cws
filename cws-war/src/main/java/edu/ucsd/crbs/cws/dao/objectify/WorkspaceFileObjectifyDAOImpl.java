@@ -56,6 +56,33 @@ public class WorkspaceFileObjectifyDAOImpl implements WorkspaceFileDAO {
     
     private static final Logger _log
             = Logger.getLogger(WorkspaceFileObjectifyDAOImpl.class.getName());
+
+    @Override
+    public WorkspaceFile resave(final long workspaceFileId) throws Exception {
+        
+        WorkspaceFile resWorkspaceFile = ofy().transact(new Work<WorkspaceFile>() {
+            @Override
+            public WorkspaceFile run() {
+                WorkspaceFile wsf;
+                try {
+                    wsf = getWorkspaceFileById(Long.toString(workspaceFileId),null);
+                } catch (Exception ex) {
+                    _log.log(Level.SEVERE,"Caught exception",ex);
+                    return null;
+                }
+                if (wsf == null) {
+                    return null;
+                }
+
+                Key<WorkspaceFile> tKey = ofy().save().entity(wsf).now();
+                return wsf;
+            }
+        });
+
+        return resWorkspaceFile;
+    }
+    
+    
     
     @Override
     public List<WorkspaceFile> getWorkspaceFiles(final String owner,
