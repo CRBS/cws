@@ -180,7 +180,8 @@ public class App {
                      !optionSet.has(GET_WORKSPACE_FILE_INFO_ARG) &&
                      !optionSet.has(UPDATE_PATH_ARG) &&
                      !optionSet.has(REGISTER_FILE_ARG) &&
-                     !optionSet.has(RESAVE_WORKSPACEFILE_ARG)) {
+                     !optionSet.has(RESAVE_WORKSPACEFILE_ARG) &&
+                     !optionSet.has(RESAVE_TASK_ARG)) {
                 System.out.println(PROGRAM_HELP + "\n");
                 parser.printHelpOn(System.out);
                 System.exit(0);
@@ -218,7 +219,7 @@ public class App {
                     }
                 }
                 else {
-                    workspaceFileDAO.resave((Long)optionSet.valueOf(RESAVE_WORKSPACEFILE_ARG));
+                    workspaceFileDAO.resave(workspaceId);
                 }
                 System.exit(0);
             }
@@ -229,7 +230,21 @@ public class App {
                 User u = getUserFromOptionSet(optionSet);
                 taskDAO.setUser(u);
                 taskDAO.setRestURL((String)optionSet.valueOf(URL_ARG));
-                taskDAO.resave((Long)optionSet.valueOf(RESAVE_TASK_ARG));
+                Long taskId = (Long)optionSet.valueOf(RESAVE_TASK_ARG);
+                if (taskId == -1){
+                    System.out.println("Resaving all tasks");
+                    List<Task> taskList = taskDAO.getTasks(null,null,null, true, true);
+                    if (taskList != null){
+                        System.out.println("Found "+taskList.size()+" tasks to resave");
+                        for (Task t : taskList){
+                            System.out.println("task id: "+t.getId());
+                            taskDAO.resave(t.getId());
+                        }
+                    }
+                }
+                else {
+                    taskDAO.resave(taskId);
+                }
                 System.exit(0);
             }
             
