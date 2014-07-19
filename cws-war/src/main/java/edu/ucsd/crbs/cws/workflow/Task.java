@@ -85,9 +85,8 @@ public class Task  {
     private Date _submitDate;
     private Date _startDate;
     private Date _finishDate;
-    
+    @Index private boolean _deleted;
     private String _downloadURL;
-    
     private List<Parameter> _parameters;
     @Ignore private String _error;
     @Ignore private List<ParameterWithError> _parametersWithErrors;
@@ -278,6 +277,14 @@ public class Task  {
 
     public void setParametersWithErrors(List<ParameterWithError> parametersWithErrors) {
         _parametersWithErrors = parametersWithErrors;
+    }
+    
+    public boolean isDeleted() {
+        return _deleted;
+    }
+
+    public void setDeleted(boolean deleted) {
+        _deleted = deleted;
     }
 
     /**
