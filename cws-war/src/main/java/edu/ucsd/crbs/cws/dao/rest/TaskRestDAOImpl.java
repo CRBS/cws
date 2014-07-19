@@ -150,4 +150,29 @@ public class TaskRestDAOImpl implements TaskDAO {
         });
     }
 
+    @Override
+    public Task resave(long taskId) throws Exception {
+ ClientConfig cc = new DefaultClientConfig();
+        cc.getClasses().add(StringProvider.class);
+        Client client = Client.create(cc);
+        client.setFollowRedirects(true);
+        WebResource resource = client.resource(_restURL).path(Constants.REST_PATH).
+                path(Constants.TASKS_PATH).path(Long.toString(taskId));
+
+        MultivaluedMap queryParams = _multivaluedMapFactory.getMultivaluedMap(_user);
+
+        queryParams.add(Constants.RESAVE_QUERY_PARAM, "true");
+       
+        String json = resource.queryParams(queryParams)
+                .accept(MediaType.APPLICATION_JSON)
+                .type(MediaType.APPLICATION_JSON_TYPE)
+                .entity("{}")
+                .post(String.class);
+
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new ObjectifyJacksonModule());
+        return mapper.readValue(json, new TypeReference<Task>() {
+        });    }
+
+    
 }

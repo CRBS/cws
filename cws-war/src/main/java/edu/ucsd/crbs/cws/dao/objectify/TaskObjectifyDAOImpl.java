@@ -21,6 +21,38 @@ public class TaskObjectifyDAOImpl implements TaskDAO {
 
     private static final String COMMA = ",";
 
+    
+    /**
+     * In a transaction this method loads a {@link Task} with matching <b>taskId</b>
+     * and resaves it to data store
+     * @param taskId
+     * @return
+     * @throws Exception 
+     */
+    @Override
+    public Task resave(final long taskId) throws Exception {
+
+        Task resTask = ofy().transact(new Work<Task>() {
+            @Override
+            public Task run() {
+                Task task;
+                try {
+                    task = getTaskById(Long.toString(taskId));
+                } catch (Exception ex) {
+                    return null;
+                }
+                if (task == null) {
+                    return null;
+                }
+
+                Key<Task> tKey = ofy().save().entity(task).now();
+                return task;
+            }
+        });
+
+        return resTask;
+    }
+                
     @Override
     public Task getTaskById(final String taskId) throws Exception {
         long taskIdAsLong;

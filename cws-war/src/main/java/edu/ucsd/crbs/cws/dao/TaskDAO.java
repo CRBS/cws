@@ -57,4 +57,13 @@ public interface TaskDAO {
     public Task update(long taskId,final String status,Long estCpu,Long estRunTime,
             Long estDisk,Long submitDate,Long startDate,Long finishDate,
             Boolean submittedToScheduler,final String jobId) throws Exception;
+    
+    
+    /**
+     * Loads and resaves {@link Task} with given <b>taskId</b>
+     * @param taskId
+     * @return Resaved {@link Task}
+     * @throws Exception 
+     */
+    public Task resave(long taskId) throws Exception;
 }
