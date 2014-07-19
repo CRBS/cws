@@ -43,7 +43,6 @@ import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.api.json.JSONConfiguration;
 import com.sun.jersey.core.impl.provider.entity.StringProvider;
 import com.sun.jersey.multipart.impl.MultiPartWriter;
-import static edu.ucsd.crbs.cws.App.getUserFromOptionSet;
 import edu.ucsd.crbs.cws.auth.User;
 import edu.ucsd.crbs.cws.dao.WorkspaceFileDAO;
 import edu.ucsd.crbs.cws.jerseyclient.MultivaluedMapFactoryImpl;
@@ -192,4 +191,29 @@ public class WorkspaceFileRestDAOImpl implements WorkspaceFileDAO {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
+    @Override
+    public WorkspaceFile resave(long workspaceFileId) throws Exception {
+         ClientConfig cc = new DefaultClientConfig();
+        cc.getClasses().add(StringProvider.class);
+        cc.getFeatures().put(JSONConfiguration.FEATURE_POJO_MAPPING, Boolean.TRUE);
+        Client client = Client.create(cc);
+        client.setFollowRedirects(true);
+        WebResource resource = client.resource(_restURL).
+                path(Constants.REST_PATH).path(Constants.WORKSPACEFILES_PATH).
+                path(Long.toString(workspaceFileId));
+        
+        MultivaluedMap queryParams = _multivaluedMapFactory.getMultivaluedMap(_user);
+        queryParams.add(Constants.RESAVE_QUERY_PARAM, "true");
+        
+         String json = resource.queryParams(queryParams)
+                .accept(MediaType.APPLICATION_JSON)
+                .type(MediaType.APPLICATION_JSON_TYPE)
+                .entity("{}")
+                .post(String.class);
+         
+           ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new ObjectifyJacksonModule());
+        return mapper.readValue(json, new TypeReference<WorkspaceFile>() {
+        });
+    }
 }

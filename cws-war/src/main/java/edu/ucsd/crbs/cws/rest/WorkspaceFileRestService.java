@@ -63,7 +63,8 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
 /**
- *
+ * {@link WorkspaceFile} REST service.  
+ * 
  * @author Christopher Churas <churas@ncmir.ucsd.edu>
  */
 @Path(Constants.SLASH + Constants.WORKSPACEFILES_PATH)
@@ -79,6 +80,17 @@ public class WorkspaceFileRestService {
 
     public static final String WORKSPACEFILE_SERVLET_PATH = "/workspacefile";
     
+    /**
+     * Gets a list of {@link WorkspaceFile} objects
+     * @param owner
+     * @param workspaceFileIdList
+     * @param synced
+     * @param userLogin
+     * @param userToken
+     * @param userLoginToRunAs
+     * @param request
+     * @return 
+     */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public List<WorkspaceFile> getWorkspaceFiles(@QueryParam(Constants.OWNER_QUERY_PARAM) final String owner,
@@ -112,6 +124,17 @@ public class WorkspaceFileRestService {
         }
     }
 
+    /**
+     * Retrieves {@link WorkspaceFile} with corresponding <b>workspaceFileId</b>
+     * 
+     * @param workspaceFileId
+     * @param addUploadURL
+     * @param userLogin
+     * @param userToken
+     * @param userLoginToRunAs
+     * @param request
+     * @return 
+     */
     @GET
     @Path(Constants.WORKSPACEFILE_ID_REST_PATH)
     @Produces(MediaType.APPLICATION_JSON)
@@ -145,6 +168,16 @@ public class WorkspaceFileRestService {
 
     }
     
+    /**
+     * Creates a new {@link WorkspaceFile} in the data store
+     * @param workspaceFile
+     * @param addUploadURL
+     * @param userLogin
+     * @param userToken
+     * @param userLoginToRunAs
+     * @param request
+     * @return 
+     */
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
@@ -166,7 +199,7 @@ public class WorkspaceFileRestService {
                 if (addUploadURL == null || addUploadURL == true){
                     resWorkspaceFile = setFileUploadURL(resWorkspaceFile);
                 }
-                saveEvent(_eventBuilder.setAsCreateWorkspaceFileEvent(event, 
+                _eventDAO.neverComplainInsert(_eventBuilder.setAsCreateWorkspaceFileEvent(event, 
                         resWorkspaceFile));
                 
                 return resWorkspaceFile;
@@ -178,6 +211,18 @@ public class WorkspaceFileRestService {
         }
     }
     
+    /**
+     * Updates an existing {@link WorkspaceFile} with id of <b>workspaceFileId</b>
+     * 
+     * @param workspaceFileId
+     * @param path
+     * @param userLogin
+     * @param userToken
+     * @param userLoginToRunAs
+     * @param resave
+     * @param request
+     * @return 
+     */
     @POST
     @Path(Constants.WORKSPACEFILE_ID_REST_PATH)
     @Consumes(MediaType.APPLICATION_JSON)
@@ -187,6 +232,7 @@ public class WorkspaceFileRestService {
             @QueryParam(Constants.USER_LOGIN_PARAM) final String userLogin,
             @QueryParam(Constants.USER_TOKEN_PARAM) final String userToken,
             @QueryParam(Constants.USER_LOGIN_TO_RUN_AS_PARAM) final String userLoginToRunAs,
+            @QueryParam(Constants.RESAVE_QUERY_PARAM) final String resave,
             @Context HttpServletRequest request) {
     
          try {
@@ -200,6 +246,11 @@ public class WorkspaceFileRestService {
                 if (path != null && path.equals("")){
                     adjustedPath = null;
                 }
+                
+                if (resave != null && resave.equalsIgnoreCase("true")){
+                    return _workspaceFileDAO.resave(workspaceFileId);
+                }
+                
                 WorkspaceFile resWorkspaceFile = _workspaceFileDAO.updatePath(workspaceFileId, 
                         adjustedPath);
                 return resWorkspaceFile;
@@ -212,6 +263,12 @@ public class WorkspaceFileRestService {
     }
     
     
+    /**
+     * Generates and sets an upload url in <b>wsf</b> passed in
+     * @param wsf
+     * @return
+     * @throws Exception 
+     */
     private WorkspaceFile setFileUploadURL(WorkspaceFile wsf) throws Exception {
         //build upload URL and add it to workflow
             BlobstoreService blobstoreService = BlobstoreServiceFactory.getBlobstoreService();
@@ -221,14 +278,5 @@ public class WorkspaceFileRestService {
                     UploadOptions.Builder.withGoogleStorageBucketName(AppIdentityServiceFactory.getAppIdentityService().getDefaultGcsBucketName()+
                             "/workspacefile/"+wsf.getOwner()+"/")));
             return wsf;
-    }
-    
-     private void saveEvent(Event event){
-        try {
-           _eventDAO.insert(event);
-        }
-        catch(Exception ex){
-            _log.log(Level.WARNING, "Unable to save Event", ex);
-        }
     }
 }

@@ -101,4 +101,13 @@ public interface WorkspaceFileDAO {
      * @throws Exception 
      */
     public WorkspaceFile update(WorkspaceFile wsp) throws Exception;
+    
+    /**
+     * Loads and resaves {@link WorkspaceFile} corresponding to <b>workspaceFileId</b>
+     * passed in
+     * @param workspaceFileId
+     * @return
+     * @throws Exception 
+     */
+    public WorkspaceFile resave(long workspaceFileId) throws Exception;
 }
