@@ -15,7 +15,6 @@ import com.googlecode.objectify.annotation.Load;
 import java.util.Date;
 import java.util.Iterator;
 
-
 /**
  * Represents a Workflow which is basically a program that does something.
  * @author Christopher Churas <churas@ncmir.ucsd.edu>
@@ -35,6 +34,7 @@ public class Workflow {
     private Date _createDate;
     private String _releaseNotes;
     private String _owner;
+    @Index private boolean _deleted;
     private List<WorkflowParameter> _parameters;
     private @Load(Workflow.Everything.class) Ref<Workflow> _parent;
     @Ignore private Workflow _rawParent;
@@ -50,6 +50,14 @@ public class Workflow {
     }
     public void setId(Long id){
        _id = id;
+    }
+    
+    public boolean isDeleted() {
+        return _deleted;
+    }
+
+    public void setDeleted(boolean deleted) {
+        _deleted = deleted;
     }
     
     public void setVersion(int val){
