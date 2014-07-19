@@ -21,7 +21,6 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
-
 import edu.ucsd.crbs.cws.dao.objectify.WorkflowObjectifyDAOImpl;
 import edu.ucsd.crbs.cws.log.Event;
 import edu.ucsd.crbs.cws.log.EventBuilder;
@@ -181,26 +180,13 @@ public class WorkflowRestService {
                     Builder.withGoogleStorageBucketName(AppIdentityServiceFactory.getAppIdentityService().getDefaultGcsBucketName()+"/workflows/")));
             
             // save this event to datastore, but if it fails no biggy
-            saveEvent(_eventBuilder.setAsCreateWorkflowEvent(event, w));
+            _eventDAO.neverComplainInsert(_eventBuilder.setAsCreateWorkflowEvent(event, w));
             
             return insertedWorkflow;
 
         } catch (Exception ex) {
             _log.log(Level.SEVERE,"Caught Exception",ex);
             throw new WebApplicationException(ex);
-        }
-    }
-    
-    /**
-     * Save Event to Datastore. If it fails just log it cause it is not critical
-     * @param event Event to save
-     */
-    private void saveEvent(Event event){
-        try {
-           _eventDAO.insert(event);
-        }
-        catch(Exception ex){
-            _log.log(Level.WARNING, "Unable to save Event", ex);
         }
     }
 }
