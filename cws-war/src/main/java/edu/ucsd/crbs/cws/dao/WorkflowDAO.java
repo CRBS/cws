@@ -60,4 +60,13 @@ public interface WorkflowDAO {
      * @return 
      */
     public Workflow getWorkflowForTask(Task task,User user) throws Exception;
+    
+    /**
+     * Loads {@link Workflow} with corresponding <b>workflowId</b> and resaves
+     * to datastore
+     * @param workflowId
+     * @return
+     * @throws Exception 
+     */
+    public Workflow resave(long workflowId) throws Exception;
 }

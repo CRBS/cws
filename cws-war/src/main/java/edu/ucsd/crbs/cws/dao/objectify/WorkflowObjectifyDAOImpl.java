@@ -23,6 +23,32 @@ public class WorkflowObjectifyDAOImpl implements WorkflowDAO {
 
     
     WorkflowParameterDataFetcher _dropDownFetcher = new URLFetcherImpl();
+
+    @Override
+    public Workflow resave(final long workflowId) throws Exception {
+         Workflow res = ofy().transact(new Work<Workflow>() {
+            @Override
+            public Workflow run() {
+                Workflow workflow;
+                try {
+                    workflow = getWorkflowById(Long.toString(workflowId),null);
+                } catch (Exception ex) {
+                    return null;
+                }
+                if (workflow == null) {
+                    return null;
+                }
+
+                Key<Workflow> tKey = ofy().save().entity(workflow).now();
+                return workflow;
+            }
+        });
+
+        return res;
+    }
+    
+    
+    
     
     /**
      * Adds a new workflow to the data store.  If the Id of the Workflow is set then the
