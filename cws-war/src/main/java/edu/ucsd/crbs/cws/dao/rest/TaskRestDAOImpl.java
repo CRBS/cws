@@ -76,11 +76,11 @@ public class TaskRestDAOImpl implements TaskDAO {
         }
 
         if (noParams == true) {
-            queryParams.add(Constants.NOPARAMS_QUERY_PARAM, true);
+            queryParams.add(Constants.NOPARAMS_QUERY_PARAM, Boolean.TRUE.toString());
         }
 
         if (noWorkflowParams == true) {
-            queryParams.add(Constants.NOWORKFLOWPARAMS_QUERY_PARAM, true);
+            queryParams.add(Constants.NOWORKFLOWPARAMS_QUERY_PARAM, Boolean.TRUE.toString());
         }
 
         String json = resource.queryParams(queryParams).accept(MediaType.APPLICATION_JSON).get(String.class);
