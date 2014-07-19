@@ -111,6 +111,12 @@ public class Constants {
     public static final String ADD_UPLOAD_URL_PARAM = "adduploadurl";
     
     /**
+     * Tells REST services to load and resave given object.  This is needed
+     * in cases where object has new updated fields or indexes have changed.
+     */
+    public static final String RESAVE_QUERY_PARAM = "resave";
+    
+    /**
      * outputs Directory where Tasks should write output
      */
     public static final String OUTPUTS_DIR_NAME = "outputs";
