@@ -23,7 +23,7 @@ public class User {
     private Date _createDate;
     @Index private int _permissions;
     @Ignore private String _loginToRunTaskAs;
-    
+    @Index private boolean _deleted;
     
     public User(){
         
@@ -91,6 +91,14 @@ public class User {
     
     public void setLoginToRunTaskAs(final String login){
         _loginToRunTaskAs = login;
+    }
+    
+    public boolean isDeleted() {
+        return _deleted;
+    }
+
+    public void setDeleted(boolean deleted) {
+        _deleted = deleted;
     }
 
     @JsonIgnore
