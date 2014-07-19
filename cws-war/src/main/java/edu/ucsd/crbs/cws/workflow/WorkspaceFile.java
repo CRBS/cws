@@ -33,6 +33,7 @@
 
 package edu.ucsd.crbs.cws.workflow;
 
+import com.googlecode.objectify.annotation.AlsoLoad;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Ignore;
@@ -54,8 +55,8 @@ public class WorkspaceFile {
     private Date _createDate;
     private Long _size;
     private String _md5;
-    @Index private boolean _Deleted = false;
-    @Index private boolean _Dir;
+    @Index @AlsoLoad("_Deleted") private boolean _deleted = false;
+    @Index @AlsoLoad("_Dir") private boolean _dir;
     @Index private String _path;
     @Index private Long _sourceTaskId;
     @Index private String _blobKey;
@@ -126,19 +127,19 @@ public class WorkspaceFile {
     }
 
     public boolean getDeleted() {
-        return _Deleted;
+        return _deleted;
     }
 
     public void setDeleted(boolean deleted) {
-        this._Deleted = deleted;
+        this._deleted = deleted;
     }
 
     public boolean getDir() {
-        return _Dir;
+        return _dir;
     }
 
     public void setDir(boolean isDir) {
-        _Dir = isDir;
+        _dir = isDir;
     }
 
     public String getPath() {
