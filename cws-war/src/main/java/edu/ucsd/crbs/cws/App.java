@@ -9,9 +9,9 @@ import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.core.impl.provider.entity.StringProvider;
 import com.sun.jersey.multipart.impl.MultiPartWriter;
-import static edu.ucsd.crbs.cws.App.LOGIN;
-import static edu.ucsd.crbs.cws.App.RUN_AS;
-import static edu.ucsd.crbs.cws.App.TOKEN;
+import static edu.ucsd.crbs.cws.App.LOGIN_ARG;
+import static edu.ucsd.crbs.cws.App.RUN_AS_ARG;
+import static edu.ucsd.crbs.cws.App.TOKEN_ARG;
 import edu.ucsd.crbs.cws.auth.Permission;
 import edu.ucsd.crbs.cws.auth.User;
 import edu.ucsd.crbs.cws.cluster.MapOfTaskStatusFactoryImpl;
@@ -65,9 +65,15 @@ public class App {
     
     public static final String GET_WORKSPACE_FILE_INFO_ARG = "fileinfo";
     
-    public static final String UPDATE_PATH = "updatepath";
+    public static final String UPDATE_PATH_ARG = "updatepath";
     
-    public static final String PATH = "path";
+    public static final String PATH_ARG = "path";
+    
+    public static final String TASK_ID_ARG = "taskid";
+    
+    public static final String MD5_ARG = "md5";
+    
+    public static final String SIZE_ARG = "size";
     
     public static final String OWNER_ARG = "owner";
 
@@ -77,27 +83,32 @@ public class App {
 
     public static final String URL_ARG = "url";
 
-    public static final String WF_EXEC_DIR = "execdir";
+    public static final String WF_EXEC_DIR_ARG = "execdir";
 
-    public static final String WF_DIR = "wfdir";
+    public static final String WF_DIR_ARG = "wfdir";
 
-    public static final String KEPLER_SCRIPT = "kepler";
+    public static final String KEPLER_SCRIPT_ARG = "kepler";
 
     public static final String PARENT_WFID_ARG = "parentwf";
 
     public static final String EXAMPLE_JSON_ARG = "examplejson";
 
-    public static final String QUEUE = "queue";
+    public static final String QUEUE_ARG = "queue";
 
-    public static final String CAST = "panfishcast";
+    public static final String CAST_ARG = "panfishcast";
 
-    public static final String STAT = "panfishstat";
+    public static final String STAT_ARG = "panfishstat";
 
-    public static final String LOGIN = "login";
+    public static final String LOGIN_ARG = "login";
 
-    public static final String TOKEN = "token";
+    public static final String TOKEN_ARG = "token";
     
-    public static final String RUN_AS = "runas";
+    public static final String RUN_AS_ARG = "runas";
+    
+    public static final String RESAVE_WORKSPACEFILE_ARG = "resavefile";
+
+    public static final String RESAVE_TASK_ARG = "resavetask";
+
     
     //public static final String LOAD_TEST = "loadtest";
     public static final String PROGRAM_HELP = "\nCRBS Workflow Service Command Line Tools "
@@ -126,22 +137,29 @@ public class App {
                     accepts(REGISTER_FILE_ARG,"Registers Workspace file to REST service (DOES NOT UPLOAD FILE TO REST SERVICE)").withRequiredArg().ofType(File.class);
                     accepts(GET_WORKSPACE_FILE_INFO_ARG,"Outputs JSON of specified workspace file(s)").withRequiredArg().ofType(String.class).describedAs("workspace file id");
                     accepts(DOWNLOAD_FILE_ARG,"Downloads Workspace file").withRequiredArg().ofType(String.class).describedAs("workspace file id");
-                    accepts(UPDATE_PATH,"Updates Workspace file path").withRequiredArg().ofType(String.class).describedAs("workspace file id");
-                    accepts(PATH,"Sets WorkspaceFile file path.  Used in coordination with --"+UPDATE_PATH).withRequiredArg().ofType(String.class).describedAs("file path");
+                    accepts(UPDATE_PATH_ARG,"Updates Workspace file path").withRequiredArg().ofType(String.class).describedAs("workspace file id");
+                    accepts(PATH_ARG,"Sets WorkspaceFile file path.  Used in coordination with --"+UPDATE_PATH_ARG).withRequiredArg().ofType(String.class).describedAs("file path");
                     accepts(URL_ARG, "URL to use with --" + UPLOAD_WF_ARG + ", --"+UPLOAD_FILE_ARG+", --"+GET_WORKSPACE_FILE_INFO_ARG+" flags").withRequiredArg().ofType(String.class).describedAs("URL");
                     accepts(PARENT_WFID_ARG, "Used to set parent workflow id when invoking --"+UPLOAD_WF_ARG).withRequiredArg().ofType(Long.class).describedAs("Workflow ID");
                     accepts(EXAMPLE_JSON_ARG, "Outputs example JSON of Task, User, Workflow, and WorkspaceFile objects");
-                    accepts(WF_EXEC_DIR, "Workflow Execution Directory").withRequiredArg().ofType(File.class).describedAs("Directory");
-                    accepts(WF_DIR, "Workflows Directory").withRequiredArg().ofType(File.class).describedAs("Directory");
-                    accepts(KEPLER_SCRIPT, "Kepler").withRequiredArg().ofType(File.class).describedAs("Script");
-                    accepts(QUEUE, "SGE Queue").withRequiredArg().ofType(String.class).describedAs("Queue");
-                    accepts(CAST, "Panfishcast binary").withRequiredArg().ofType(File.class).describedAs("panfishcast");
-                    accepts(STAT, "Panfishstat binary").withRequiredArg().ofType(File.class).describedAs("panfishstat");
-                    accepts(LOGIN, "User Login").withRequiredArg().ofType(String.class).describedAs("username");
-                    accepts(TOKEN, "User Token").withRequiredArg().ofType(String.class).describedAs("token");
-                    accepts(RUN_AS, "User to run as (for power accounts that can run as other users)").withRequiredArg().ofType(String.class).describedAs("runas");
-                    accepts(OWNER_ARG,"Sets owner when creating Workspace files and Workflows").withRequiredArg().ofType(String.class).describedAs("username");
+                    accepts(WF_EXEC_DIR_ARG, "Workflow Execution Directory").withRequiredArg().ofType(File.class).describedAs("Directory");
+                    accepts(WF_DIR_ARG, "Workflows Directory").withRequiredArg().ofType(File.class).describedAs("Directory");
+                    accepts(KEPLER_SCRIPT_ARG, "Kepler").withRequiredArg().ofType(File.class).describedAs("Script");
+                    accepts(QUEUE_ARG, "SGE Queue").withRequiredArg().ofType(String.class).describedAs("Queue");
+                    accepts(CAST_ARG, "Panfishcast binary").withRequiredArg().ofType(File.class).describedAs("panfishcast");
+                    accepts(STAT_ARG, "Panfishstat binary").withRequiredArg().ofType(File.class).describedAs("panfishstat");
+                    accepts(LOGIN_ARG, "User Login").withRequiredArg().ofType(String.class).describedAs("username");
+                    accepts(TOKEN_ARG, "User Token").withRequiredArg().ofType(String.class).describedAs("token");
+                    accepts(RUN_AS_ARG, "User to run as (for power accounts that can run as other users)").withRequiredArg().ofType(String.class).describedAs("runas");
+                    accepts(OWNER_ARG,"Sets owner when creating Workspace file and Workflow").withRequiredArg().ofType(String.class).describedAs("username");
+                    accepts(TASK_ID_ARG,"Sets task id for Workspace file when used with --"+UPLOAD_FILE_ARG+" and --"+REGISTER_FILE_ARG).withRequiredArg().ofType(Long.class).describedAs("Task id");
+                    accepts(MD5_ARG,"Sets md5 for Workspace file when used with --"+UPLOAD_FILE_ARG+" and --"+REGISTER_FILE_ARG).withRequiredArg().ofType(String.class).describedAs("MD5 message digest");
+                    accepts(SIZE_ARG,"Sets size in bytes for Workspace file when used with --"+UPLOAD_FILE_ARG+" and --"+REGISTER_FILE_ARG).withRequiredArg().ofType(String.class).describedAs("Size of file/dir in bytes");
+                    accepts(RESAVE_WORKSPACEFILE_ARG,"Resaves Workspace file").withRequiredArg().ofType(Long.class).describedAs("WorkspaceFile Id");
+                    accepts(RESAVE_TASK_ARG,"Resaves Task").withRequiredArg().ofType(Long.class).describedAs("Task Id");
+
                     accepts(HELP_ARG).forHelp();
+                    
                 }
             };
 
@@ -154,12 +172,15 @@ public class App {
                 System.exit(1);
             }
 
-            if (optionSet.has(HELP_ARG)
-                    || (!optionSet.has(SYNC_WITH_CLUSTER_ARG) && !optionSet.has(UPLOAD_WF_ARG))
-                    && !optionSet.has(EXAMPLE_JSON_ARG) && !optionSet.has(UPLOAD_FILE_ARG) &&
-                    !optionSet.has(GET_WORKSPACE_FILE_INFO_ARG) &&
-                    !optionSet.has(UPDATE_PATH) &&
-                    !optionSet.has(REGISTER_FILE_ARG)) {
+            if (optionSet.has(HELP_ARG) ||
+                    (!optionSet.has(SYNC_WITH_CLUSTER_ARG) && 
+                     !optionSet.has(UPLOAD_WF_ARG)) &&
+                     !optionSet.has(EXAMPLE_JSON_ARG) && 
+                     !optionSet.has(UPLOAD_FILE_ARG) &&
+                     !optionSet.has(GET_WORKSPACE_FILE_INFO_ARG) &&
+                     !optionSet.has(UPDATE_PATH_ARG) &&
+                     !optionSet.has(REGISTER_FILE_ARG) &&
+                     !optionSet.has(RESAVE_WORKSPACEFILE_ARG)) {
                 System.out.println(PROGRAM_HELP + "\n");
                 parser.printHelpOn(System.out);
                 System.exit(0);
@@ -178,16 +199,48 @@ public class App {
                 System.exit(0);
             }
             
-            if (optionSet.has(UPDATE_PATH)) {
-                failIfOptionSetMissingURL(optionSet,"--"+UPDATE_PATH+" flag");
-                
-                failIfOptionSetMissingLoginOrToken(optionSet, "--" + UPDATE_PATH + " flag");
+            if (optionSet.has(RESAVE_WORKSPACEFILE_ARG)){
+                failIfOptionSetMissingURLOrLoginOrToken(optionSet,"--"+RESAVE_WORKSPACEFILE_ARG+" flag");
+                WorkspaceFileRestDAOImpl workspaceFileDAO = new WorkspaceFileRestDAOImpl();
+                User u = getUserFromOptionSet(optionSet);
+                workspaceFileDAO.setUser(u);
+                workspaceFileDAO.setRestURL((String)optionSet.valueOf(URL_ARG));
+                Long workspaceId = (Long)optionSet.valueOf(RESAVE_WORKSPACEFILE_ARG);
+                if (workspaceId == -1){
+                    System.out.println("Resaving all workspace files");
+                    List<WorkspaceFile> wsfList = workspaceFileDAO.getWorkspaceFiles(null, null);
+                    if (wsfList != null){
+                        System.out.println("Found "+wsfList.size()+
+                                " workspace files to resave");
+                        for (WorkspaceFile wsf : wsfList){
+                            workspaceFileDAO.resave(wsf.getId());
+                        }
+                    }
+                }
+                else {
+                    workspaceFileDAO.resave((Long)optionSet.valueOf(RESAVE_WORKSPACEFILE_ARG));
+                }
+                System.exit(0);
+            }
+            
+            if (optionSet.has(RESAVE_TASK_ARG)){
+                failIfOptionSetMissingURLOrLoginOrToken(optionSet,"--"+RESAVE_TASK_ARG+" flag");
+                TaskRestDAOImpl taskDAO = new TaskRestDAOImpl();
+                User u = getUserFromOptionSet(optionSet);
+                taskDAO.setUser(u);
+                taskDAO.setRestURL((String)optionSet.valueOf(URL_ARG));
+                taskDAO.resave((Long)optionSet.valueOf(RESAVE_TASK_ARG));
+                System.exit(0);
+            }
+            
+            if (optionSet.has(UPDATE_PATH_ARG)) {
+                failIfOptionSetMissingURLOrLoginOrToken(optionSet,"--"+UPDATE_PATH_ARG+" flag");
                 
                 User u = getUserFromOptionSet(optionSet);
-                String workspaceId = (String)optionSet.valueOf(UPDATE_PATH);
+                String workspaceId = (String)optionSet.valueOf(UPDATE_PATH_ARG);
                 String path = null;
-                if (optionSet.has(PATH)){
-                    path = (String)optionSet.valueOf(PATH);
+                if (optionSet.has(PATH_ARG)){
+                    path = (String)optionSet.valueOf(PATH_ARG);
                 }
                 
                 WorkspaceFileRestDAOImpl workspaceFileDAO = new WorkspaceFileRestDAOImpl();
@@ -199,47 +252,47 @@ public class App {
             
             if (optionSet.has(SYNC_WITH_CLUSTER_ARG)) {
                 // @TODO NEED TO MAKE JOPT DO THIS REQUIRED FLAG CHECKING STUFF
-                if (!optionSet.has(WF_EXEC_DIR)) {
-                    System.err.println("-" + WF_EXEC_DIR + " is required with -" + SYNC_WITH_CLUSTER_ARG + " flag");
+                if (!optionSet.has(WF_EXEC_DIR_ARG)) {
+                    System.err.println("-" + WF_EXEC_DIR_ARG + " is required with -" + SYNC_WITH_CLUSTER_ARG + " flag");
                     System.exit(2);
                 }
-                if (!optionSet.has(WF_DIR)) {
-                    System.err.println("-" + WF_DIR + " is required with -" + SYNC_WITH_CLUSTER_ARG + " flag");
+                if (!optionSet.has(WF_DIR_ARG)) {
+                    System.err.println("-" + WF_DIR_ARG + " is required with -" + SYNC_WITH_CLUSTER_ARG + " flag");
                     System.exit(3);
                 }
-                if (!optionSet.has(KEPLER_SCRIPT)) {
-                    System.err.println("-" + KEPLER_SCRIPT + " is required with -" + SYNC_WITH_CLUSTER_ARG + " flag");
+                if (!optionSet.has(KEPLER_SCRIPT_ARG)) {
+                    System.err.println("-" + KEPLER_SCRIPT_ARG + " is required with -" + SYNC_WITH_CLUSTER_ARG + " flag");
                     System.exit(4);
                 }
 
-                if (!optionSet.has(CAST)) {
-                    System.err.println("-" + CAST + " is required with -" + SYNC_WITH_CLUSTER_ARG + " flag");
+                if (!optionSet.has(CAST_ARG)) {
+                    System.err.println("-" + CAST_ARG + " is required with -" + SYNC_WITH_CLUSTER_ARG + " flag");
                     System.exit(5);
                 }
 
-                if (!optionSet.has(STAT)) {
-                    System.err.println("-" + STAT + " is required with -" + SYNC_WITH_CLUSTER_ARG + " flag");
+                if (!optionSet.has(STAT_ARG)) {
+                    System.err.println("-" + STAT_ARG + " is required with -" + SYNC_WITH_CLUSTER_ARG + " flag");
                     System.exit(6);
                 }
 
-                if (!optionSet.has(QUEUE)) {
-                    System.err.println("-" + QUEUE + " is required with -" + SYNC_WITH_CLUSTER_ARG + " flag");
+                if (!optionSet.has(QUEUE_ARG)) {
+                    System.err.println("-" + QUEUE_ARG + " is required with -" + SYNC_WITH_CLUSTER_ARG + " flag");
                     System.exit(7);
                 }
                 
                 failIfOptionSetMissingLoginOrToken(optionSet,"--" + SYNC_WITH_CLUSTER_ARG + " flag");
 
-                File castFile = (File) optionSet.valueOf(CAST);
+                File castFile = (File) optionSet.valueOf(CAST_ARG);
                 String castPath = castFile.getAbsolutePath();
 
-                File statFile = (File) optionSet.valueOf(STAT);
+                File statFile = (File) optionSet.valueOf(STAT_ARG);
                 String statPath = statFile.getAbsolutePath();
 
-                String queue = (String) optionSet.valueOf(QUEUE);
+                String queue = (String) optionSet.valueOf(QUEUE_ARG);
 
-                File wfExecDir = (File) optionSet.valueOf(WF_EXEC_DIR);
-                File wfDir = (File) optionSet.valueOf(WF_DIR);
-                File keplerScript = (File) optionSet.valueOf(KEPLER_SCRIPT);
+                File wfExecDir = (File) optionSet.valueOf(WF_EXEC_DIR_ARG);
+                File wfDir = (File) optionSet.valueOf(WF_DIR_ARG);
+                File keplerScript = (File) optionSet.valueOf(KEPLER_SCRIPT_ARG);
 
                 User u = getUserFromOptionSet(optionSet);
                 
@@ -276,8 +329,7 @@ public class App {
             }
             
             if (optionSet.has(App.GET_WORKSPACE_FILE_INFO_ARG)){
-                failIfOptionSetMissingURL(optionSet,"--"+GET_WORKSPACE_FILE_INFO_ARG+" flag");
-                failIfOptionSetMissingLoginOrToken(optionSet,"--"+GET_WORKSPACE_FILE_INFO_ARG+" flag");
+                failIfOptionSetMissingURLOrLoginOrToken(optionSet,"--"+GET_WORKSPACE_FILE_INFO_ARG+" flag");
                 
                 WorkspaceFileRestDAOImpl workspaceFileDAO = new WorkspaceFileRestDAOImpl();
                 
@@ -405,8 +457,14 @@ public class App {
         if (optionSet.has(OWNER_ARG)) {
             wsp.setOwner((String) optionSet.valueOf(OWNER_ARG));
         }
-        if (optionSet.has(PATH)){
-            wsp.setPath((String)optionSet.valueOf(PATH));
+        if (optionSet.has(PATH_ARG)){
+            wsp.setPath((String)optionSet.valueOf(PATH_ARG));
+        }
+        if (optionSet.has(TASK_ID_ARG)){
+            wsp.setSourceTaskId((Long)optionSet.valueOf(TASK_ID_ARG));
+        }
+        if (optionSet.has(MD5_ARG)){
+            wsp.setMd5((String)optionSet.valueOf(MD5_ARG));
         }
 
         ObjectMapper om = new ObjectMapper();
@@ -436,6 +494,11 @@ public class App {
         uploadWorkspaceFile(workspaceFileRes, file);
     }
     
+    public static void failIfOptionSetMissingURLOrLoginOrToken(OptionSet optionSet,final String message){
+        failIfOptionSetMissingURL(optionSet,message);
+        failIfOptionSetMissingLoginOrToken(optionSet,message);
+    }
+    
     public static void failIfOptionSetMissingURL(OptionSet optionSet, final String message) {
         if (!optionSet.has(URL_ARG)) {
             System.err.println("--" + URL_ARG + " is required with " + message);
@@ -444,18 +507,18 @@ public class App {
     }
    
     public static void failIfOptionSetMissingLoginOrToken(OptionSet optionSet,final String message){
-        if (!optionSet.has(LOGIN)){
-            System.err.println("--"+LOGIN+" is required with "+message);
+        if (!optionSet.has(LOGIN_ARG)){
+            System.err.println("--"+LOGIN_ARG+" is required with "+message);
             System.exit(10);
         }
-        if (!optionSet.has(TOKEN)){
-           System.err.println("--"+TOKEN+" is required with "+message);
+        if (!optionSet.has(TOKEN_ARG)){
+           System.err.println("--"+TOKEN_ARG+" is required with "+message);
             System.exit(11);
         }
     }
     
     /**
-     * Parses <b>optionSet</b> for {@link LOGIN}, {@link TOKEN}, and {@link RUN_AS} 
+     * Parses <b>optionSet</b> for {@link LOGIN#LOGIN_ARG}, {@link TOKEN#TOKEN_ARG}, and {@link RUN_AS#RUN_AS_ARG} 
      * to generate {@link User} object
      * @param optionSet
      * @return User object with {@link User#getLogin()}, {@link User#getLoginToRunTaskAs()}, and
@@ -463,16 +526,16 @@ public class App {
      */
     public static User getUserFromOptionSet(OptionSet optionSet){
         User u = new User();
-        if (optionSet.has(LOGIN)){
-            u.setLogin((String)optionSet.valueOf(LOGIN));
+        if (optionSet.has(LOGIN_ARG)){
+            u.setLogin((String)optionSet.valueOf(LOGIN_ARG));
         }
         
-        if (optionSet.has(TOKEN)){
-            u.setToken((String)optionSet.valueOf(TOKEN));
+        if (optionSet.has(TOKEN_ARG)){
+            u.setToken((String)optionSet.valueOf(TOKEN_ARG));
         }
         
-        if (optionSet.has(RUN_AS)){
-            u.setLoginToRunTaskAs((String)optionSet.valueOf(RUN_AS));
+        if (optionSet.has(RUN_AS_ARG)){
+            u.setLoginToRunTaskAs((String)optionSet.valueOf(RUN_AS_ARG));
         }
         return u;
     }
