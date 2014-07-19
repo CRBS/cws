@@ -16,4 +16,5 @@ public interface EventDAO {
      */
     public Event insert(Event event) throws Exception;
     
+    public Event neverComplainInsert(Event event);
 }

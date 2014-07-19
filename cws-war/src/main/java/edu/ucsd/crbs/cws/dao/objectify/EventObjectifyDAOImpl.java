@@ -4,6 +4,8 @@ import edu.ucsd.crbs.cws.dao.EventDAO;
 import static edu.ucsd.crbs.cws.dao.objectify.OfyService.ofy;
 import edu.ucsd.crbs.cws.log.Event;
 import java.util.Date;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Implements EventDAO interface which proves a means to load and save
@@ -13,6 +15,8 @@ import java.util.Date;
  */
 public class EventObjectifyDAOImpl implements EventDAO {
 
+    private static final Logger _log
+            = Logger.getLogger(EventObjectifyDAOImpl.class.getName());
     /**
      * Inserts an Event object to the data store
      * @param event Event to store
@@ -34,4 +38,17 @@ public class EventObjectifyDAOImpl implements EventDAO {
         return event;
     }
 
+    @Override
+    public Event neverComplainInsert(Event event) {
+        Event res = null;
+        try {
+            res = insert(event);
+        }
+        catch(Exception ex){
+            _log.log(Level.WARNING, "Unable to save Event", ex);
+        }
+        return res;
+    }
+
+    
 }
