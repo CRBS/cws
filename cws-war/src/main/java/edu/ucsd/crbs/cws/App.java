@@ -24,6 +24,7 @@ import edu.ucsd.crbs.cws.dao.rest.WorkspaceFileRestDAOImpl;
 import edu.ucsd.crbs.cws.io.KeplerMomlFromKar;
 import edu.ucsd.crbs.cws.jerseyclient.MultivaluedMapFactory;
 import edu.ucsd.crbs.cws.jerseyclient.MultivaluedMapFactoryImpl;
+import edu.ucsd.crbs.cws.log.Event;
 import edu.ucsd.crbs.cws.rest.Constants;
 import edu.ucsd.crbs.cws.util.RunCommandLineProcess;
 import edu.ucsd.crbs.cws.util.RunCommandLineProcessImpl;
@@ -672,6 +673,12 @@ public class App {
         System.out.println("-----------------------");
         System.out.println(ow.writeValueAsString(getUser()));
         System.out.flush();
+        
+        System.out.println("Json for Event");
+        System.out.println("-----------------------");
+        System.out.println(ow.writeValueAsString(getEvent()));
+        System.out.flush();
+
     }
 
     /**
@@ -801,5 +808,18 @@ public class App {
         user.setPermissions(Permission.CREATE_USER);
         user.setIpAddress("127.0.0.1");
         return user;
+    }
+ 
+    public static Event getEvent(){
+        Event e = new Event();
+        e.setCity("San Diego");
+        e.setCityLatLong("0,0");
+        e.setCountry("USA");
+        e.setDate(new Date());
+        e.setHost("foo.com");
+        e.setIpAddress("127.0.0.1");
+        e.setMessage("some message");
+        e.setRegion("NA");
+        return e;
     }
 }
