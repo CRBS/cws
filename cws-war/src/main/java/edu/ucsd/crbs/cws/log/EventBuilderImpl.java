@@ -168,9 +168,6 @@ public class EventBuilderImpl implements EventBuilder {
         return event;
     }
     
-    
-    
-    
     /**
      * Checks if any of the Objects passed in is null.  If yes true is returned
      * @param objects Objects to check
