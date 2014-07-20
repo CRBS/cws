@@ -33,11 +33,25 @@
 
 package edu.ucsd.crbs.cws.dao.rest;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.googlecode.objectify.util.jackson.ObjectifyJacksonModule;
+import com.sun.jersey.api.client.Client;
+import com.sun.jersey.api.client.WebResource;
+import com.sun.jersey.api.client.config.ClientConfig;
+import com.sun.jersey.api.client.config.DefaultClientConfig;
+import com.sun.jersey.api.json.JSONConfiguration;
+import com.sun.jersey.core.impl.provider.entity.StringProvider;
 import edu.ucsd.crbs.cws.auth.User;
 import edu.ucsd.crbs.cws.dao.WorkflowDAO;
+import edu.ucsd.crbs.cws.jerseyclient.MultivaluedMapFactory;
+import edu.ucsd.crbs.cws.jerseyclient.MultivaluedMapFactoryImpl;
+import edu.ucsd.crbs.cws.rest.Constants;
 import edu.ucsd.crbs.cws.workflow.Task;
 import edu.ucsd.crbs.cws.workflow.Workflow;
 import java.util.List;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedMap;
 
 /**
  *
@@ -45,6 +59,25 @@ import java.util.List;
  */
 public class WorkflowRestDAOImpl implements WorkflowDAO {
 
+    private User _user;
+    private String _restURL;
+    
+    MultivaluedMapFactory _multivaluedMapFactory = new MultivaluedMapFactoryImpl();
+
+     /**
+     * Sets the base REST URL
+     *
+     * @param url
+     */
+    public void setRestURL(final String url) {
+        _restURL = url;
+    }
+
+    public void setUser(User user) {
+        _user = user;
+    }
+
+    
     @Override
     public Workflow getWorkflowById(String workflowId, User user) throws Exception {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
@@ -52,7 +85,22 @@ public class WorkflowRestDAOImpl implements WorkflowDAO {
 
     @Override
     public List<Workflow> getAllWorkflows(boolean omitWorkflowParams) throws Exception {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        ClientConfig cc = new DefaultClientConfig();
+        cc.getFeatures().put(JSONConfiguration.FEATURE_POJO_MAPPING, Boolean.TRUE);
+        Client client = Client.create(cc);
+        client.setFollowRedirects(true);
+        WebResource resource = client.resource(_restURL).path(Constants.REST_PATH).path(Constants.WORKFLOWS_PATH);
+        MultivaluedMap queryParams = _multivaluedMapFactory.getMultivaluedMap(_user);
+
+        if (omitWorkflowParams == true) {
+            queryParams.add(Constants.NOWORKFLOWPARAMS_QUERY_PARAM, Boolean.TRUE.toString());
+        }
+
+        String json = resource.queryParams(queryParams).accept(MediaType.APPLICATION_JSON).get(String.class);
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new ObjectifyJacksonModule());
+        return mapper.readValue(json, new TypeReference<List<Workflow>>() {
+        });
     }
 
     @Override
@@ -72,7 +120,27 @@ public class WorkflowRestDAOImpl implements WorkflowDAO {
 
     @Override
     public Workflow resave(long workflowId) throws Exception {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        ClientConfig cc = new DefaultClientConfig();
+        cc.getClasses().add(StringProvider.class);
+        Client client = Client.create(cc);
+        client.setFollowRedirects(true);
+        WebResource resource = client.resource(_restURL).path(Constants.REST_PATH).
+                path(Constants.WORKFLOWS_PATH).path(Long.toString(workflowId));
+
+        MultivaluedMap queryParams = _multivaluedMapFactory.getMultivaluedMap(_user);
+
+        queryParams.add(Constants.RESAVE_QUERY_PARAM, Boolean.TRUE.toString());
+       
+        String json = resource.queryParams(queryParams)
+                .accept(MediaType.APPLICATION_JSON)
+                .type(MediaType.APPLICATION_JSON_TYPE)
+                .entity("{}")
+                .post(String.class);
+
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new ObjectifyJacksonModule());
+        return mapper.readValue(json, new TypeReference<Workflow>() {
+        });    
     }
 
 }
