@@ -19,6 +19,7 @@ import edu.ucsd.crbs.cws.cluster.TaskStatusUpdater;
 import edu.ucsd.crbs.cws.cluster.TaskSubmitter;
 import edu.ucsd.crbs.cws.cluster.WorkspaceFilePathSetterImpl;
 import edu.ucsd.crbs.cws.dao.rest.TaskRestDAOImpl;
+import edu.ucsd.crbs.cws.dao.rest.WorkflowRestDAOImpl;
 import edu.ucsd.crbs.cws.dao.rest.WorkspaceFileRestDAOImpl;
 import edu.ucsd.crbs.cws.io.KeplerMomlFromKar;
 import edu.ucsd.crbs.cws.jerseyclient.MultivaluedMapFactory;
@@ -109,6 +110,7 @@ public class App {
 
     public static final String RESAVE_TASK_ARG = "resavetask";
 
+    public static final String RESAVE_WORKFLOW_ARG = "resaveworkflow";
     
     //public static final String LOAD_TEST = "loadtest";
     public static final String PROGRAM_HELP = "\nCRBS Workflow Service Command Line Tools "
@@ -157,6 +159,7 @@ public class App {
                     accepts(SIZE_ARG,"Sets size in bytes for Workspace file when used with --"+UPLOAD_FILE_ARG+" and --"+REGISTER_FILE_ARG).withRequiredArg().ofType(String.class).describedAs("Size of file/dir in bytes");
                     accepts(RESAVE_WORKSPACEFILE_ARG,"Resaves Workspace file").withRequiredArg().ofType(Long.class).describedAs("WorkspaceFile Id");
                     accepts(RESAVE_TASK_ARG,"Resaves Task").withRequiredArg().ofType(Long.class).describedAs("Task Id");
+                    accepts(RESAVE_WORKFLOW_ARG,"Resaves Workflow").withRequiredArg().ofType(Long.class).describedAs("Workflow Id");
 
                     accepts(HELP_ARG).forHelp();
                     
@@ -181,7 +184,8 @@ public class App {
                      !optionSet.has(UPDATE_PATH_ARG) &&
                      !optionSet.has(REGISTER_FILE_ARG) &&
                      !optionSet.has(RESAVE_WORKSPACEFILE_ARG) &&
-                     !optionSet.has(RESAVE_TASK_ARG)) {
+                     !optionSet.has(RESAVE_TASK_ARG) &&
+                     !optionSet.has(RESAVE_WORKFLOW_ARG)) {
                 System.out.println(PROGRAM_HELP + "\n");
                 parser.printHelpOn(System.out);
                 System.exit(0);
@@ -244,6 +248,30 @@ public class App {
                 }
                 else {
                     taskDAO.resave(taskId);
+                }
+                System.exit(0);
+            }
+            
+            if (optionSet.has(RESAVE_WORKFLOW_ARG)){
+                failIfOptionSetMissingURLOrLoginOrToken(optionSet,"--"+RESAVE_WORKFLOW_ARG+" flag");
+                WorkflowRestDAOImpl workflowDAO = new WorkflowRestDAOImpl();
+                User u = getUserFromOptionSet(optionSet);
+                workflowDAO.setUser(u);
+                workflowDAO.setRestURL((String)optionSet.valueOf(URL_ARG));
+                Long workflowId = (Long)optionSet.valueOf(RESAVE_WORKFLOW_ARG);
+                if (workflowId == -1){
+                    System.out.println("Resaving all workflows");
+                    List<Workflow> workflowList = workflowDAO.getAllWorkflows(true);
+                    if (workflowList != null){
+                        System.out.println("Found "+workflowList.size()+" workflow(s) to resave");
+                        for (Workflow w : workflowList){
+                            System.out.println("workflow id: "+w.getId());
+                            workflowDAO.resave(w.getId());
+                        }
+                    }
+                }
+                else {
+                    workflowDAO.resave(workflowId);
                 }
                 System.exit(0);
             }
