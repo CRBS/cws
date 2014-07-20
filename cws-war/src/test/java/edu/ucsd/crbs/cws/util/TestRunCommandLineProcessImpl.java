@@ -33,6 +33,7 @@
 
 package edu.ucsd.crbs.cws.util;
 
+import java.io.File;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -52,7 +53,19 @@ import static org.mockito.Mockito.*;
 @RunWith(JUnit4.class)
 public class TestRunCommandLineProcessImpl {
 
+    
+    public static String FALSE_BINARY = File.separator+"bin"+File.separator+"false";
+    
     public TestRunCommandLineProcessImpl() {
+        FALSE_BINARY = getBinary(FALSE_BINARY);
+    }
+    
+    public static String getBinary(final String basePath){
+        File baseCheck = new File(basePath);
+        if (!baseCheck.exists()){
+            return File.separator+"usr"+basePath;
+        }
+        return basePath;
     }
 
     @BeforeClass
@@ -89,11 +102,11 @@ public class TestRunCommandLineProcessImpl {
     public void TestRunCommandLineProcessWithFailingCommand() throws Exception {
        RunCommandLineProcessImpl rclp = new RunCommandLineProcessImpl();
        try {
-       String output = rclp.runCommandLineProcess("/bin/false","hello");
+       String output = rclp.runCommandLineProcess(FALSE_BINARY,"hello");
        fail("Expected exception");
        }
        catch(Exception ex){
-           assertTrue(ex.getMessage().startsWith("Non zero exit code (1) received from /bin/false: "));
+           assertTrue(ex.getMessage().startsWith("Non zero exit code (1) received from "+FALSE_BINARY+": "));
        }
     }
     

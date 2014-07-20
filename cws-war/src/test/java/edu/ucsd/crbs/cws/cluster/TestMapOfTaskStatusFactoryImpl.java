@@ -35,6 +35,7 @@ package edu.ucsd.crbs.cws.cluster;
 
 import edu.ucsd.crbs.cws.util.RunCommandLineProcess;
 import edu.ucsd.crbs.cws.workflow.Task;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Map;
 import org.junit.After;
@@ -57,7 +58,20 @@ import static org.mockito.Mockito.when;
 @RunWith(JUnit4.class)
 public class TestMapOfTaskStatusFactoryImpl {
 
+    public static String TRUE_BINARY = File.separator+"bin"+File.separator+"true";
+    public static String FALSE_BINARY = File.separator+"bin"+File.separator+"false";
+    
     public TestMapOfTaskStatusFactoryImpl() {
+        TRUE_BINARY = getBinary(TRUE_BINARY);
+        FALSE_BINARY = getBinary(FALSE_BINARY);
+    }
+    
+    public static String getBinary(final String basePath){
+        File baseCheck = new File(basePath);
+        if (!baseCheck.exists()){
+            return File.separator+"usr"+basePath;
+        }
+        return basePath;
     }
 
     @BeforeClass
@@ -76,9 +90,11 @@ public class TestMapOfTaskStatusFactoryImpl {
     public void tearDown() {
     }
 
+    
+    
     @Test
     public void testgetJobStatusMapWithNullEmptyTasksList() throws Exception {
-        MapOfTaskStatusFactoryImpl mapFac = new MapOfTaskStatusFactoryImpl("/bin/false");
+        MapOfTaskStatusFactoryImpl mapFac = new MapOfTaskStatusFactoryImpl(FALSE_BINARY);
         Map<String,String> resMap = mapFac.getJobStatusMap(null);
         assertTrue(resMap.isEmpty() == true);
         
@@ -89,7 +105,7 @@ public class TestMapOfTaskStatusFactoryImpl {
     
     @Test
     public void testgetJobStatusMapWithNTaskThatHasNullJobId() throws Exception {
-        MapOfTaskStatusFactoryImpl mapFac = new MapOfTaskStatusFactoryImpl("/bin/false");
+        MapOfTaskStatusFactoryImpl mapFac = new MapOfTaskStatusFactoryImpl(FALSE_BINARY);
         ArrayList<Task> taskList = new ArrayList<>();
         taskList.add(new Task());
         
@@ -105,7 +121,7 @@ public class TestMapOfTaskStatusFactoryImpl {
     //test where panfishstat fails (non zero exit code)
     @Test
     public void testgetJobStatusMapWherePanfishstatfails() throws Exception {
-        MapOfTaskStatusFactoryImpl mapFac = new MapOfTaskStatusFactoryImpl("/bin/false");
+        MapOfTaskStatusFactoryImpl mapFac = new MapOfTaskStatusFactoryImpl(FALSE_BINARY);
         
         Task myTask = new Task();
         myTask.setJobId("1");
@@ -123,7 +139,7 @@ public class TestMapOfTaskStatusFactoryImpl {
     //test where panfishstat has no output
     @Test
     public void testgetJobStatusMapWherePanfishstatHasNoOutput() throws Exception {
-        MapOfTaskStatusFactoryImpl mapFac = new MapOfTaskStatusFactoryImpl("/bin/true");
+        MapOfTaskStatusFactoryImpl mapFac = new MapOfTaskStatusFactoryImpl(TRUE_BINARY);
         
         Task myTask = new Task();
         myTask.setJobId("1");
