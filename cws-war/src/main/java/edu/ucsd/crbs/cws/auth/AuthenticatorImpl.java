@@ -45,7 +45,7 @@ public class AuthenticatorImpl implements Authenticator {
         if (user != null){
             user.setIpAddress(ipAddress);
             if (user.isAuthorizedTo(Permission.RUN_AS_ANOTHER_USER) == true){
-                user.setLoginToRunTaskAs(loginToRunAs);
+                user.setLoginToRunJobAs(loginToRunAs);
             }
             return user;
         }
@@ -90,7 +90,7 @@ public class AuthenticatorImpl implements Authenticator {
             user.setToken(userToken);
             user.setIpAddress(ipAddress);
             user.setPermissions(Permission.ALL);
-            user.setLoginToRunTaskAs(loginToRunAs);
+            user.setLoginToRunJobAs(loginToRunAs);
             return user;
         }
         return null;

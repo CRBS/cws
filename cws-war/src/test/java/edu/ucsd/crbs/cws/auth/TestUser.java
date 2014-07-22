@@ -77,7 +77,7 @@ public class TestUser {
         assertTrue(user.getAsQueryParameters() == null);
         assertTrue(user.getIpAddress() == null);
         assertTrue(user.getLogin() == null);
-        assertTrue(user.getLoginToRunTaskAs() == null);
+        assertTrue(user.getLoginToRunJobAs() == null);
         assertTrue(user.getToken() == null);
         assertTrue(user.getCreateDate() == null);
         assertTrue(user.getId() == null);
@@ -87,12 +87,12 @@ public class TestUser {
         user.setId(1L);
         user.setIpAddress("ip");
         user.setLogin("login");
-        user.setLoginToRunTaskAs("runas");
+        user.setLoginToRunJobAs("runas");
         user.setPermissions(Permission.CREATE_JOB);
         user.setToken("token");
         assertTrue(user.getIpAddress().equals("ip"));
         assertTrue(user.getLogin().equals("login"));
-        assertTrue(user.getLoginToRunTaskAs().equals("runas"));
+        assertTrue(user.getLoginToRunJobAs().equals("runas"));
         assertTrue(user.getToken().equals("token"));
         assertTrue(user.getCreateDate().equals(aDate));
         assertTrue(user.getId() == 1L);

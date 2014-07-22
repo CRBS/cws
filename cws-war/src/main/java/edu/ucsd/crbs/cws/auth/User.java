@@ -22,7 +22,7 @@ public class User {
     @Index private String _token;
     private Date _createDate;
     @Index private int _permissions;
-    @Ignore private String _loginToRunTaskAs;
+    @Ignore private String _loginToRunJobAs;
     @Index private boolean _deleted;
     
     public User(){
@@ -82,15 +82,15 @@ public class User {
         _login = login;
     }
     
-    public String getLoginToRunTaskAs(){
-        if (_loginToRunTaskAs == null){
+    public String getLoginToRunJobAs(){
+        if (_loginToRunJobAs == null){
             return _login;
         }
-        return _loginToRunTaskAs;
+        return _loginToRunJobAs;
     }
     
-    public void setLoginToRunTaskAs(final String login){
-        _loginToRunTaskAs = login;
+    public void setLoginToRunJobAs(final String login){
+        _loginToRunJobAs = login;
     }
     
     public boolean isDeleted() {

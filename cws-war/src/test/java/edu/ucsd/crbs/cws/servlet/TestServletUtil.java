@@ -92,7 +92,7 @@ public class TestServletUtil {
         User user = new User();
         user.setLogin("login");
         user.setToken("token");
-        user.setLoginToRunTaskAs("runas");
+        user.setLoginToRunJobAs("runas");
         //System.out.println("XXXXXXXXX"+ServletUtil.buildRequestURLForWorkspaceFile(mockRequest, 
         //        user));
         assertTrue(ServletUtil.buildRequestURLForWorkspaceFile(mockRequest, 
@@ -109,7 +109,7 @@ public class TestServletUtil {
         User user = new User();
         user.setLogin("login");
         user.setToken("token");
-        user.setLoginToRunTaskAs("runas");
+        user.setLoginToRunJobAs("runas");
         //System.out.println("XXXXXXXXX"+ServletUtil.buildRequestURLForWorkspaceFile(mockRequest, 
         //        user));
         assertTrue(ServletUtil.buildRequestURLForWorkspaceFile(mockRequest, 

@@ -206,7 +206,7 @@ public class TestURLFetcherImpl {
         User user = new User();
         user.setLogin("bob");
         user.setToken("btoken");
-        user.setLoginToRunTaskAs("ouser");
+        user.setLoginToRunJobAs("ouser");
 
         fetcher.fetchAndUpdate(wp, user);
         assertTrue(wp.getValueMap() != null);

@@ -68,7 +68,7 @@ public class ServletUtil {
         url.append(Constants.SLASH);
         url.append(Constants.WORKSPACEFILES_PATH);
 
-        url.append("?").append(Constants.OWNER_QUERY_PARAM).append("=").append(user.getLoginToRunTaskAs());
+        url.append("?").append(Constants.OWNER_QUERY_PARAM).append("=").append(user.getLoginToRunJobAs());
         String userQueryParams = user.getAsQueryParameters();
         if (userQueryParams != null) {
             url.append("&").append(userQueryParams);

@@ -1,7 +1,7 @@
 
 
-declare baseURL="http://localhost:8080"
-#declare baseURL="https://crbsworkflow.appspot.com"
+#declare baseURL="http://localhost:8080"
+declare baseURL="https://crbsworkflow.appspot.com"
 declare user="chris"
 declare token="dc5902078cfa40b980229662c2e0c226"
 declare usertoken="userlogin=${user}&usertoken=${token}"

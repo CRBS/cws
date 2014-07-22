@@ -61,8 +61,8 @@ public class MultivaluedMapFactoryImpl implements MultivaluedMapFactory {
             queryParams.add(Constants.USER_TOKEN_PARAM, u.getToken());
         }
         
-        if (u.getLoginToRunTaskAs() != null) {
-            queryParams.add(Constants.USER_TOKEN_PARAM, u.getLoginToRunTaskAs());
+        if (u.getLoginToRunJobAs() != null) {
+            queryParams.add(Constants.USER_TOKEN_PARAM, u.getLoginToRunJobAs());
         }
         return queryParams;
         

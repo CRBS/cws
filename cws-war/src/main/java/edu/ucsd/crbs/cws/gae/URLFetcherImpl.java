@@ -108,7 +108,7 @@ public class URLFetcherImpl implements WorkflowParameterDataFetcher {
      * <p/>
      * {@link #USER_TOKEN_KEYWORD} -- Any instances of this in URL will be replaced with the {@link User#getToken()}
      * <p/>
-     * {@link #USER_KEYWORD} -- Any instances of this in URL will be replaced with the {@link User#getLoginToRunTaskAs()}
+     * {@link #USER_KEYWORD} -- Any instances of this in URL will be replaced with the {@link User#getLoginToRunJobAs()}
      *                          or if that value is null {@link User#getLogin()} will be used instead
      * <p/>
      * 
@@ -228,7 +228,7 @@ public class URLFetcherImpl implements WorkflowParameterDataFetcher {
         //need to find any occurrences of special variables and replace them with
         //appropriate values
         
-        String loginToRunAs = user.getLoginToRunTaskAs();
+        String loginToRunAs = user.getLoginToRunJobAs();
         
         String updatedURL;
         

@@ -598,7 +598,7 @@ public class App {
      * Parses <b>optionSet</b> for {@link LOGIN#LOGIN_ARG}, {@link TOKEN#TOKEN_ARG}, and {@link RUN_AS#RUN_AS_ARG} 
      * to generate {@link User} object
      * @param optionSet
-     * @return User object with {@link User#getLogin()}, {@link User#getLoginToRunTaskAs()}, and
+     * @return User object with {@link User#getLogin()}, {@link User#getLoginToRunJobAs()}, and
      * {@link User#getToken()} set to values from <b>optionSet</b>
      */
     public static User getUserFromOptionSet(OptionSet optionSet){
@@ -612,7 +612,7 @@ public class App {
         }
         
         if (optionSet.has(RUN_AS_ARG)){
-            u.setLoginToRunTaskAs((String)optionSet.valueOf(RUN_AS_ARG));
+            u.setLoginToRunJobAs((String)optionSet.valueOf(RUN_AS_ARG));
         }
         return u;
     }
