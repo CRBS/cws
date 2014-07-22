@@ -35,47 +35,47 @@ package edu.ucsd.crbs.cws.workflow.validate;
 
 import edu.ucsd.crbs.cws.workflow.Parameter;
 import edu.ucsd.crbs.cws.workflow.ParameterWithError;
-import edu.ucsd.crbs.cws.workflow.Task;
+import edu.ucsd.crbs.cws.workflow.Job;
 import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Examines all {@link Parameter} objects in a given {@link Task} removing any
+ * Examines all {@link Parameter} objects in a given {@link Job} removing any
  * {@link Parameter} objects where {@link Parameter#getName()} is null
  * 
  * @author Christopher Churas <churas@ncmir.ucsd.edu>
  */
-public class TaskParametersNullNameChecker implements TaskParametersChecker {
+public class JobParametersNullNameChecker implements JobParametersChecker {
 
     private static final Logger _log
-            = Logger.getLogger(TaskParametersNullNameChecker.class.getName());
+            = Logger.getLogger(JobParametersNullNameChecker.class.getName());
     
     
     /**
-     * Iterates through the parameters for the task creating {@link ParameterWithError} objects for
-     * any {@link Parameter} objects where the name is null.  These objects are added to <b>task</b> and 
-     * available via {@link Task#getParametersWithErrors() } and removed from {@link Task#getParameters()} list 
-     * @param task
+     * Iterates through the parameters for the job creating {@link ParameterWithError} objects for
+     * any {@link Parameter} objects where the name is null.  These objects are added to <b>job</b> and 
+     * available via {@link Job#getParametersWithErrors() } and removed from {@link Job#getParameters()} list 
+     * @param job
      */
     @Override
-    public void check(Task task) {
-        if (task == null){
-            _log.log(Level.INFO, "Task is null");
+    public void check(Job job) {
+        if (job == null){
+            _log.log(Level.INFO, "Job is null");
             return;
         }
         
-        if (task.getParameters() == null || task.getParameters().isEmpty() == true){
-            _log.log(Level.INFO,"This task has no parameters");
+        if (job.getParameters() == null || job.getParameters().isEmpty() == true){
+            _log.log(Level.INFO,"This job has no parameters");
             return;
         }
         
-        Iterator pIterator = task.getParameters().iterator();
+        Iterator pIterator = job.getParameters().iterator();
         Parameter p;
         for (; pIterator.hasNext() ;){
             p = (Parameter)pIterator.next();
             if (p.getName() == null){
-                task.addParameterWithError(new ParameterWithError(p,"Parameter name is null"));
+                job.addParameterWithError(new ParameterWithError(p,"Parameter name is null"));
                 pIterator.remove();
             }
         }

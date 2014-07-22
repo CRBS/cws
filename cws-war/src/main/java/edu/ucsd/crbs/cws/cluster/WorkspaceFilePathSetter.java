@@ -34,10 +34,10 @@
 package edu.ucsd.crbs.cws.cluster;
 
 import edu.ucsd.crbs.cws.workflow.Parameter;
-import edu.ucsd.crbs.cws.workflow.Task;
+import edu.ucsd.crbs.cws.workflow.Job;
 
 /**
- * Given a {@link Task} implementing interfaces replace any {@link Parameter} values
+ * Given a {@link Job} implementing interfaces replace any {@link Parameter} values
  * that are of type file with a workspacefile id with the corresponding path to the
  * file on the filesystem.  
  * 
@@ -47,14 +47,14 @@ public interface WorkspaceFilePathSetter {
 
     
     /**
-     * For all {@link Parameter} objects in {@link Task} <b>t</b> of type <b>file</b>
+     * For all {@link Parameter} objects in {@link Job} <b>t</b> of type <b>file</b>
      * this method gets the path of the {@link WorkspaceFile} that matches id in 
      * {@link Parameter#getValue()}. 
      * 
-     * @param t Task to update 
+     * @param j Job to update 
      * @return true if all files were successfully updated, otherwise false.
      * @throws Exception 
      */
-    public boolean setPaths(Task t) throws Exception;
+    public boolean setPaths(Job j) throws Exception;
     
 }

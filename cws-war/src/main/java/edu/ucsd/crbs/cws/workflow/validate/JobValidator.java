@@ -34,24 +34,24 @@
 package edu.ucsd.crbs.cws.workflow.validate;
 
 import edu.ucsd.crbs.cws.auth.User;
-import edu.ucsd.crbs.cws.workflow.Task;
+import edu.ucsd.crbs.cws.workflow.Job;
 
 /**
  * Defines interface for classes that link and validate @{link Parameter} objects in
- * {@link Task}
+ * {@link Job}
  * 
  * @author Christopher Churas <churas@ncmir.ucsd.edu>
  */
-public interface TaskValidator {
+public interface JobValidator {
     
     /**
-     * Examines task and verifies all parameters meet requirements of {@link WorkflowParameter}
+     * Examines <b>job</b> and verifies all parameters meet requirements of {@link WorkflowParameter}
      * objects within.  
-     * @param task
+     * @param job
      * @param user
      * @return
      * @throws Exception 
      */
-    public Task validateParameters(Task task,User user) throws Exception;
+    public Job validateParameters(Job job,User user) throws Exception;
 
 }

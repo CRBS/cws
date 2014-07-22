@@ -34,7 +34,7 @@
 package edu.ucsd.crbs.cws.workflow.validate;
 
 import edu.ucsd.crbs.cws.workflow.Parameter;
-import edu.ucsd.crbs.cws.workflow.Task;
+import edu.ucsd.crbs.cws.workflow.Job;
 import java.util.ArrayList;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -52,9 +52,9 @@ import org.junit.runners.JUnit4;
  * @author Christopher Churas <churas@ncmir.ucsd.edu>
  */
 @RunWith(JUnit4.class)
-public class TestTaskParametersNullNameChecker {
+public class TestJobParametersNullNameChecker {
 
-    public TestTaskParametersNullNameChecker() {
+    public TestJobParametersNullNameChecker() {
     }
 
     @BeforeClass
@@ -78,16 +78,16 @@ public class TestTaskParametersNullNameChecker {
      */
     @Test
     public void testNullTaskAndParameters(){
-        TaskParametersNullNameChecker checker = new TaskParametersNullNameChecker();
+        JobParametersNullNameChecker checker = new JobParametersNullNameChecker();
         
         checker.check(null);
-        checker.check(new Task());
+        checker.check(new Job());
     }
 
     @Test
     public void testNoNulls(){
-        TaskParametersNullNameChecker checker = new TaskParametersNullNameChecker();
-        Task t = new Task();
+        JobParametersNullNameChecker checker = new JobParametersNullNameChecker();
+        Job t = new Job();
         ArrayList<Parameter> params = new ArrayList<>();
         params.add(new Parameter("n1","v1"));
         params.add(new Parameter("n2","v2"));
@@ -104,8 +104,8 @@ public class TestTaskParametersNullNameChecker {
     
     @Test
     public void testSingleNullParameter(){
-        TaskParametersNullNameChecker checker = new TaskParametersNullNameChecker();
-        Task t = new Task();
+        JobParametersNullNameChecker checker = new JobParametersNullNameChecker();
+        Job t = new Job();
         ArrayList<Parameter> params = new ArrayList<>();
         params.add(new Parameter());
         t.setParameters(params);
@@ -118,8 +118,8 @@ public class TestTaskParametersNullNameChecker {
     
     @Test
     public void testSingleNullInListOfThreeParameters(){
-        TaskParametersNullNameChecker checker = new TaskParametersNullNameChecker();
-        Task t = new Task();
+        JobParametersNullNameChecker checker = new JobParametersNullNameChecker();
+        Job t = new Job();
         ArrayList<Parameter> params = new ArrayList<>();
         params.add(new Parameter("n1","v1"));
         params.add(new Parameter(null,"v2"));

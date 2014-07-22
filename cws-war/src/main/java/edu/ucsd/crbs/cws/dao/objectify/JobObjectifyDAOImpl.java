@@ -1,11 +1,44 @@
+/*
+ * COPYRIGHT AND LICENSE
+ * 
+ * Copyright 2014 The Regents of the University of California All Rights Reserved
+ * 
+ * Permission to copy, modify and distribute any part of this CRBS Workflow 
+ * Service for educational, research and non-profit purposes, without fee, and
+ * without a written agreement is hereby granted, provided that the above 
+ * copyright notice, this paragraph and the following three paragraphs appear
+ * in all copies.
+ * 
+ * Those desiring to incorporate this CRBS Workflow Service into commercial 
+ * products or use for commercial purposes should contact the Technology
+ * Transfer Office, University of California, San Diego, 9500 Gilman Drive, 
+ * Mail Code 0910, La Jolla, CA 92093-0910, Ph: (858) 534-5815, 
+ * FAX: (858) 534-7345, E-MAIL:invent@ucsd.edu.
+ * 
+ * IN NO EVENT SHALL THE UNIVERSITY OF CALIFORNIA BE LIABLE TO ANY PARTY FOR 
+ * DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES, INCLUDING 
+ * LOST PROFITS, ARISING OUT OF THE USE OF THIS CRBS Workflow Service, EVEN IF 
+ * THE UNIVERSITY OF CALIFORNIA HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH
+ * DAMAGE.
+ * 
+ * THE CRBS Workflow Service PROVIDED HEREIN IS ON AN "AS IS" BASIS, AND THE
+ * UNIVERSITY OF CALIFORNIA HAS NO OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, 
+ * UPDATES, ENHANCEMENTS, OR MODIFICATIONS. THE UNIVERSITY OF CALIFORNIA MAKES
+ * NO REPRESENTATIONS AND EXTENDS NO WARRANTIES OF ANY KIND, EITHER IMPLIED OR 
+ * EXPRESS, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF 
+ * MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE, OR THAT THE USE OF 
+ * THE CRBS Workflow Service WILL NOT INFRINGE ANY PATENT, TRADEMARK OR OTHER
+ * RIGHTS. 
+ */
+
 package edu.ucsd.crbs.cws.dao.objectify;
 
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Work;
 import com.googlecode.objectify.cmd.Query;
-import edu.ucsd.crbs.cws.dao.TaskDAO;
+import edu.ucsd.crbs.cws.dao.JobDAO;
 import static edu.ucsd.crbs.cws.dao.objectify.OfyService.ofy;
-import edu.ucsd.crbs.cws.workflow.Task;
+import edu.ucsd.crbs.cws.workflow.Job;
 import edu.ucsd.crbs.cws.workflow.Workflow;
 import java.util.Arrays;
 import java.util.Date;
@@ -17,36 +50,36 @@ import java.util.List;
  *
  * @author Christopher Churas <churas@ncmir.ucsd.edu>
  */
-public class TaskObjectifyDAOImpl implements TaskDAO {
+public class JobObjectifyDAOImpl implements JobDAO {
 
     private static final String COMMA = ",";
 
     
     /**
-     * In a transaction this method loads a {@link Task} with matching <b>taskId</b>
+     * In a transaction this method loads a {@link Job} with matching <b>jobId</b>
      * and resaves it to data store
-     * @param taskId
+     * @param jobId
      * @return
      * @throws Exception 
      */
     @Override
-    public Task resave(final long taskId) throws Exception {
+    public Job resave(final long jobId) throws Exception {
 
-        Task resTask = ofy().transact(new Work<Task>() {
+        Job resTask = ofy().transact(new Work<Job>() {
             @Override
-            public Task run() {
-                Task task;
+            public Job run() {
+                Job job;
                 try {
-                    task = getTaskById(Long.toString(taskId));
+                    job = getJobById(Long.toString(jobId));
                 } catch (Exception ex) {
                     return null;
                 }
-                if (task == null) {
+                if (job == null) {
                     return null;
                 }
 
-                Key<Task> tKey = ofy().save().entity(task).now();
-                return task;
+                Key<Job> tKey = ofy().save().entity(job).now();
+                return job;
             }
         });
 
@@ -54,19 +87,19 @@ public class TaskObjectifyDAOImpl implements TaskDAO {
     }
                 
     @Override
-    public Task getTaskById(final String taskId) throws Exception {
-        long taskIdAsLong;
+    public Job getJobById(final String jobId) throws Exception {
+        long jobIdAsLong;
         try {
-            taskIdAsLong = Long.parseLong(taskId);
+            jobIdAsLong = Long.parseLong(jobId);
         } catch (NumberFormatException nfe) {
             throw new Exception(nfe);
         }
-        return ofy().load().type(Task.class).id(taskIdAsLong).now();
+        return ofy().load().type(Job.class).id(jobIdAsLong).now();
     }
 
     @Override
-    public List<Task> getTasks(String owner, String status, Boolean notSubmittedToScheduler, boolean noParams, boolean noWorkflowParams) throws Exception {
-        Query<Task> q = ofy().load().type(Task.class);
+    public List<Job> getJobs(String owner, String status, Boolean notSubmittedToScheduler, boolean noParams, boolean noWorkflowParams) throws Exception {
+        Query<Job> q = ofy().load().type(Job.class);
 
         if (status != null) {
             q = q.filter("_status in ", generateListFromCommaSeparatedString(status));
@@ -82,134 +115,134 @@ public class TaskObjectifyDAOImpl implements TaskDAO {
             return q.list();
         }
 
-        List<Task> tasks = q.list();
-        for (Task t : tasks) {
+        List<Job> job = q.list();
+        for (Job j : job) {
             if (noParams == true) {
-                t.setParameters(null);
+                j.setParameters(null);
             }
             if (noWorkflowParams == true) {
-                Workflow w = t.getWorkflow();
+                Workflow w = j.getWorkflow();
                 if (w != null) {
                     w.setParameters(null);
                     w.setParentWorkflow(null);
                 }
             }
         }
-        return tasks;
+        return job;
     }
 
     /**
-     * Creates a new Task in the data store
+     * Creates a new Job in the data store
      *
-     * @param task Task to insert
+     * @param job Job to insert
      * @param skipWorkflowCheck
-     * @return Task object with id updated
+     * @return Job object with id updated
      * @throws Exception
      */
     @Override
-    public Task insert(Task task, boolean skipWorkflowCheck) throws Exception {
-        if (task == null) {
-            throw new NullPointerException("Task is null");
+    public Job insert(Job job, boolean skipWorkflowCheck) throws Exception {
+        if (job == null) {
+            throw new NullPointerException("Job is null");
         }
-        if (task.getCreateDate() == null) {
-            task.setCreateDate(new Date());
+        if (job.getCreateDate() == null) {
+            job.setCreateDate(new Date());
         }
 
         if (skipWorkflowCheck == false) {
 
-            if (task.getWorkflow() == null) {
-                throw new Exception("Task Workflow cannot be null");
+            if (job.getWorkflow() == null) {
+                throw new Exception("Job Workflow cannot be null");
             }
 
-            if (task.getWorkflow().getId() == null || task.getWorkflow().getId() <= 0) {
-                throw new Exception("Task Workflow id is either null or 0 or less which is not valid");
+            if (job.getWorkflow().getId() == null || job.getWorkflow().getId() <= 0) {
+                throw new Exception("Job Workflow id is either null or 0 or less which is not valid");
             }
             //try to load the workflow and only if we get a workflow do we try to save
-            //the task otherwise it is an error
-            Workflow wf = ofy().load().type(Workflow.class).id(task.getWorkflow().getId()).now();
+            //the job otherwise it is an error
+            Workflow wf = ofy().load().type(Workflow.class).id(job.getWorkflow().getId()).now();
             if (wf == null) {
-                throw new Exception("Unable to load Workflow for Task");
+                throw new Exception("Unable to load Workflow for Job");
             }
         }
         /**
-         * @TODO Need to verify the Task Parameters match the Workflow
+         * @TODO Need to verify the Job Parameters match the Workflow
          * parameters and that valid values are set for each of those parameters
          */
-        Key<Task> tKey = ofy().save().entity(task).now();
+        Key<Job> jKey = ofy().save().entity(job).now();
 
-        return task;
+        return job;
     }
 
     @Override
-    public Task update(final long taskId, final String status, final Long estCpu,
+    public Job update(final long jobId, final String status, final Long estCpu,
             final Long estRunTime, final Long estDisk, final Long submitDate,
             final Long startDate, final Long finishDate,
             final Boolean submittedToScheduler,
-            final String jobId) throws Exception {
+            final String schedulerJobId) throws Exception {
 
-        Task resTask;
-        resTask = ofy().transact(new Work<Task>() {
+        Job resJob;
+        resJob = ofy().transact(new Work<Job>() {
             @Override
-            public Task run() {
+            public Job run() {
 
-                Task task = ofy().load().type(Task.class).id(taskId).now();
+                Job job = ofy().load().type(Job.class).id(jobId).now();
 
-                if (task == null) {
+                if (job == null) {
                     return null;
                 }
-                boolean taskNeedsToBeSaved = false;
+                boolean jobNeedsToBeSaved = false;
                 if (status != null && status.isEmpty() == false) {
-                    task.setStatus(status);
-                    taskNeedsToBeSaved = true;
+                    job.setStatus(status);
+                    jobNeedsToBeSaved = true;
                 }
-                if (estCpu != null && task.getEstimatedCpuInSeconds() != estCpu) {
-                    task.setEstimatedCpuInSeconds(estCpu);
-                    taskNeedsToBeSaved = true;
+                if (estCpu != null && job.getEstimatedCpuInSeconds() != estCpu) {
+                    job.setEstimatedCpuInSeconds(estCpu);
+                    jobNeedsToBeSaved = true;
                 }
-                if (estRunTime != null && task.getEstimatedRunTime() != estRunTime) {
-                    task.setEstimatedRunTime(estRunTime);
-                    taskNeedsToBeSaved = true;
+                if (estRunTime != null && job.getEstimatedRunTime() != estRunTime) {
+                    job.setEstimatedRunTime(estRunTime);
+                    jobNeedsToBeSaved = true;
                 }
-                if (estDisk != null && task.getEstimatedDiskInBytes() != estDisk) {
-                    task.setEstimatedDiskInBytes(estDisk);
-                    taskNeedsToBeSaved = true;
+                if (estDisk != null && job.getEstimatedDiskInBytes() != estDisk) {
+                    job.setEstimatedDiskInBytes(estDisk);
+                    jobNeedsToBeSaved = true;
                 }
 
                 if (submitDate != null) {
-                    task.setSubmitDate(new Date(submitDate));
-                    taskNeedsToBeSaved = true;
+                    job.setSubmitDate(new Date(submitDate));
+                    jobNeedsToBeSaved = true;
                 }
                 if (startDate != null) {
-                    task.setStartDate(new Date(startDate));
-                    taskNeedsToBeSaved = true;
+                    job.setStartDate(new Date(startDate));
+                    jobNeedsToBeSaved = true;
                 }
                 if (finishDate != null) {
-                    task.setFinishDate(new Date(finishDate));
-                    taskNeedsToBeSaved = true;
+                    job.setFinishDate(new Date(finishDate));
+                    jobNeedsToBeSaved = true;
                 }
 
-                if (submittedToScheduler != null && submittedToScheduler != task.getHasJobBeenSubmittedToScheduler()) {
-                    task.setHasJobBeenSubmittedToScheduler(submittedToScheduler);
-                    taskNeedsToBeSaved = true;
+                if (submittedToScheduler != null && submittedToScheduler != job.getHasJobBeenSubmittedToScheduler()) {
+                    job.setHasJobBeenSubmittedToScheduler(submittedToScheduler);
+                    jobNeedsToBeSaved = true;
                 }
                 
-                if (jobId != null) {
-                    if (task.getJobId() == null || !task.getJobId().equals(jobId)) {
-                        task.setJobId(jobId);
-                        taskNeedsToBeSaved = true;
+                if (schedulerJobId != null) {
+                    if (job.getSchedulerJobId() == null || !job.getSchedulerJobId().equals(schedulerJobId)) {
+                        job.setSchedulerJobId(schedulerJobId);
+                        jobNeedsToBeSaved = true;
                     }
                 }
 
-                if (taskNeedsToBeSaved == true) {
-                    Key<Task> tKey = ofy().save().entity(task).now();
+                if (jobNeedsToBeSaved == true) {
+                    Key<Job> jKey = ofy().save().entity(job).now();
                 }
-                return task;
+                return job;
             }
         });
-        if (resTask == null) {
+        if (resJob == null) {
             throw new Exception("There was a problem updating the Task");
         }
-        return resTask;
+        return resJob;
     }
 
     private List<String> generateListFromCommaSeparatedString(final String val) {

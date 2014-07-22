@@ -33,7 +33,7 @@
 
 package edu.ucsd.crbs.cws.cluster;
 
-import edu.ucsd.crbs.cws.workflow.Task;
+import edu.ucsd.crbs.cws.workflow.Job;
 import java.util.List;
 import java.util.Map;
 
@@ -41,15 +41,15 @@ import java.util.Map;
  * Interface for getting map of job statuses
  * @author Christopher Churas <churas@ncmir.ucsd.edu>
  */
-public interface MapOfTaskStatusFactory {
+public interface MapOfJobStatusFactory {
     
     /**
-     * Given a list of <b>tasks</b> implementors return a map with job ids as keys
+     * Given a list of <b>jobs</b> implementors return a map with job ids as keys
      * and status as values.  
-     * @param tasks
+     * @param jobs
      * @return
      * @throws Exception 
      */
-    public Map<String,String> getJobStatusMap(List<Task> tasks) throws Exception;
+    public Map<String,String> getJobStatusMap(List<Job> jobs) throws Exception;
 
 }

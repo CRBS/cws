@@ -34,14 +34,14 @@ package edu.ucsd.crbs.cws.cluster;
 
 import edu.ucsd.crbs.cws.dao.WorkspaceFileDAO;
 import edu.ucsd.crbs.cws.workflow.Parameter;
-import edu.ucsd.crbs.cws.workflow.Task;
+import edu.ucsd.crbs.cws.workflow.Job;
 import edu.ucsd.crbs.cws.workflow.WorkspaceFile;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 /**
- * Iterates through {@link Task#getParameters()} and updates their {@link Parameter#getValue()}
+ * Iterates through {@link Job#getParameters()} and updates their {@link Parameter#getValue()}
  * with proper filesystem paths by querying the data store for their location on the file system
  * 
  * @author Christopher Churas <churas@ncmir.ucsd.edu>
@@ -56,30 +56,30 @@ public class WorkspaceFilePathSetterImpl implements WorkspaceFilePathSetter {
     }
 
     /**
-     * Examines all {@link Parameter} objects in {@link Task} <b>t</b> 
+     * Examines all {@link Parameter} objects in {@link Job} <b>t</b> 
      * where {@link Parameter#isIsWorkspaceId()} is set to true.  The method
      * assumes {@link Parameter#getValue()} is a 
      * {@link WorkspaceFile#getId()}.  The method then retrieves these WorkspaceFile
      * objects from the data store and replaces the {@link Parameter#getValue()} with the
      * value of {@link WorkspaceFile#getPath()} if that path is not null. 
      *
-     * @param t Task to update
+     * @param j Job to update
      * @return true if all files {@link Parameter} were updated successfully with valid paths otherwise false
      * @throws NullPointerException if a Parameter value is null or if {@link WorkspaceFileDAO} set via constructor is null
      * @throws NumberFormatException if a Parameter value cannot be converted to a workspace id which is a Long
      */
     @Override
-    public boolean setPaths(Task t) throws Exception {
-        if (t == null) {
+    public boolean setPaths(Job j) throws Exception {
+        if (j == null) {
             return false;
         }
         
-        if (t.getParameters() == null || t.getParameters().isEmpty()){
+        if (j.getParameters() == null || j.getParameters().isEmpty()){
             return true;
         }
         
         StringBuilder sb = new StringBuilder();
-        for (Parameter param : t.getParameters()) {
+        for (Parameter param : j.getParameters()) {
             if (param.isIsWorkspaceId() == false) {
                 continue;
             }
@@ -100,7 +100,7 @@ public class WorkspaceFilePathSetterImpl implements WorkspaceFilePathSetter {
 
         Map<Long, WorkspaceFile> wsMap = getMapOfWorkspaceFiles(sb.toString());
 
-        for (Parameter param : t.getParameters()) {
+        for (Parameter param : j.getParameters()) {
             if (param.isIsWorkspaceId() == false) {
                 continue;
             }

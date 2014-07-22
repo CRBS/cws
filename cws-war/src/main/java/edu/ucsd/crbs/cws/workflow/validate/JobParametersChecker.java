@@ -33,23 +33,23 @@
 
 package edu.ucsd.crbs.cws.workflow.validate;
 
-import edu.ucsd.crbs.cws.workflow.Task;
+import edu.ucsd.crbs.cws.workflow.Job;
 
 /**
- * Implementing classes perform checks on {@link Parameter} objects of {@link Task}
+ * Implementing classes perform checks on {@link Parameter} objects of {@link Job}
  * optionally removing or modifying those {@link Parameter} objects.
  * 
  * 
  * @author Christopher Churas <churas@ncmir.ucsd.edu>
  */
-public interface TaskParametersChecker {
+public interface JobParametersChecker {
     
     /**
-     * Check the {@link Parameter} objects within Task updating {@link Task#getParametersWithErrors() }
-     * with issues found and optionally modifying the {@link Task#getParameters()} list.
+     * Check the {@link Parameter} objects within <b>job</b> updating {@link Job#getParametersWithErrors() }
+     * with issues found and optionally modifying the {@link Job#getParameters()} list.
      * 
-     * @param task 
+     * @param job 
      */
-    public void check(Task task);
+    public void check(Job job);
 
 }

@@ -47,7 +47,7 @@ import edu.ucsd.crbs.cws.dao.WorkflowDAO;
 import edu.ucsd.crbs.cws.jerseyclient.MultivaluedMapFactory;
 import edu.ucsd.crbs.cws.jerseyclient.MultivaluedMapFactoryImpl;
 import edu.ucsd.crbs.cws.rest.Constants;
-import edu.ucsd.crbs.cws.workflow.Task;
+import edu.ucsd.crbs.cws.workflow.Job;
 import edu.ucsd.crbs.cws.workflow.Workflow;
 import java.util.List;
 import javax.ws.rs.core.MediaType;
@@ -114,7 +114,7 @@ public class WorkflowRestDAOImpl implements WorkflowDAO {
     }
 
     @Override
-    public Workflow getWorkflowForTask(Task task, User user) throws Exception {
+    public Workflow getWorkflowForJob(Job job, User user) throws Exception {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 

@@ -1,3 +1,36 @@
+/*
+ * COPYRIGHT AND LICENSE
+ * 
+ * Copyright 2014 The Regents of the University of California All Rights Reserved
+ * 
+ * Permission to copy, modify and distribute any part of this CRBS Workflow 
+ * Service for educational, research and non-profit purposes, without fee, and
+ * without a written agreement is hereby granted, provided that the above 
+ * copyright notice, this paragraph and the following three paragraphs appear
+ * in all copies.
+ * 
+ * Those desiring to incorporate this CRBS Workflow Service into commercial 
+ * products or use for commercial purposes should contact the Technology
+ * Transfer Office, University of California, San Diego, 9500 Gilman Drive, 
+ * Mail Code 0910, La Jolla, CA 92093-0910, Ph: (858) 534-5815, 
+ * FAX: (858) 534-7345, E-MAIL:invent@ucsd.edu.
+ * 
+ * IN NO EVENT SHALL THE UNIVERSITY OF CALIFORNIA BE LIABLE TO ANY PARTY FOR 
+ * DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES, INCLUDING 
+ * LOST PROFITS, ARISING OUT OF THE USE OF THIS CRBS Workflow Service, EVEN IF 
+ * THE UNIVERSITY OF CALIFORNIA HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH
+ * DAMAGE.
+ * 
+ * THE CRBS Workflow Service PROVIDED HEREIN IS ON AN "AS IS" BASIS, AND THE
+ * UNIVERSITY OF CALIFORNIA HAS NO OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, 
+ * UPDATES, ENHANCEMENTS, OR MODIFICATIONS. THE UNIVERSITY OF CALIFORNIA MAKES
+ * NO REPRESENTATIONS AND EXTENDS NO WARRANTIES OF ANY KIND, EITHER IMPLIED OR 
+ * EXPRESS, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF 
+ * MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE, OR THAT THE USE OF 
+ * THE CRBS Workflow Service WILL NOT INFRINGE ANY PATENT, TRADEMARK OR OTHER
+ * RIGHTS. 
+ */
+
 package edu.ucsd.crbs.cws.rest;
 
 /**
@@ -13,9 +46,9 @@ public class Constants {
     
     public static final String SLASH = "/";
     
-    public static final String TASK_ID_PATH_PARAM = "taskid";
+    public static final String JOB_ID_PATH_PARAM = "jobid";
     
-    public static final String TASK_ID_REST_PATH = SLASH+"{"+TASK_ID_PATH_PARAM+"}";
+    public static final String JOB_ID_REST_PATH = SLASH+"{"+JOB_ID_PATH_PARAM+"}";
     
     public static final String WORKFLOW_SUFFIX = ".kar";
     
@@ -40,9 +73,9 @@ public class Constants {
     public static final String USERS_PATH = "users";
     
     /**
-     * REST URL path for Tasks
+     * REST URL path for Jobs
      */
-    public static final String TASKS_PATH = "tasks";
+    public static final String JOBS_PATH = "jobs";
     
     /**
      * REST URL path for Workflows
@@ -74,7 +107,7 @@ public class Constants {
     
     /**
      * Alternate user login parameter name.  Currently some rest calls
-     * require this if invoker is a super user wishing to run a task on behalf
+     * require this if invoker is a super user wishing to run a job on behalf
      * of another user
      */
     public static final String USER_LOGIN_TO_RUN_AS_PARAM = "runasuser";
@@ -103,7 +136,7 @@ public class Constants {
     public static final String STARTDATE_QUERY_PARAM = "startdate";
     public static final String FINISHDATE_QUERY_PARAM = "finishdate";
     public static final String SUBMITTED_TO_SCHED_QUERY_PARAM = "submittedtosched";
-    public static final String JOB_ID_QUERY_PARAM = "jobid";
+    public static final String SCHEDULER_JOB_ID_QUERY_PARAM = "schedulerjobid";
     public static final String DOWNLOADURL_QUERY_PARAM = "downloadurl";
     
     
@@ -120,26 +153,26 @@ public class Constants {
     public static final String RESAVE_QUERY_PARAM = "resave";
     
     /**
-     * outputs Directory where Tasks should write output
+     * outputs Directory where Job should write output
      */
     public static final String OUTPUTS_DIR_NAME = "outputs";
     
     
      /**
-     * Special Canvas parameter that will be set to the user running the job
+     * Special Canvas parameter that will be set to the user running the {@link Job}
      */
     public static final String CWS_USER = "CWS_user";
     
     /**
-     * Special Canvas parameter that will be set to the name of the task
+     * Special Canvas parameter that will be set to the name of the {@link Job}
      */
-    public static final String CWS_TASKNAME = "CWS_taskname";
+    public static final String CWS_JOBNAME = "CWS_jobname";
     
     
     /**
-     * Special Canvas parameter that will be set to the id of the task
+     * Special Canvas parameter that will be set to the id of the {@link Job}
      */
-    public static final String CWS_TASKID = "CWS_taskid";
+    public static final String CWS_JOBID = "CWS_jobid";
     
     /**
      * Special Canvas parameter that will be set to the output directory for the running job

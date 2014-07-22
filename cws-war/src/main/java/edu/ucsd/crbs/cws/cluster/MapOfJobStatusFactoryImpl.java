@@ -35,7 +35,7 @@ package edu.ucsd.crbs.cws.cluster;
 
 import edu.ucsd.crbs.cws.util.RunCommandLineProcess;
 import edu.ucsd.crbs.cws.util.RunCommandLineProcessImpl;
-import edu.ucsd.crbs.cws.workflow.Task;
+import edu.ucsd.crbs.cws.workflow.Job;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -43,12 +43,12 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Creates Map of job statuses for a given set of tasks by calling panfishstat
+ * Creates Map of job statuses for a given set of jobs by calling panfishstat
  * command line program
  * 
  * @author Christopher Churas <churas@ncmir.ucsd.edu>
  */
-public class MapOfTaskStatusFactoryImpl implements MapOfTaskStatusFactory {
+public class MapOfJobStatusFactoryImpl implements MapOfJobStatusFactory {
 
     static final String NEW_LINE = "\n";
     
@@ -80,7 +80,7 @@ public class MapOfTaskStatusFactoryImpl implements MapOfTaskStatusFactory {
     static final String STATUSOFJOBID = "--statusofjobid";
     
     private static final Logger _log
-            = Logger.getLogger(MapOfTaskStatusFactoryImpl.class.getName());
+            = Logger.getLogger(MapOfJobStatusFactoryImpl.class.getName());
     
     /**
      * Panfishstat binary path
@@ -89,30 +89,30 @@ public class MapOfTaskStatusFactoryImpl implements MapOfTaskStatusFactory {
 
     RunCommandLineProcess _runCommandLineProcess = new RunCommandLineProcessImpl();
     
-    public MapOfTaskStatusFactoryImpl(final String panfishStat){
+    public MapOfJobStatusFactoryImpl(final String panfishStat){
         _panfishStat = panfishStat;
     }
     
     /**
-     * Calls panfishstat to get updated status of <b>tasks</b> passed in
-     * @param tasks Tasks to check
+     * Calls panfishstat to get updated status of <b>jobs</b> passed in
+     * @param jobs Jobs to check
      * @return Map with key set to job id and value set to status.  Status will 
-     * be one of the following {@link Task#IN_QUEUE_STATUS}, 
-     * {@link Task#RUNNING_STATUS}, {@link Task#COMPLETED_STATUS}, or 
-     * {@link Task#ERROR_STATUS}
+     * be one of the following {@link Job#IN_QUEUE_STATUS}, 
+     * {@link Job#RUNNING_STATUS}, {@link Job#COMPLETED_STATUS}, or 
+     * {@link Job#ERROR_STATUS}
      * @throws Exception if there was a problem calling panfishstat or if 
      * panfishstat returns non zero exit code
      */
     @Override
-    public Map<String, String> getJobStatusMap(List<Task> tasks) throws Exception {
+    public Map<String, String> getJobStatusMap(List<Job> jobs) throws Exception {
         
-        // @TODO need to handle case where there are 2,000+ tasks to get status for
+        // @TODO need to handle case where there are 2,000+ jobs to get status for
         // cause the bash command line will fail with too many arguments errors
-        String delimStringOfJobIds = getCommaDelimitedStringOfJobIds(tasks);
+        String delimStringOfJobIds = getCommaDelimitedStringOfJobIds(jobs);
         Map<String, String> jobStatusMap = new HashMap<>();
         
         if (delimStringOfJobIds == null){
-            _log.log(Level.INFO,"No tasks to examine");
+            _log.log(Level.INFO,"No jobs to examine");
             return jobStatusMap;
         }
         
@@ -135,14 +135,14 @@ public class MapOfTaskStatusFactoryImpl implements MapOfTaskStatusFactory {
             String status = line.substring(equalPos + 1);
 
             //set to default of Task.IN_QUEUE_STATUS
-            String convertedStatus = Task.IN_QUEUE_STATUS;
+            String convertedStatus = Job.IN_QUEUE_STATUS;
             
             if (status.equalsIgnoreCase(RUNNING)) {
-                convertedStatus = Task.RUNNING_STATUS;
+                convertedStatus = Job.RUNNING_STATUS;
             } else if (status.equalsIgnoreCase(DONE)) {
-                convertedStatus = Task.COMPLETED_STATUS;
+                convertedStatus = Job.COMPLETED_STATUS;
             } else if (status.equalsIgnoreCase(FAILED)) {
-                convertedStatus = Task.ERROR_STATUS;
+                convertedStatus = Job.ERROR_STATUS;
             }
             
             jobStatusMap.put(id, convertedStatus);
@@ -153,27 +153,27 @@ public class MapOfTaskStatusFactoryImpl implements MapOfTaskStatusFactory {
     }
 
     /**
-     * Examines the list of Task objects building a CSV list from the
-     * Task.getJobId() strings
+     * Examines the list of Job objects building a CSV list from the
+     * Job.getId strings
      *
-     * @param tasks
+     * @param jobs
      * @return CSV delimited list of jobIds
      */
-    private String getCommaDelimitedStringOfJobIds(List<Task> tasks) throws Exception {
+    private String getCommaDelimitedStringOfJobIds(List<Job> jobs) throws Exception {
         StringBuilder sb = new StringBuilder();
         
-        if (tasks == null || tasks.isEmpty() == true){
+        if (jobs == null || jobs.isEmpty() == true){
             return null;
         }
         
-        for (Task t : tasks) {
+        for (Job j : jobs) {
             if (sb.length() > 0) {
                 sb.append(COMMA);
             }
-            if (t.getJobId() == null){
-                throw new Exception("Task cannot have a null job id");
+            if (j.getSchedulerJobId() == null){
+                throw new Exception("Job cannot have a null job id");
             }
-            sb.append(t.getJobId());
+            sb.append(j.getSchedulerJobId());
             
         }
         return sb.toString();

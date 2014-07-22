@@ -37,7 +37,7 @@ import edu.ucsd.crbs.cws.dao.WorkflowDAO;
 import edu.ucsd.crbs.cws.dao.objectify.WorkflowObjectifyDAOImpl;
 import edu.ucsd.crbs.cws.workflow.Parameter;
 import edu.ucsd.crbs.cws.workflow.ParameterWithError;
-import edu.ucsd.crbs.cws.workflow.Task;
+import edu.ucsd.crbs.cws.workflow.Job;
 import edu.ucsd.crbs.cws.workflow.Workflow;
 import edu.ucsd.crbs.cws.workflow.WorkflowParameter;
 import java.util.Iterator;
@@ -45,104 +45,104 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Validates {@link Task} by examining all the parameters and verifying they
+ * Validates {@link Job} by examining all the parameters and verifying they
  * meet the constraints set by the {@link WorkflowParameter} objects in the
  * associated {@link Workflow}
  *
  * @author Christopher Churas <churas@ncmir.ucsd.edu>
  */
-public class TaskValidatorImpl implements TaskValidator {
+public class JobValidatorImpl implements JobValidator {
 
     private static final Logger _log
-            = Logger.getLogger(TaskValidatorImpl.class.getName());
+            = Logger.getLogger(JobValidatorImpl.class.getName());
 
     WorkflowDAO _workflowDAO = new WorkflowObjectifyDAOImpl();
 
-    TaskParametersChecker _taskParamNullChecker = new TaskParametersNullNameChecker();
-    TaskParametersChecker _taskParamDuplicateChecker = new TaskParametersDuplicateChecker();
+    JobParametersChecker _jobParamNullChecker = new JobParametersNullNameChecker();
+    JobParametersChecker _jobParamDuplicateChecker = new JobParametersDuplicateChecker();
     ParameterValidator _parameterValidator = new ParameterValidatorImpl();
 
     /**
-     * Performs validation of {@link Task} against the {@link Workflow} the task
+     * Performs validation of {@link Job} against the {@link Workflow} the <b>job</b>
      * is supposed to be running. If problems are found they will be set in the
-     * <b>error</b> methods in {@link Task} object. Namely,
-     * {@link Task#getError()} and {@link Task#getParametersWithErrors()}
+     * <b>error</b> methods in {@link Job} object. Namely,
+     * {@link Job#getError()} and {@link Job#getParametersWithErrors()}
      *
-     * @param task {@link Task} to validate
-     * @param user User running the {@link Task}
-     * @return <b>task</b> passed in with errors set as appropriate
-     * @throws Exception If the <b>task</b> is null
+     * @param job {@link Job} to validate
+     * @param user User running the {@link Job}
+     * @return <b>job</b> passed in with errors set as appropriate
+     * @throws Exception If the <b>job</b> is null
      */
     @Override
-    public Task validateParameters(Task task, User user) throws Exception {
-        if (task == null) {
-            throw new Exception("Task cannot be null");
+    public Job validateParameters(Job job, User user) throws Exception {
+        if (job == null) {
+            throw new Exception("Job cannot be null");
         }
 
         _log.log(Level.INFO, "Checking for null parameters");
-        _taskParamNullChecker.check(task);
+        _jobParamNullChecker.check(job);
 
         _log.log(Level.INFO, "Duplicate parameter check");
-        //iterate through all the Parameters of the task and verify there are
+        //iterate through all the Parameters of the job and verify there are
         // no duplicates first if there are set error
-        _taskParamDuplicateChecker.check(task);
+        _jobParamDuplicateChecker.check(job);
 
         //load Workflow For Task and if this has problems bail cause we need the
         // Workflow object to do anything else
         try {
-            Workflow w = _workflowDAO.getWorkflowForTask(task, user);
+            Workflow w = _workflowDAO.getWorkflowForJob(job, user);
             if (w != null) {
-                _log.log(Level.INFO, "Found workflow setting in task");
-                task.setWorkflow(w);
+                _log.log(Level.INFO, "Found workflow setting in job");
+                job.setWorkflow(w);
             } else {
-                if (task.getWorkflow() != null && task.getWorkflow().getId() != null) {
-                    _log.log(Level.WARNING, "Unable to load workflow for task",
-                            task.getWorkflow().getId());
+                if (job.getWorkflow() != null && job.getWorkflow().getId() != null) {
+                    _log.log(Level.WARNING, "Unable to load workflow for job",
+                            job.getWorkflow().getId());
                 } else {
-                    _log.log(Level.WARNING, "Unable to load workflow for task");
+                    _log.log(Level.WARNING, "Unable to load workflow for job");
                 }
-                task.setError("Unable to load workflow for task");
-                return task;
+                job.setError("Unable to load workflow for job");
+                return job;
             }
         } catch (Exception ex) {
             _log.log(Level.SEVERE, "caught exception", ex);
-            task.setError(ex.getMessage());
-            return task;
+            job.setError(ex.getMessage());
+            return job;
         }
 
         // iterate again through all parameters and find corresponding workflowparameter
         // if no match set error
-        if (linkTaskParametersWithWorkflowParameters(task) == 0) {
+        if (linkJobParametersWithWorkflowParameters(job) == 0) {
             _log.log(Level.INFO, "No parameters linked with WorkflowParameters");
-            return task;
+            return job;
         }
 
         // for match verify value is within bounds of workflow parameter if not set error
         // keep track of workflow parameters already covered and if there are
         // any extra note those in the error
         Parameter param;
-        Iterator pIterator = task.getParameters().iterator();
+        Iterator pIterator = job.getParameters().iterator();
         for (; pIterator.hasNext();) {
             param = (Parameter) pIterator.next();
             String res = _parameterValidator.validate(param);
             if (res != null) {
-                task.addParameterWithError(new ParameterWithError(param, res));
+                job.addParameterWithError(new ParameterWithError(param, res));
                 pIterator.remove();
             }
         }
 
-        return task;
+        return job;
     }
 
     /**
-     * Iterates through {@link Task#getParameters()} for <b>task</b> and links
+     * Iterates through {@link Job#getParameters()} for <b>job</b> and links
      * up {@link Parameter} objects with {@link WorkflowParameter} objects into
      * a map that is returned.<p/>
      * This method will fail if any of the following occurs:
      * <p/>
-     * If any <b>task</b> {@link Parameter} objects don't have a matching
+     * If any <b>job</b> {@link Parameter} objects don't have a matching
      * {@link WorkflowParameter}<br/>
-     * If no <b>task</b> {@link Parameter} matches a {@link WorkflowParameter}
+     * If no <b>job</b> {@link Parameter} matches a {@link WorkflowParameter}
      * that is <b>required</b> ie {@link WorkflowParameter#getIsRequired() } ==
      * true<br/>
      *
@@ -151,37 +151,37 @@ public class TaskValidatorImpl implements TaskValidator {
      * corresponding {@link Parameter} and this is fine as long as those
      * {@link WorkflowParameter} objects are not <b>required</b>
      *
-     * @param task Task to examine
+     * @param job Job to examine
      * @return Map with {@link WorkflowParameter} as key and {@link Parameter}
      * as value
      */
-    private int linkTaskParametersWithWorkflowParameters(Task task) {
+    private int linkJobParametersWithWorkflowParameters(Job job) {
 
         WorkflowParameter wParam;
         int count = 0;
 
-        if (task.getParameters() == null) {
+        if (job.getParameters() == null) {
             return 0;
         }
 
-        for (Parameter p : task.getParameters()) {
+        for (Parameter p : job.getParameters()) {
 
-            wParam = task.getWorkflow().removeWorkflowParameterMatchingName(p.getName());
+            wParam = job.getWorkflow().removeWorkflowParameterMatchingName(p.getName());
             if (wParam == null) {
-                task.addParameterWithError(new ParameterWithError(p, "No matching WorkflowParameter"));
+                job.addParameterWithError(new ParameterWithError(p, "No matching WorkflowParameter"));
             } else {
                 p.setWorkflowParameter(wParam);
                 count++;
             }
         }
 
-        if (task.getWorkflow().getParameters().isEmpty() == true) {
+        if (job.getWorkflow().getParameters().isEmpty() == true) {
             return count;
         }
 
-        for (WorkflowParameter wParameter : task.getWorkflow().getParameters()) {
+        for (WorkflowParameter wParameter : job.getWorkflow().getParameters()) {
             if (wParameter.getIsRequired()) {
-                task.addParameterWithError(new ParameterWithError(wParameter.getName(), null, "Required parameter not found"));
+                job.addParameterWithError(new ParameterWithError(wParameter.getName(), null, "Required parameter not found"));
             }
         }
         return count;

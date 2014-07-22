@@ -45,7 +45,7 @@ import edu.ucsd.crbs.cws.dao.objectify.WorkspaceFileObjectifyDAOImpl;
 import edu.ucsd.crbs.cws.log.Event;
 import edu.ucsd.crbs.cws.log.EventBuilder;
 import edu.ucsd.crbs.cws.log.EventBuilderImpl;
-import static edu.ucsd.crbs.cws.rest.TaskRestService._authenticator;
+import static edu.ucsd.crbs.cws.rest.JobRestService._authenticator;
 import edu.ucsd.crbs.cws.workflow.WorkspaceFile;
 import java.util.List;
 import java.util.logging.Level;
@@ -194,7 +194,7 @@ public class WorkspaceFileRestService {
             Event event = _eventBuilder.createEvent(request, user);
             _log.info(event.getStringOfLocationData());
             
-            if (user.isAuthorizedTo(Permission.CREATE_TASK)) {
+            if (user.isAuthorizedTo(Permission.CREATE_JOB)) {
                 WorkspaceFile resWorkspaceFile = _workspaceFileDAO.insert(workspaceFile,false);
                 if (addUploadURL == null || addUploadURL == true){
                     resWorkspaceFile = setFileUploadURL(resWorkspaceFile);

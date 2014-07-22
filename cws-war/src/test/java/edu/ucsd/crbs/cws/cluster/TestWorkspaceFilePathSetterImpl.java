@@ -35,7 +35,7 @@ package edu.ucsd.crbs.cws.cluster;
 
 import edu.ucsd.crbs.cws.dao.WorkspaceFileDAO;
 import edu.ucsd.crbs.cws.workflow.Parameter;
-import edu.ucsd.crbs.cws.workflow.Task;
+import edu.ucsd.crbs.cws.workflow.Job;
 import edu.ucsd.crbs.cws.workflow.WorkspaceFile;
 import java.util.ArrayList;
 import org.junit.After;
@@ -78,9 +78,9 @@ public class TestWorkspaceFilePathSetterImpl {
     public void tearDown() {
     }
 
-    //test null task
+    //test null job
     @Test
-    public void testSetPathsWithNullTask() throws Exception {
+    public void testSetPathsWithNullJob() throws Exception {
         WorkspaceFilePathSetterImpl setter = new WorkspaceFilePathSetterImpl(null);
         assertTrue(setter.setPaths(null) == false);
     }
@@ -89,7 +89,7 @@ public class TestWorkspaceFilePathSetterImpl {
     @Test
     public void testSetPathsWithNullParameters() throws Exception {
         WorkspaceFilePathSetterImpl setter = new WorkspaceFilePathSetterImpl(null);
-        Task t = new Task();
+        Job t = new Job();
         assertTrue(setter.setPaths(t) == true);
     }
     
@@ -97,7 +97,7 @@ public class TestWorkspaceFilePathSetterImpl {
     @Test
     public void testSetPathsWithNoParameters() throws Exception {
         WorkspaceFilePathSetterImpl setter = new WorkspaceFilePathSetterImpl(null);
-        Task t = new Task();
+        Job t = new Job();
         t.setParameters(new ArrayList<Parameter>());
         assertTrue(setter.setPaths(t) == true);
     }
@@ -107,7 +107,7 @@ public class TestWorkspaceFilePathSetterImpl {
     public void testSetPathsWhereWorkspaceFileDAOIsNull() throws Exception {
         WorkspaceFilePathSetterImpl setter = new WorkspaceFilePathSetterImpl(null);
                 
-        Task t = new Task();
+        Job t = new Job();
         t.setId(new Long(1));
         ArrayList<Parameter> params = new ArrayList<>();
         Parameter p = new Parameter();
@@ -131,7 +131,7 @@ public class TestWorkspaceFilePathSetterImpl {
     public void testSetPathsWhereParameterValueIsNull() throws Exception {
         WorkspaceFilePathSetterImpl setter = new WorkspaceFilePathSetterImpl(null);
                 
-        Task t = new Task();
+        Job t = new Job();
         t.setId(new Long(1));
         ArrayList<Parameter> params = new ArrayList<>();
         Parameter p = new Parameter();
@@ -159,7 +159,7 @@ public class TestWorkspaceFilePathSetterImpl {
         
         WorkspaceFilePathSetterImpl setter = new WorkspaceFilePathSetterImpl(workspaceDAO);
         
-        Task t = new Task();
+        Job t = new Job();
         t.setId(new Long(1));
         ArrayList<Parameter> params = new ArrayList<>();
         Parameter p = new Parameter();
@@ -186,7 +186,7 @@ public class TestWorkspaceFilePathSetterImpl {
         WorkspaceFileDAO workspaceDAO = mock(WorkspaceFileDAO.class);
         WorkspaceFilePathSetterImpl setter = new WorkspaceFilePathSetterImpl(workspaceDAO);
                 
-        Task t = new Task();
+        Job t = new Job();
         t.setId(new Long(1));
         ArrayList<Parameter> params = new ArrayList<>();
         Parameter p = new Parameter();
@@ -216,7 +216,7 @@ public class TestWorkspaceFilePathSetterImpl {
         WorkspaceFileDAO workspaceDAO = mock(WorkspaceFileDAO.class);
         WorkspaceFilePathSetterImpl setter = new WorkspaceFilePathSetterImpl(workspaceDAO);
                 
-        Task t = new Task();
+        Job t = new Job();
         t.setId(new Long(1));
         ArrayList<Parameter> params = new ArrayList<>();
         Parameter p = new Parameter();
@@ -247,7 +247,7 @@ public class TestWorkspaceFilePathSetterImpl {
         when(workspaceDAO.getWorkspaceFilesById("123", null)).thenReturn(wspFileList);
         WorkspaceFilePathSetterImpl setter = new WorkspaceFilePathSetterImpl(workspaceDAO);
                 
-        Task t = new Task();
+        Job t = new Job();
         t.setId(new Long(1));
         ArrayList<Parameter> params = new ArrayList<>();
         Parameter p = new Parameter();
@@ -279,7 +279,7 @@ public class TestWorkspaceFilePathSetterImpl {
         when(workspaceDAO.getWorkspaceFilesById("123,456", null)).thenReturn(wspFileList);
         WorkspaceFilePathSetterImpl setter = new WorkspaceFilePathSetterImpl(workspaceDAO);
                 
-        Task t = new Task();
+        Job t = new Job();
         t.setId(new Long(1));
         ArrayList<Parameter> params = new ArrayList<>();
         Parameter p = new Parameter();
@@ -314,7 +314,7 @@ public class TestWorkspaceFilePathSetterImpl {
         
         WorkspaceFilePathSetterImpl setter = new WorkspaceFilePathSetterImpl(workspaceDAO);
                 
-        Task t = new Task();
+        Job t = new Job();
         t.setId(new Long(1));
         ArrayList<Parameter> params = new ArrayList<>();
         Parameter p = new Parameter();

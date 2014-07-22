@@ -85,7 +85,7 @@ public class TestWorkspaceFile {
         assertTrue(wsp.getDeleted() == false);
         assertTrue(wsp.getDir() == false);
         assertTrue(wsp.getPath() == null);
-        assertTrue(wsp.getSourceTaskId() == null);
+        assertTrue(wsp.getSourceJobId() == null);
         assertTrue(wsp.getBlobKey() == null);
         assertTrue(wsp.getUploadURL() == null);
         
@@ -101,7 +101,7 @@ public class TestWorkspaceFile {
         wsp.setDeleted(true);
         wsp.setDir(true);
         wsp.setPath("path");
-        wsp.setSourceTaskId(new Long(3));
+        wsp.setSourceJobId(new Long(3));
         wsp.setBlobKey("blobkey");
         wsp.setUploadURL("uploadurl");
         
@@ -116,7 +116,7 @@ public class TestWorkspaceFile {
         assertTrue(wsp.getDeleted() == true);
         assertTrue(wsp.getDir() == true);
         assertTrue(wsp.getPath().equals("path"));
-        assertTrue(wsp.getSourceTaskId() == 3);
+        assertTrue(wsp.getSourceJobId() == 3);
         assertTrue(wsp.getBlobKey().equals("blobkey"));
         assertTrue(wsp.getUploadURL().equals("uploadurl"));
         

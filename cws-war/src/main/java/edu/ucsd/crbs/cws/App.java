@@ -1,3 +1,36 @@
+/*
+ * COPYRIGHT AND LICENSE
+ * 
+ * Copyright 2014 The Regents of the University of California All Rights Reserved
+ * 
+ * Permission to copy, modify and distribute any part of this CRBS Workflow 
+ * Service for educational, research and non-profit purposes, without fee, and
+ * without a written agreement is hereby granted, provided that the above 
+ * copyright notice, this paragraph and the following three paragraphs appear
+ * in all copies.
+ * 
+ * Those desiring to incorporate this CRBS Workflow Service into commercial 
+ * products or use for commercial purposes should contact the Technology
+ * Transfer Office, University of California, San Diego, 9500 Gilman Drive, 
+ * Mail Code 0910, La Jolla, CA 92093-0910, Ph: (858) 534-5815, 
+ * FAX: (858) 534-7345, E-MAIL:invent@ucsd.edu.
+ * 
+ * IN NO EVENT SHALL THE UNIVERSITY OF CALIFORNIA BE LIABLE TO ANY PARTY FOR 
+ * DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES, INCLUDING 
+ * LOST PROFITS, ARISING OUT OF THE USE OF THIS CRBS Workflow Service, EVEN IF 
+ * THE UNIVERSITY OF CALIFORNIA HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH
+ * DAMAGE.
+ * 
+ * THE CRBS Workflow Service PROVIDED HEREIN IS ON AN "AS IS" BASIS, AND THE
+ * UNIVERSITY OF CALIFORNIA HAS NO OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, 
+ * UPDATES, ENHANCEMENTS, OR MODIFICATIONS. THE UNIVERSITY OF CALIFORNIA MAKES
+ * NO REPRESENTATIONS AND EXTENDS NO WARRANTIES OF ANY KIND, EITHER IMPLIED OR 
+ * EXPRESS, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF 
+ * MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE, OR THAT THE USE OF 
+ * THE CRBS Workflow Service WILL NOT INFRINGE ANY PATENT, TRADEMARK OR OTHER
+ * RIGHTS. 
+ */
+
 package edu.ucsd.crbs.cws;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -14,11 +47,11 @@ import static edu.ucsd.crbs.cws.App.RUN_AS_ARG;
 import static edu.ucsd.crbs.cws.App.TOKEN_ARG;
 import edu.ucsd.crbs.cws.auth.Permission;
 import edu.ucsd.crbs.cws.auth.User;
-import edu.ucsd.crbs.cws.cluster.MapOfTaskStatusFactoryImpl;
-import edu.ucsd.crbs.cws.cluster.TaskStatusUpdater;
-import edu.ucsd.crbs.cws.cluster.TaskSubmitter;
+import edu.ucsd.crbs.cws.cluster.MapOfJobStatusFactoryImpl;
+import edu.ucsd.crbs.cws.cluster.JobStatusUpdater;
+import edu.ucsd.crbs.cws.cluster.JobSubmitter;
 import edu.ucsd.crbs.cws.cluster.WorkspaceFilePathSetterImpl;
-import edu.ucsd.crbs.cws.dao.rest.TaskRestDAOImpl;
+import edu.ucsd.crbs.cws.dao.rest.JobRestDAOImpl;
 import edu.ucsd.crbs.cws.dao.rest.WorkflowRestDAOImpl;
 import edu.ucsd.crbs.cws.dao.rest.WorkspaceFileRestDAOImpl;
 import edu.ucsd.crbs.cws.io.KeplerMomlFromKar;
@@ -29,7 +62,7 @@ import edu.ucsd.crbs.cws.rest.Constants;
 import edu.ucsd.crbs.cws.util.RunCommandLineProcess;
 import edu.ucsd.crbs.cws.util.RunCommandLineProcessImpl;
 import edu.ucsd.crbs.cws.workflow.Parameter;
-import edu.ucsd.crbs.cws.workflow.Task;
+import edu.ucsd.crbs.cws.workflow.Job;
 import edu.ucsd.crbs.cws.workflow.Workflow;
 import edu.ucsd.crbs.cws.workflow.WorkflowParameter;
 import edu.ucsd.crbs.cws.workflow.WorkspaceFile;
@@ -71,7 +104,7 @@ public class App {
     
     public static final String PATH_ARG = "path";
     
-    public static final String TASK_ID_ARG = "taskid";
+    public static final String JOB_ID_ARG = "jobid";
     
     public static final String MD5_ARG = "md5";
     
@@ -109,33 +142,33 @@ public class App {
     
     public static final String RESAVE_WORKSPACEFILE_ARG = "resavefile";
 
-    public static final String RESAVE_TASK_ARG = "resavetask";
+    public static final String RESAVE_JOB_ARG = "resavejob";
 
     public static final String RESAVE_WORKFLOW_ARG = "resaveworkflow";
     
     //public static final String LOAD_TEST = "loadtest";
     public static final String PROGRAM_HELP = "\nCRBS Workflow Service Command Line Tools "
-            + "\n\nThis program provides options to run Workflow Tasks on the local cluster as well"
+            + "\n\nThis program provides options to run Workflow Jobs on the local cluster as well"
             + " as add new Workflows to the CRBS Workflow Service";
 
     /**
      * CSV string of statuses for jobs that have not completed or failed
      */
-    public static final String NOT_COMPLETED_STATUSES = Task.IN_QUEUE_STATUS + ","
-            + Task.PAUSED_STATUS + "," + Task.PENDING_STATUS + "," + Task.RUNNING_STATUS +","+
-            ","+Task.WORKSPACE_SYNC_STATUS;
+    public static final String NOT_COMPLETED_STATUSES = Job.IN_QUEUE_STATUS + ","
+            + Job.PAUSED_STATUS + "," + Job.PENDING_STATUS + "," + Job.RUNNING_STATUS +","+
+            ","+Job.WORKSPACE_SYNC_STATUS;
    
 
     public static void main(String[] args) {
-        Task.REFS_ENABLED = false;
+        Job.REFS_ENABLED = false;
         Workflow.REFS_ENABLED = false;
         try {
 
             OptionParser parser = new OptionParser() {
                 {
                     accepts(UPLOAD_WF_ARG, "Add/Update Workflow").withRequiredArg().ofType(File.class).describedAs(".kar");
-                    //accepts(LOAD_TEST,"creates lots of workflows and tasks");
-                    accepts(SYNC_WITH_CLUSTER_ARG, "Submits & Synchronizes Workflow Tasks on local cluster with CRBS Workflow Webservice").withRequiredArg().ofType(String.class).describedAs("URL");
+                    //accepts(LOAD_TEST,"creates lots of workflows and jobs");
+                    accepts(SYNC_WITH_CLUSTER_ARG, "Submits & Synchronizes Workflow Jobs on local cluster with CRBS Workflow Webservice").withRequiredArg().ofType(String.class).describedAs("URL");
                     accepts(UPLOAD_FILE_ARG,"Registers and uploads Workspace file to REST service").withRequiredArg().ofType(File.class);
                     accepts(REGISTER_FILE_ARG,"Registers Workspace file to REST service (DOES NOT UPLOAD FILE TO REST SERVICE)").withRequiredArg().ofType(File.class);
                     accepts(GET_WORKSPACE_FILE_INFO_ARG,"Outputs JSON of specified workspace file(s)").withRequiredArg().ofType(String.class).describedAs("workspace file id");
@@ -143,8 +176,8 @@ public class App {
                     accepts(UPDATE_PATH_ARG,"Updates Workspace file path").withRequiredArg().ofType(String.class).describedAs("workspace file id");
                     accepts(PATH_ARG,"Sets WorkspaceFile file path.  Used in coordination with --"+UPDATE_PATH_ARG).withRequiredArg().ofType(String.class).describedAs("file path");
                     accepts(URL_ARG, "URL to use with --" + UPLOAD_WF_ARG + ", --"+UPLOAD_FILE_ARG+", --"+GET_WORKSPACE_FILE_INFO_ARG+" flags").withRequiredArg().ofType(String.class).describedAs("URL");
-                    accepts(PARENT_WFID_ARG, "Used to set parent workflow id when invoking --"+UPLOAD_WF_ARG).withRequiredArg().ofType(Long.class).describedAs("Workflow ID");
-                    accepts(EXAMPLE_JSON_ARG, "Outputs example JSON of Task, User, Workflow, and WorkspaceFile objects");
+                    accepts(PARENT_WFID_ARG, "Used to set parent workflow id when invoking --"+UPLOAD_WF_ARG).withRequiredArg().ofType(Long.class).describedAs("Workflow Id");
+                    accepts(EXAMPLE_JSON_ARG, "Outputs example JSON of Job, User, Workflow, and WorkspaceFile objects");
                     accepts(WF_EXEC_DIR_ARG, "Workflow Execution Directory").withRequiredArg().ofType(File.class).describedAs("Directory");
                     accepts(WF_DIR_ARG, "Workflows Directory").withRequiredArg().ofType(File.class).describedAs("Directory");
                     accepts(KEPLER_SCRIPT_ARG, "Kepler").withRequiredArg().ofType(File.class).describedAs("Script");
@@ -155,11 +188,11 @@ public class App {
                     accepts(TOKEN_ARG, "User Token").withRequiredArg().ofType(String.class).describedAs("token");
                     accepts(RUN_AS_ARG, "User to run as (for power accounts that can run as other users)").withRequiredArg().ofType(String.class).describedAs("runas");
                     accepts(OWNER_ARG,"Sets owner when creating Workspace file and Workflow").withRequiredArg().ofType(String.class).describedAs("username");
-                    accepts(TASK_ID_ARG,"Sets task id for Workspace file when used with --"+UPLOAD_FILE_ARG+" and --"+REGISTER_FILE_ARG).withRequiredArg().ofType(Long.class).describedAs("Task id");
+                    accepts(JOB_ID_ARG,"Sets job id for Workspace file when used with --"+UPLOAD_FILE_ARG+" and --"+REGISTER_FILE_ARG).withRequiredArg().ofType(Long.class).describedAs("Job Id");
                     accepts(MD5_ARG,"Sets md5 for Workspace file when used with --"+UPLOAD_FILE_ARG+" and --"+REGISTER_FILE_ARG).withRequiredArg().ofType(String.class).describedAs("MD5 message digest");
                     accepts(SIZE_ARG,"Sets size in bytes for Workspace file when used with --"+UPLOAD_FILE_ARG+" and --"+REGISTER_FILE_ARG).withRequiredArg().ofType(String.class).describedAs("Size of file/dir in bytes");
                     accepts(RESAVE_WORKSPACEFILE_ARG,"Resaves Workspace file").withRequiredArg().ofType(Long.class).describedAs("WorkspaceFile Id");
-                    accepts(RESAVE_TASK_ARG,"Resaves Task").withRequiredArg().ofType(Long.class).describedAs("Task Id");
+                    accepts(RESAVE_JOB_ARG,"Resaves Job").withRequiredArg().ofType(Long.class).describedAs("Job Id");
                     accepts(RESAVE_WORKFLOW_ARG,"Resaves Workflow").withRequiredArg().ofType(Long.class).describedAs("Workflow Id");
 
                     accepts(HELP_ARG).forHelp();
@@ -185,7 +218,7 @@ public class App {
                      !optionSet.has(UPDATE_PATH_ARG) &&
                      !optionSet.has(REGISTER_FILE_ARG) &&
                      !optionSet.has(RESAVE_WORKSPACEFILE_ARG) &&
-                     !optionSet.has(RESAVE_TASK_ARG) &&
+                     !optionSet.has(RESAVE_JOB_ARG) &&
                      !optionSet.has(RESAVE_WORKFLOW_ARG)) {
                 System.out.println(PROGRAM_HELP + "\n");
                 parser.printHelpOn(System.out);
@@ -229,26 +262,26 @@ public class App {
                 System.exit(0);
             }
             
-            if (optionSet.has(RESAVE_TASK_ARG)){
-                failIfOptionSetMissingURLOrLoginOrToken(optionSet,"--"+RESAVE_TASK_ARG+" flag");
-                TaskRestDAOImpl taskDAO = new TaskRestDAOImpl();
+            if (optionSet.has(RESAVE_JOB_ARG)){
+                failIfOptionSetMissingURLOrLoginOrToken(optionSet,"--"+RESAVE_JOB_ARG+" flag");
+                JobRestDAOImpl jobDAO = new JobRestDAOImpl();
                 User u = getUserFromOptionSet(optionSet);
-                taskDAO.setUser(u);
-                taskDAO.setRestURL((String)optionSet.valueOf(URL_ARG));
-                Long taskId = (Long)optionSet.valueOf(RESAVE_TASK_ARG);
-                if (taskId == -1){
-                    System.out.println("Resaving all tasks");
-                    List<Task> taskList = taskDAO.getTasks(null,null,null, true, true);
-                    if (taskList != null){
-                        System.out.println("Found "+taskList.size()+" tasks to resave");
-                        for (Task t : taskList){
-                            System.out.println("task id: "+t.getId());
-                            taskDAO.resave(t.getId());
+                jobDAO.setUser(u);
+                jobDAO.setRestURL((String)optionSet.valueOf(URL_ARG));
+                Long jobId = (Long)optionSet.valueOf(RESAVE_JOB_ARG);
+                if (jobId == -1){
+                    System.out.println("Resaving all jobs");
+                    List<Job> jobList = jobDAO.getJobs(null,null,null, true, true);
+                    if (jobList != null){
+                        System.out.println("Found "+jobList.size()+" jobs to resave");
+                        for (Job j : jobList){
+                            System.out.println("job id: "+j.getId());
+                            jobDAO.resave(j.getId());
                         }
                     }
                 }
                 else {
-                    taskDAO.resave(taskId);
+                    jobDAO.resave(jobId);
                 }
                 System.exit(0);
             }
@@ -342,9 +375,9 @@ public class App {
                 
                 ObjectifyService.ofy();
                 String url = (String) optionSet.valueOf(SYNC_WITH_CLUSTER_ARG);
-                TaskRestDAOImpl taskDAO = new TaskRestDAOImpl();
-                taskDAO.setRestURL(url);
-                taskDAO.setUser(u);
+                JobRestDAOImpl jobDAO = new JobRestDAOImpl();
+                jobDAO.setRestURL(url);
+                jobDAO.setUser(u);
 
                 System.out.println("Running sync with cluster");
 
@@ -353,8 +386,8 @@ public class App {
                 
                 WorkspaceFilePathSetterImpl pathSetter = new WorkspaceFilePathSetterImpl(workspaceFileDAO);
                 
-                // Submit tasks to scheduler
-                TaskSubmitter submitter = new TaskSubmitter(taskDAO,
+                // Submit jobs to scheduler
+                JobSubmitter submitter = new JobSubmitter(jobDAO,
                         pathSetter,
                         wfExecDir.getAbsolutePath(),
                         wfDir.getAbsolutePath(),
@@ -362,12 +395,12 @@ public class App {
                         castPath, queue,u,
                         url);
 
-                submitter.submitTasks();
+                submitter.submitJobs();
 
-                // Update task status for all tasks in system
-                MapOfTaskStatusFactoryImpl taskStatusFactory = new MapOfTaskStatusFactoryImpl(statPath);
-                TaskStatusUpdater updater = new TaskStatusUpdater(taskDAO, taskStatusFactory);
-                updater.updateTasks();
+                // Update job status for all jobs in system
+                MapOfJobStatusFactoryImpl jobStatusFactory = new MapOfJobStatusFactoryImpl(statPath);
+                JobStatusUpdater updater = new JobStatusUpdater(jobDAO, jobStatusFactory);
+                updater.updateJobs();
 
                 System.exit(0);
             }
@@ -504,8 +537,8 @@ public class App {
         if (optionSet.has(PATH_ARG)){
             wsp.setPath((String)optionSet.valueOf(PATH_ARG));
         }
-        if (optionSet.has(TASK_ID_ARG)){
-            wsp.setSourceTaskId((Long)optionSet.valueOf(TASK_ID_ARG));
+        if (optionSet.has(JOB_ID_ARG)){
+            wsp.setSourceJobId((Long)optionSet.valueOf(JOB_ID_ARG));
         }
         if (optionSet.has(MD5_ARG)){
             wsp.setMd5((String)optionSet.valueOf(MD5_ARG));
@@ -635,7 +668,7 @@ public class App {
     
 
     /**
-     * Prints out examples of {@link Workflow}, {@link WorkspaceFile}, {@link Task}, {@link WorkspaceFile}
+     * Prints out examples of {@link Workflow}, {@link WorkspaceFile}, {@link Job}, {@link WorkspaceFile}
      * objects in pretty JSON format
      * @throws Exception 
      */
@@ -657,9 +690,9 @@ public class App {
         System.out.flush();
         System.out.println("-----------------------\n\n");
 
-        System.out.println("Json for Task with 2 parameters and workflow");
+        System.out.println("Json for Job with 2 parameters and workflow");
         System.out.println("-----------------------");
-        System.out.println(ow.writeValueAsString(getTaskWithParametersAndWorkflow()));
+        System.out.println(ow.writeValueAsString(getJobWithParametersAndWorkflow()));
         System.out.flush();
         System.out.println("-----------------------\n\n");
 
@@ -682,24 +715,24 @@ public class App {
     }
 
     /**
-     * Creates example {@link Task} with {@link Parameter} objects and a
+     * Creates example {@link Job} with {@link Parameter} objects and a
      * {@link Workflow}
      * @return 
      */
-    public static Task getTaskWithParametersAndWorkflow() {
-        Task t = new Task();
-        t.setCreateDate(new Date());
-        t.setDownloadURL("http://foo.com/asdflkj");
-        t.setEstimatedCpuInSeconds(5345);
-        t.setEstimatedDiskInBytes(234234234L);
-        t.setEstimatedRunTime(334343);
-        t.setFinishDate(new Date());
-        t.setStatus(Task.RUNNING_STATUS);
-        t.setJobId("12322");
-        t.setName("some task");
-        t.setOwner("someuser");
-        t.setStartDate(new Date());
-        t.setSubmitDate(new Date());
+    public static Job getJobWithParametersAndWorkflow() {
+        Job j = new Job();
+        j.setCreateDate(new Date());
+        j.setDownloadURL("http://foo.com/asdflkj");
+        j.setEstimatedCpuInSeconds(5345);
+        j.setEstimatedDiskInBytes(234234234L);
+        j.setEstimatedRunTime(334343);
+        j.setFinishDate(new Date());
+        j.setStatus(Job.RUNNING_STATUS);
+        j.setSchedulerJobId("12322");
+        j.setName("some job");
+        j.setOwner("someuser");
+        j.setStartDate(new Date());
+        j.setSubmitDate(new Date());
 
         Parameter p = new Parameter();
         p.setName("param1");
@@ -707,9 +740,9 @@ public class App {
 
         List<Parameter> params = new ArrayList<>();
         params.add(p);
-        t.setParameters(params);
-        t.setWorkflow(getWorkflowWithNoParameters());
-        return t;
+        j.setParameters(params);
+        j.setWorkflow(getWorkflowWithNoParameters());
+        return j;
     }
 
     /**

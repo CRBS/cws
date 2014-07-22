@@ -17,7 +17,7 @@ echo ""
 echo ""
 echo "Add new task be sure to replace XXXX with workflow id"
 # This adds a new task,  Be sure to set the workflow id (in XXXX) below!!!
-echo "curl -X POST -H \"Content-Type: application/json\" -d '{\"id\":null,\"name\":\"blah\",\"owner\":\"smith\",\"parameters\" : [ {\"name\" : \"CWS_outputdir\",\"value\" : \"well\"  },{\"name\" : \"CWS_user\",\"value\" : \"uh\"  },{\"name\" : \"CWS_taskname\",\"value\" : \"tasky\"  },{\"name\" :\"exampletext\",\"value\" : \"cheese\"  }, {\"name\":\"examplecheckbox\",\"value\":\"false\"}],\"workflow\":{\"id\":XXXX}}' \"${baseURL}/rest/tasks?${usertoken}\""
+echo "curl -X POST -H \"Content-Type: application/json\" -d '{\"id\":null,\"name\":\"blah\",\"owner\":\"smith\",\"parameters\" : [ {\"name\" : \"CWS_outputdir\",\"value\" : \"well\"  },{\"name\" : \"CWS_user\",\"value\" : \"uh\"  },{\"name\" : \"CWS_jobname\",\"value\" : \"tasky\"  },{\"name\" :\"exampletext\",\"value\" : \"blah\"  }, {\"name\":\"examplecheckbox\",\"value\":\"false\"},{\"name\":\"examplefile\",\"value\":\"/path\"}],\"workflow\":{\"id\":XXXX}}' \"${baseURL}/rest/jobs?${usertoken}\""
 
 echo ""
 echo ""

@@ -264,9 +264,9 @@ public class TestWorkflowFromXmlFactory {
         assertTrue(wp.getValueMap() == null);
         assertTrue(wp.getSelected() == null);
         
-        wp = paramHash.get("CWS_taskname");
+        wp = paramHash.get("CWS_jobname");
         assertTrue(wp != null);
-        assertTrue(wp.getDisplayName().equals("CWS_taskname"));
+        assertTrue(wp.getDisplayName().equals("CWS_jobname"));
         assertTrue(wp.getNameValueDelimiter() == null);
         assertTrue(wp.getHelp() == null);
         assertTrue(wp.getIsAdvanced() == false);
@@ -275,7 +275,7 @@ public class TestWorkflowFromXmlFactory {
         assertTrue(wp.getValidationHelp() == null);
         assertTrue(wp.getValidationRegex() == null);
         assertTrue(wp.getValidationType() == null);
-        assertTrue(wp.getValue().equals("taskname"));
+        assertTrue(wp.getValue().equals("jobname"));
         assertTrue(wp.getColumns() == 0L);
         assertTrue(wp.getMaxFileSize() == 0L);
         assertTrue(wp.getMaxLength() == 0L);
@@ -285,9 +285,9 @@ public class TestWorkflowFromXmlFactory {
         assertTrue(wp.getValueMap() == null);
         assertTrue(wp.getSelected() == null);
         
-        wp = paramHash.get("CWS_taskid");
+        wp = paramHash.get("CWS_jobid");
         assertTrue(wp != null);
-        assertTrue(wp.getDisplayName().equals("CWS_taskid"));
+        assertTrue(wp.getDisplayName().equals("CWS_jobid"));
         assertTrue(wp.getNameValueDelimiter() == null);
         assertTrue(wp.getHelp() == null);
         assertTrue(wp.getIsAdvanced() == false);
@@ -296,7 +296,7 @@ public class TestWorkflowFromXmlFactory {
         assertTrue(wp.getValidationHelp() == null);
         assertTrue(wp.getValidationRegex() == null);
         assertTrue(wp.getValidationType() == null);
-        assertTrue(wp.getValue().equals("taskid"));
+        assertTrue(wp.getValue().equals("jobid"));
         assertTrue(wp.getColumns() == 0L);
         assertTrue(wp.getMaxFileSize() == 0L);
         assertTrue(wp.getMaxLength() == 0L);

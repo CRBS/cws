@@ -89,7 +89,7 @@ public class TestEvent {
         assertTrue(e.getDate() == null);
         assertTrue(e.getStringOfLocationData().equals(""));
         assertTrue(e.getId() == null);
-        assertTrue(e.getTaskId() == null);
+        assertTrue(e.getJobId() == null);
         assertTrue(e.getUserId() == null);
         assertTrue(e.getWorkflowId() == null);
         
@@ -105,7 +105,7 @@ public class TestEvent {
         Date curDate = new Date();
         e.setDate(curDate);
         e.setId(new Long(1));
-        e.setTaskId(new Long(2));
+        e.setJobId(new Long(2));
         e.setUserId(new Long(3));
         e.setWorkflowId(new Long(4));
         
@@ -121,7 +121,7 @@ public class TestEvent {
         assertTrue(e.getDate().compareTo(curDate) == 0);
         assertTrue(e.getStringOfLocationData().equals("location: citylatlong -- city , region  --- country"));
         assertTrue(e.getId() == 1);
-        assertTrue(e.getTaskId() == 2);
+        assertTrue(e.getJobId() == 2);
         assertTrue(e.getUserId() == 3);
         assertTrue(e.getWorkflowId() == 4);
         

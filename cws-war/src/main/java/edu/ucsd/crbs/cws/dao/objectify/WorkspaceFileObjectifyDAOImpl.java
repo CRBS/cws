@@ -110,7 +110,7 @@ public class WorkspaceFileObjectifyDAOImpl implements WorkspaceFileDAO {
             _log.log(Level.INFO,"workspaceFileIds was null");
             return null;
         }
-        _log.log(Level.INFO,"Querying with id(s): "+workspaceFileIds);
+        _log.log(Level.INFO, "Querying with id(s): {0}", workspaceFileIds);
         
         ArrayList<Long> idList = new ArrayList<>();
         //need to split ids by comma and then convert them into longs
@@ -123,7 +123,7 @@ public class WorkspaceFileObjectifyDAOImpl implements WorkspaceFileDAO {
             _log.log(Level.INFO,"query returned null");
             return null;
         }
-        _log.log(Level.INFO,"Found "+res.values().size()+" workspace files");
+        _log.log(Level.INFO, "Found {0} workspace files", res.values().size());
         ArrayList<WorkspaceFile> workspaceFiles = new ArrayList<>();
         workspaceFiles.addAll(res.values());
         return workspaceFiles;

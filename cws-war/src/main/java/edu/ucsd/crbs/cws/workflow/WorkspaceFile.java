@@ -58,7 +58,7 @@ public class WorkspaceFile {
     @Index @AlsoLoad("_Deleted") private boolean _deleted = false;
     @Index @AlsoLoad("_Dir") private boolean _dir;
     @Index private String _path;
-    @Index private Long _sourceTaskId;
+    @Index private Long _sourceJobId;
     @Index private String _blobKey;
     @Ignore private String _uploadURL;
     
@@ -150,12 +150,12 @@ public class WorkspaceFile {
         this._path = _path;
     }
 
-    public Long getSourceTaskId() {
-        return _sourceTaskId;
+    public Long getSourceJobId() {
+        return _sourceJobId;
     }
 
-    public void setSourceTaskId(Long _sourceTaskId) {
-        this._sourceTaskId = _sourceTaskId;
+    public void setSourceJobId(Long sourceJobId) {
+        this._sourceJobId = sourceJobId;
     }
 
     public String getBlobKey() {

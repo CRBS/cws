@@ -59,7 +59,8 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
 /**
- *
+ * REST Service to manipulate {@link User} objects
+ * 
  * @author Christopher Churas <churas@ncmir.ucsd.edu>
  */
 @Path(Constants.SLASH+Constants.USERS_PATH)

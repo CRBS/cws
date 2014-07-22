@@ -88,7 +88,7 @@ public class TestUser {
         user.setIpAddress("ip");
         user.setLogin("login");
         user.setLoginToRunTaskAs("runas");
-        user.setPermissions(Permission.CREATE_TASK);
+        user.setPermissions(Permission.CREATE_JOB);
         user.setToken("token");
         assertTrue(user.getIpAddress().equals("ip"));
         assertTrue(user.getLogin().equals("login"));
@@ -96,7 +96,7 @@ public class TestUser {
         assertTrue(user.getToken().equals("token"));
         assertTrue(user.getCreateDate().equals(aDate));
         assertTrue(user.getId() == 1L);
-        assertTrue(user.getPermissions() == Permission.CREATE_TASK);
+        assertTrue(user.getPermissions() == Permission.CREATE_JOB);
     }
     
     
@@ -121,57 +121,57 @@ public class TestUser {
     public void testIsAuthorizedTo(){
         User user = new User();
         assertTrue(user.isAuthorizedTo(Permission.ALL) == false);
-        assertTrue(user.isAuthorizedTo(Permission.CREATE_TASK) == false);
+        assertTrue(user.isAuthorizedTo(Permission.CREATE_JOB) == false);
         assertTrue(user.isAuthorizedTo(Permission.CREATE_WORKFLOW) == false);
         assertTrue(user.isAuthorizedTo(Permission.CREATE_WORKSPACEFILE) == false);
         assertTrue(user.isAuthorizedTo(Permission.DOWNLOAD_ALL_WORKFLOWS) == false);
         assertTrue(user.isAuthorizedTo(Permission.DOWNLOAD_ALL_WORKSPACEFILES) == false);
         assertTrue(user.isAuthorizedTo(Permission.DOWNLOAD_THEIR_WORKFLOWS) == false);
-        assertTrue(user.isAuthorizedTo(Permission.LIST_ALL_TASKS) == false);
+        assertTrue(user.isAuthorizedTo(Permission.LIST_ALL_JOBS) == false);
         assertTrue(user.isAuthorizedTo(Permission.LIST_ALL_WORKFLOWS) == false);
         assertTrue(user.isAuthorizedTo(Permission.LIST_ALL_WORKSPACEFILES) == false);
-        assertTrue(user.isAuthorizedTo(Permission.LIST_THEIR_TASKS) == false);
+        assertTrue(user.isAuthorizedTo(Permission.LIST_THEIR_JOBS) == false);
         assertTrue(user.isAuthorizedTo(Permission.LIST_THEIR_WORKSPACEFILES) == false);
         assertTrue(user.isAuthorizedTo(Permission.NONE) == true);
         assertTrue(user.isAuthorizedTo(Permission.RUN_AS_ANOTHER_USER) == false);
-        assertTrue(user.isAuthorizedTo(Permission.UPDATE_ALL_TASKS) == false);
+        assertTrue(user.isAuthorizedTo(Permission.UPDATE_ALL_JOBS) == false);
         assertTrue(user.isAuthorizedTo(Permission.UPDATE_ALL_WORKFLOWS) == false);
         assertTrue(user.isAuthorizedTo(Permission.UPDATE_ALL_WORKSPACEFILES) == false);
-        assertTrue(user.isAuthorizedTo(Permission.UPDATE_THEIR_TASKS) == false);
+        assertTrue(user.isAuthorizedTo(Permission.UPDATE_THEIR_JOBS) == false);
         
-        user.setPermissions(Permission.CREATE_TASK);
-        assertTrue(user.isAuthorizedTo(Permission.CREATE_TASK) == true);
+        user.setPermissions(Permission.CREATE_JOB);
+        assertTrue(user.isAuthorizedTo(Permission.CREATE_JOB) == true);
         assertTrue(user.isAuthorizedTo(Permission.CREATE_WORKFLOW) == false);
         assertTrue(user.isAuthorizedTo(Permission.CREATE_WORKSPACEFILE) == false);
         
         user.setPermissions(Permission.CREATE_WORKFLOW | user.getPermissions());
-        assertTrue(user.isAuthorizedTo(Permission.CREATE_TASK) == true);
+        assertTrue(user.isAuthorizedTo(Permission.CREATE_JOB) == true);
         assertTrue(user.isAuthorizedTo(Permission.CREATE_WORKFLOW) == true);
         assertTrue(user.isAuthorizedTo(Permission.CREATE_WORKSPACEFILE) == false);
         
         user.setPermissions(Permission.NONE);
-        assertTrue(user.isAuthorizedTo(Permission.CREATE_TASK) == false);
+        assertTrue(user.isAuthorizedTo(Permission.CREATE_JOB) == false);
         assertTrue(user.isAuthorizedTo(Permission.CREATE_WORKFLOW) == false);
         assertTrue(user.isAuthorizedTo(Permission.CREATE_WORKSPACEFILE) == false);
         
         user.setPermissions(Permission.ALL);
-        assertTrue(user.isAuthorizedTo(Permission.CREATE_TASK) == true);
+        assertTrue(user.isAuthorizedTo(Permission.CREATE_JOB) == true);
         assertTrue(user.isAuthorizedTo(Permission.CREATE_WORKFLOW) == true);
         assertTrue(user.isAuthorizedTo(Permission.CREATE_WORKSPACEFILE) == true);
         assertTrue(user.isAuthorizedTo(Permission.DOWNLOAD_ALL_WORKFLOWS) == true);
         assertTrue(user.isAuthorizedTo(Permission.DOWNLOAD_ALL_WORKSPACEFILES) == true);
         assertTrue(user.isAuthorizedTo(Permission.DOWNLOAD_THEIR_WORKFLOWS) == true);
-        assertTrue(user.isAuthorizedTo(Permission.LIST_ALL_TASKS) == true);
+        assertTrue(user.isAuthorizedTo(Permission.LIST_ALL_JOBS) == true);
         assertTrue(user.isAuthorizedTo(Permission.LIST_ALL_WORKFLOWS) == true);
         assertTrue(user.isAuthorizedTo(Permission.LIST_ALL_WORKSPACEFILES) == true);
-        assertTrue(user.isAuthorizedTo(Permission.LIST_THEIR_TASKS) == true);
+        assertTrue(user.isAuthorizedTo(Permission.LIST_THEIR_JOBS) == true);
         assertTrue(user.isAuthorizedTo(Permission.LIST_THEIR_WORKSPACEFILES) == true);
         assertTrue(user.isAuthorizedTo(Permission.NONE) == true);
         assertTrue(user.isAuthorizedTo(Permission.RUN_AS_ANOTHER_USER) == true);
-        assertTrue(user.isAuthorizedTo(Permission.UPDATE_ALL_TASKS) == true);
+        assertTrue(user.isAuthorizedTo(Permission.UPDATE_ALL_JOBS) == true);
         assertTrue(user.isAuthorizedTo(Permission.UPDATE_ALL_WORKFLOWS) == true);
         assertTrue(user.isAuthorizedTo(Permission.UPDATE_ALL_WORKSPACEFILES) == true);
-        assertTrue(user.isAuthorizedTo(Permission.UPDATE_THEIR_TASKS) == true);
+        assertTrue(user.isAuthorizedTo(Permission.UPDATE_THEIR_JOBS) == true);
         
         
       

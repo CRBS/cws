@@ -43,28 +43,28 @@ import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.api.json.JSONConfiguration;
 import com.sun.jersey.core.impl.provider.entity.StringProvider;
 import edu.ucsd.crbs.cws.auth.User;
-import edu.ucsd.crbs.cws.dao.TaskDAO;
+import edu.ucsd.crbs.cws.dao.JobDAO;
 import edu.ucsd.crbs.cws.jerseyclient.MultivaluedMapFactory;
 import edu.ucsd.crbs.cws.jerseyclient.MultivaluedMapFactoryImpl;
 import edu.ucsd.crbs.cws.rest.Constants;
-import edu.ucsd.crbs.cws.workflow.Task;
+import edu.ucsd.crbs.cws.workflow.Job;
 import java.util.List;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 
 /**
- * Provides ways to obtain and persist Task objects via REST API calls
+ * Provides ways to obtain and persist {@link Job} objects via REST API calls
  *
  * @author Christopher Churas <churas@ncmir.ucsd.edu>
  */
-public class TaskRestDAOImpl implements TaskDAO {
+public class JobRestDAOImpl implements JobDAO {
 
     private String _restURL;
     private User _user;
 
     MultivaluedMapFactory _multivaluedMapFactory = new MultivaluedMapFactoryImpl();
 
-    public TaskRestDAOImpl() {
+    public JobRestDAOImpl() {
 
     }
 
@@ -82,17 +82,17 @@ public class TaskRestDAOImpl implements TaskDAO {
     }
 
     @Override
-    public Task getTaskById(String taskId) throws Exception {
+    public Job getJobById(String jobId) throws Exception {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    public List<Task> getTasks(String owner, String status, Boolean notSubmittedToScheduler, boolean noParams, boolean noWorkflowParams) throws Exception {
+    public List<Job> getJobs(String owner, String status, Boolean notSubmittedToScheduler, boolean noParams, boolean noWorkflowParams) throws Exception {
         ClientConfig cc = new DefaultClientConfig();
         cc.getFeatures().put(JSONConfiguration.FEATURE_POJO_MAPPING, Boolean.TRUE);
         Client client = Client.create(cc);
         client.setFollowRedirects(true);
-        WebResource resource = client.resource(_restURL).path(Constants.REST_PATH).path(Constants.TASKS_PATH);
+        WebResource resource = client.resource(_restURL).path(Constants.REST_PATH).path(Constants.JOBS_PATH);
         MultivaluedMap queryParams = _multivaluedMapFactory.getMultivaluedMap(_user);
 
         if (owner != null) {
@@ -118,26 +118,26 @@ public class TaskRestDAOImpl implements TaskDAO {
         String json = resource.queryParams(queryParams).accept(MediaType.APPLICATION_JSON).get(String.class);
         ObjectMapper mapper = new ObjectMapper();
         mapper.registerModule(new ObjectifyJacksonModule());
-        return mapper.readValue(json, new TypeReference<List<Task>>() {
+        return mapper.readValue(json, new TypeReference<List<Job>>() {
         });
     }
 
     @Override
-    public Task insert(Task t, boolean skipWorkflowCheck) throws Exception {
+    public Job insert(Job j, boolean skipWorkflowCheck) throws Exception {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    public Task update(long taskId, final String status, Long estCpu, Long estRunTime,
+    public Job update(long jobId, final String status, Long estCpu, Long estRunTime,
             Long estDisk, Long submitDate, Long startDate, Long finishDate,
             Boolean submittedToScheduler,
-            final String jobId) throws Exception {
+            final String schedulerJobId) throws Exception {
         ClientConfig cc = new DefaultClientConfig();
         cc.getClasses().add(StringProvider.class);
         Client client = Client.create(cc);
         client.setFollowRedirects(true);
         WebResource resource = client.resource(_restURL).path(Constants.REST_PATH).
-                path(Constants.TASKS_PATH).path(Long.toString(taskId));
+                path(Constants.JOBS_PATH).path(Long.toString(jobId));
 
         MultivaluedMap queryParams = _multivaluedMapFactory.getMultivaluedMap(_user);
 
@@ -166,8 +166,8 @@ public class TaskRestDAOImpl implements TaskDAO {
             queryParams.add(Constants.SUBMITTED_TO_SCHED_QUERY_PARAM, submittedToScheduler.toString());
         }
 
-        if (jobId != null) {
-            queryParams.add(Constants.JOB_ID_QUERY_PARAM, jobId);
+        if (schedulerJobId != null) {
+            queryParams.add(Constants.SCHEDULER_JOB_ID_QUERY_PARAM, schedulerJobId);
         }
 
         String json = resource.queryParams(queryParams)
@@ -178,18 +178,18 @@ public class TaskRestDAOImpl implements TaskDAO {
 
         ObjectMapper mapper = new ObjectMapper();
         mapper.registerModule(new ObjectifyJacksonModule());
-        return mapper.readValue(json, new TypeReference<Task>() {
+        return mapper.readValue(json, new TypeReference<Job>() {
         });
     }
 
     @Override
-    public Task resave(long taskId) throws Exception {
+    public Job resave(long jobId) throws Exception {
         ClientConfig cc = new DefaultClientConfig();
         cc.getClasses().add(StringProvider.class);
         Client client = Client.create(cc);
         client.setFollowRedirects(true);
         WebResource resource = client.resource(_restURL).path(Constants.REST_PATH).
-                path(Constants.TASKS_PATH).path(Long.toString(taskId));
+                path(Constants.JOBS_PATH).path(Long.toString(jobId));
 
         MultivaluedMap queryParams = _multivaluedMapFactory.getMultivaluedMap(_user);
 
@@ -203,7 +203,7 @@ public class TaskRestDAOImpl implements TaskDAO {
 
         ObjectMapper mapper = new ObjectMapper();
         mapper.registerModule(new ObjectifyJacksonModule());
-        return mapper.readValue(json, new TypeReference<Task>() {
+        return mapper.readValue(json, new TypeReference<Job>() {
         });    }
 
     

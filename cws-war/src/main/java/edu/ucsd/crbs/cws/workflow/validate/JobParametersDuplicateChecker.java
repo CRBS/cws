@@ -34,38 +34,38 @@ package edu.ucsd.crbs.cws.workflow.validate;
 
 import edu.ucsd.crbs.cws.workflow.Parameter;
 import edu.ucsd.crbs.cws.workflow.ParameterWithError;
-import edu.ucsd.crbs.cws.workflow.Task;
+import edu.ucsd.crbs.cws.workflow.Job;
 import java.util.HashSet;
 import java.util.Iterator;
 
 /**
- * Checks for duplicate {@link Parameter} objects in task
+ * Checks for duplicate {@link Parameter} objects in {@link Job}
  *
  * @author Christopher Churas <churas@ncmir.ucsd.edu>
  */
-public class TaskParametersDuplicateChecker implements TaskParametersChecker {
+public class JobParametersDuplicateChecker implements JobParametersChecker {
 
     /**
      * Examines {@link Parameter} objects and flags those objects with duplicate
      * {@link Parameter#getName()} values by putting every occurrence after the
-     * 1st encounter into {@link Task#getParametersWithErrors() } list
+     * 1st encounter into {@link Job#getParametersWithErrors() } list
      *
-     * @param task
+     * @param job
      */
     @Override
-    public void check(Task task) {
+    public void check(Job job) {
         
-        if (task == null){
+        if (job == null){
             return;
         }
         
-        if (task.getParameters() == null || task.getParameters().isEmpty() == true) {
+        if (job.getParameters() == null || job.getParameters().isEmpty() == true) {
             return;
         }
 
         HashSet<String> paramNames = new HashSet<>();
         Parameter p;
-        Iterator pIterator = task.getParameters().iterator();
+        Iterator pIterator = job.getParameters().iterator();
         for (; pIterator.hasNext();) {
             p = (Parameter) pIterator.next();
 
@@ -75,7 +75,7 @@ public class TaskParametersDuplicateChecker implements TaskParametersChecker {
             }
 
             if (paramNames.contains(p.getName())) {
-                task.addParameterWithError(new ParameterWithError(p, "Duplicate name"));
+                job.addParameterWithError(new ParameterWithError(p, "Duplicate name"));
                 pIterator.remove();
             } else {
                 paramNames.add(p.getName());

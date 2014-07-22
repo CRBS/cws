@@ -34,7 +34,7 @@
 package edu.ucsd.crbs.cws.cluster;
 
 import edu.ucsd.crbs.cws.util.RunCommandLineProcess;
-import edu.ucsd.crbs.cws.workflow.Task;
+import edu.ucsd.crbs.cws.workflow.Job;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Map;
@@ -56,12 +56,12 @@ import static org.mockito.Mockito.when;
  * @author Christopher Churas <churas@ncmir.ucsd.edu>
  */
 @RunWith(JUnit4.class)
-public class TestMapOfTaskStatusFactoryImpl {
+public class TestMapOfJobStatusFactoryImpl {
 
     public static String TRUE_BINARY = File.separator+"bin"+File.separator+"true";
     public static String FALSE_BINARY = File.separator+"bin"+File.separator+"false";
     
-    public TestMapOfTaskStatusFactoryImpl() {
+    public TestMapOfJobStatusFactoryImpl() {
         TRUE_BINARY = getBinary(TRUE_BINARY);
         FALSE_BINARY = getBinary(FALSE_BINARY);
     }
@@ -94,41 +94,41 @@ public class TestMapOfTaskStatusFactoryImpl {
     
     @Test
     public void testgetJobStatusMapWithNullEmptyTasksList() throws Exception {
-        MapOfTaskStatusFactoryImpl mapFac = new MapOfTaskStatusFactoryImpl(FALSE_BINARY);
+        MapOfJobStatusFactoryImpl mapFac = new MapOfJobStatusFactoryImpl(FALSE_BINARY);
         Map<String,String> resMap = mapFac.getJobStatusMap(null);
         assertTrue(resMap.isEmpty() == true);
         
-        resMap = mapFac.getJobStatusMap(new ArrayList<Task>());
+        resMap = mapFac.getJobStatusMap(new ArrayList<Job>());
         assertTrue(resMap.isEmpty() == true);
     }
     
     
     @Test
     public void testgetJobStatusMapWithNTaskThatHasNullJobId() throws Exception {
-        MapOfTaskStatusFactoryImpl mapFac = new MapOfTaskStatusFactoryImpl(FALSE_BINARY);
-        ArrayList<Task> taskList = new ArrayList<>();
-        taskList.add(new Task());
+        MapOfJobStatusFactoryImpl mapFac = new MapOfJobStatusFactoryImpl(FALSE_BINARY);
+        ArrayList<Job> jobList = new ArrayList<>();
+        jobList.add(new Job());
         
         try {
-            Map<String,String> resMap = mapFac.getJobStatusMap(taskList);
+            Map<String,String> resMap = mapFac.getJobStatusMap(jobList);
             fail("Expected exception");
         }
         catch(Exception ex){
-            assertTrue(ex.getMessage().startsWith("Task cannot have a null job id"));
+            assertTrue(ex.getMessage().startsWith("Job cannot have a null job id"));
         }
     }
     
     //test where panfishstat fails (non zero exit code)
     @Test
     public void testgetJobStatusMapWherePanfishstatfails() throws Exception {
-        MapOfTaskStatusFactoryImpl mapFac = new MapOfTaskStatusFactoryImpl(FALSE_BINARY);
+        MapOfJobStatusFactoryImpl mapFac = new MapOfJobStatusFactoryImpl(FALSE_BINARY);
         
-        Task myTask = new Task();
-        myTask.setJobId("1");
-        ArrayList<Task> taskList = new ArrayList<>();
-        taskList.add(myTask);
+        Job myTask = new Job();
+        myTask.setSchedulerJobId("1");
+        ArrayList<Job> jobList = new ArrayList<>();
+        jobList.add(myTask);
         try {
-            Map<String,String> resMap = mapFac.getJobStatusMap(taskList);
+            Map<String,String> resMap = mapFac.getJobStatusMap(jobList);
             fail("Expected exception");
         }
         catch(Exception ex){
@@ -139,109 +139,109 @@ public class TestMapOfTaskStatusFactoryImpl {
     //test where panfishstat has no output
     @Test
     public void testgetJobStatusMapWherePanfishstatHasNoOutput() throws Exception {
-        MapOfTaskStatusFactoryImpl mapFac = new MapOfTaskStatusFactoryImpl(TRUE_BINARY);
+        MapOfJobStatusFactoryImpl mapFac = new MapOfJobStatusFactoryImpl(TRUE_BINARY);
         
-        Task myTask = new Task();
-        myTask.setJobId("1");
-        ArrayList<Task> taskList = new ArrayList<>();
-        taskList.add(myTask);
-        Map<String,String> resMap = mapFac.getJobStatusMap(taskList);
+        Job myTask = new Job();
+        myTask.setSchedulerJobId("1");
+        ArrayList<Job> jobList = new ArrayList<>();
+        jobList.add(myTask);
+        Map<String,String> resMap = mapFac.getJobStatusMap(jobList);
         assertTrue(resMap.isEmpty() == true);
         
     }
-    //test where we have valid output for tasks
+    //test where we have valid output for jobs
     @Test
     public void testgetJobStatusMapWithOneTask() throws Exception {
-        MapOfTaskStatusFactoryImpl mapFac = new MapOfTaskStatusFactoryImpl("cmd");
+        MapOfJobStatusFactoryImpl mapFac = new MapOfJobStatusFactoryImpl("cmd");
         
-        Task myTask = new Task();
-        myTask.setJobId("1");
-        ArrayList<Task> taskList = new ArrayList<>();
-        taskList.add(myTask);
+        Job myTask = new Job();
+        myTask.setSchedulerJobId("1");
+        ArrayList<Job> jobList = new ArrayList<>();
+        jobList.add(myTask);
 
         RunCommandLineProcess mockCmdRunner = mock(RunCommandLineProcess.class);
         
         when(mockCmdRunner.runCommandLineProcess("cmd",
-                MapOfTaskStatusFactoryImpl.STATUSOFJOBID,"1")).thenReturn("1="+
-                        MapOfTaskStatusFactoryImpl.RUNNING+"\n");
+                MapOfJobStatusFactoryImpl.STATUSOFJOBID,"1")).thenReturn("1="+
+                        MapOfJobStatusFactoryImpl.RUNNING+"\n");
         
         mapFac._runCommandLineProcess = mockCmdRunner;
         
-        Map<String,String> resMap = mapFac.getJobStatusMap(taskList);
+        Map<String,String> resMap = mapFac.getJobStatusMap(jobList);
         assertTrue(resMap.isEmpty() == false);
         assertTrue(resMap.keySet().size() == 1);
         assertTrue(resMap.containsKey("1") == true);
-        assertTrue(resMap.get("1").equals(Task.RUNNING_STATUS));
+        assertTrue(resMap.get("1").equals(Job.RUNNING_STATUS));
     }
     
-    //test where we have valid output for tasks
+    //test where we have valid output for jobs
     @Test
     public void testgetJobStatusMapWithTwoTasks() throws Exception {
-        MapOfTaskStatusFactoryImpl mapFac = new MapOfTaskStatusFactoryImpl("cmd");
+        MapOfJobStatusFactoryImpl mapFac = new MapOfJobStatusFactoryImpl("cmd");
         
-        Task myTask = new Task();
-        myTask.setJobId("1");
-        ArrayList<Task> taskList = new ArrayList<>();
-        taskList.add(myTask);
+        Job myTask = new Job();
+        myTask.setSchedulerJobId("1");
+        ArrayList<Job> jobList = new ArrayList<>();
+        jobList.add(myTask);
         
-        myTask = new Task();
-        myTask.setJobId("2");
-        taskList.add(myTask);
+        myTask = new Job();
+        myTask.setSchedulerJobId("2");
+        jobList.add(myTask);
 
         RunCommandLineProcess mockCmdRunner = mock(RunCommandLineProcess.class);
         
         when(mockCmdRunner.runCommandLineProcess("cmd",
-                MapOfTaskStatusFactoryImpl.STATUSOFJOBID,"1,2")).thenReturn("1="+
-                        MapOfTaskStatusFactoryImpl.RUNNING+"\n"+"2="+
-                        MapOfTaskStatusFactoryImpl.DONE+"\n");
+                MapOfJobStatusFactoryImpl.STATUSOFJOBID,"1,2")).thenReturn("1="+
+                        MapOfJobStatusFactoryImpl.RUNNING+"\n"+"2="+
+                        MapOfJobStatusFactoryImpl.DONE+"\n");
         
         mapFac._runCommandLineProcess = mockCmdRunner;
         
-        Map<String,String> resMap = mapFac.getJobStatusMap(taskList);
+        Map<String,String> resMap = mapFac.getJobStatusMap(jobList);
         assertTrue(resMap.isEmpty() == false);
         assertTrue(resMap.keySet().size() == 2);
         assertTrue(resMap.containsKey("1") == true);
-        assertTrue(resMap.get("1").equals(Task.RUNNING_STATUS));
+        assertTrue(resMap.get("1").equals(Job.RUNNING_STATUS));
         assertTrue(resMap.containsKey("2") == true);
-        assertTrue(resMap.get("2").equals(Task.COMPLETED_STATUS));
+        assertTrue(resMap.get("2").equals(Job.COMPLETED_STATUS));
     }
     
-    //test where we have valid output for tasks
+    //test where we have valid output for jobs
     @Test
     public void testgetJobStatusMapWithThreeTasks() throws Exception {
-        MapOfTaskStatusFactoryImpl mapFac = new MapOfTaskStatusFactoryImpl("cmd");
+        MapOfJobStatusFactoryImpl mapFac = new MapOfJobStatusFactoryImpl("cmd");
         
-        Task myTask = new Task();
-        myTask.setJobId("1");
-        ArrayList<Task> taskList = new ArrayList<>();
-        taskList.add(myTask);
+        Job myTask = new Job();
+        myTask.setSchedulerJobId("1");
+        ArrayList<Job> jobList = new ArrayList<>();
+        jobList.add(myTask);
         
-        myTask = new Task();
-        myTask.setJobId("2");
-        taskList.add(myTask);
+        myTask = new Job();
+        myTask.setSchedulerJobId("2");
+        jobList.add(myTask);
 
-        myTask = new Task();
-        myTask.setJobId("3");
-        taskList.add(myTask);
+        myTask = new Job();
+        myTask.setSchedulerJobId("3");
+        jobList.add(myTask);
 
         RunCommandLineProcess mockCmdRunner = mock(RunCommandLineProcess.class);
         
         when(mockCmdRunner.runCommandLineProcess("cmd",
-                MapOfTaskStatusFactoryImpl.STATUSOFJOBID,"1,2,3")).thenReturn("1="+
-                        MapOfTaskStatusFactoryImpl.RUNNING+"\n"+"3=unknown\n2="+
-                        MapOfTaskStatusFactoryImpl.DONE+"\n");
+                MapOfJobStatusFactoryImpl.STATUSOFJOBID,"1,2,3")).thenReturn("1="+
+                        MapOfJobStatusFactoryImpl.RUNNING+"\n"+"3=unknown\n2="+
+                        MapOfJobStatusFactoryImpl.DONE+"\n");
         
         mapFac._runCommandLineProcess = mockCmdRunner;
         
-        Map<String,String> resMap = mapFac.getJobStatusMap(taskList);
+        Map<String,String> resMap = mapFac.getJobStatusMap(jobList);
         assertTrue(resMap.isEmpty() == false);
         assertTrue(resMap.keySet().size() == 3);
         assertTrue(resMap.containsKey("1") == true);
-        assertTrue(resMap.get("1").equals(Task.RUNNING_STATUS));
+        assertTrue(resMap.get("1").equals(Job.RUNNING_STATUS));
         assertTrue(resMap.containsKey("2") == true);
-        assertTrue(resMap.get("2").equals(Task.COMPLETED_STATUS));
+        assertTrue(resMap.get("2").equals(Job.COMPLETED_STATUS));
         assertTrue(resMap.containsKey("3") == true);
-        assertTrue(resMap.get("3").equals(Task.IN_QUEUE_STATUS));
+        assertTrue(resMap.get("3").equals(Job.IN_QUEUE_STATUS));
 
     }
 

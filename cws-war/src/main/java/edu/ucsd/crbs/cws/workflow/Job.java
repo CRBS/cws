@@ -1,3 +1,36 @@
+/*
+ * COPYRIGHT AND LICENSE
+ * 
+ * Copyright 2014 The Regents of the University of California All Rights Reserved
+ * 
+ * Permission to copy, modify and distribute any part of this CRBS Workflow 
+ * Service for educational, research and non-profit purposes, without fee, and
+ * without a written agreement is hereby granted, provided that the above 
+ * copyright notice, this paragraph and the following three paragraphs appear
+ * in all copies.
+ * 
+ * Those desiring to incorporate this CRBS Workflow Service into commercial 
+ * products or use for commercial purposes should contact the Technology
+ * Transfer Office, University of California, San Diego, 9500 Gilman Drive, 
+ * Mail Code 0910, La Jolla, CA 92093-0910, Ph: (858) 534-5815, 
+ * FAX: (858) 534-7345, E-MAIL:invent@ucsd.edu.
+ * 
+ * IN NO EVENT SHALL THE UNIVERSITY OF CALIFORNIA BE LIABLE TO ANY PARTY FOR 
+ * DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES, INCLUDING 
+ * LOST PROFITS, ARISING OUT OF THE USE OF THIS CRBS Workflow Service, EVEN IF 
+ * THE UNIVERSITY OF CALIFORNIA HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH
+ * DAMAGE.
+ * 
+ * THE CRBS Workflow Service PROVIDED HEREIN IS ON AN "AS IS" BASIS, AND THE
+ * UNIVERSITY OF CALIFORNIA HAS NO OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, 
+ * UPDATES, ENHANCEMENTS, OR MODIFICATIONS. THE UNIVERSITY OF CALIFORNIA MAKES
+ * NO REPRESENTATIONS AND EXTENDS NO WARRANTIES OF ANY KIND, EITHER IMPLIED OR 
+ * EXPRESS, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF 
+ * MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE, OR THAT THE USE OF 
+ * THE CRBS Workflow Service WILL NOT INFRINGE ANY PATENT, TRADEMARK OR OTHER
+ * RIGHTS. 
+ */
+
 package edu.ucsd.crbs.cws.workflow;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -14,14 +47,14 @@ import java.util.Date;
 import java.util.List;
 
 /**
- * Represents a {@link Workflow} Task which is an invocation of a given Workflow.
+ * Represents an invocation of a given {@link Workflow}
  * 
  * @author Christopher Churas <churas@ncmir.ucsd.edu>
  */
 @Entity
 @JsonPropertyOrder(value={ "id","name","owner","status","createDate","submitDate","startDate","finishDate"},alphabetic=true)
 
-public class Task  {
+public class Job  {
     
     public static boolean REFS_ENABLED = true;
     
@@ -70,14 +103,14 @@ public class Task  {
     public static class Everything {}
     
     @Id private Long _id;
-    @Load(Task.Everything.class) private Ref<Workflow> _workflow;
+    @Load(Job.Everything.class) private Ref<Workflow> _workflow;
     @Ignore private Workflow _rawWorkflow;
     
     private String _name;
     @Index private String _owner;
     @Index private String _status;
     @Index({IfFalse.class}) private boolean _hasJobBeenSubmittedToScheduler;
-    private String _jobId;
+    private String _schedulerJobId;
     private long _estimatedCpuInSeconds;
     private long _estimatedRunTimeInSeconds;
     private long _estimatedDiskInBytes;
@@ -92,17 +125,12 @@ public class Task  {
     @Ignore private List<ParameterWithError> _parametersWithErrors;
 
     /**
-     * This will eventually hold a log of all events for this task
-     */
-    //private List<TaskLog> _taskLogs 
-    
-    /**
      * This will eventually hold a summary of compute and disk consumed by
-     * this task
+     * this job
      */
     //private ComputeSummary _computeSummary
     
-    public Task(){
+    public Job(){
          
     }
     
@@ -160,12 +188,12 @@ public class Task  {
         return _status;
     }
     
-    public void setJobId(final String jobId){
-        _jobId = jobId;
+    public void setSchedulerJobId(final String jobId){
+        _schedulerJobId = jobId;
     }
     
-    public String getJobId(){
-        return _jobId;
+    public String getSchedulerJobId(){
+        return _schedulerJobId;
     }
     
     public void setEstimatedCpuInSeconds(long val){
@@ -311,7 +339,7 @@ public class Task  {
     public String getSummaryOfErrors(){
         StringBuilder sb = new StringBuilder();
         if (_error != null){
-            sb.append("TaskError: ").append(_error).append("\n");
+            sb.append("JobError: ").append(_error).append("\n");
         }
         if (_parametersWithErrors != null){
             for (ParameterWithError pwe : _parametersWithErrors){

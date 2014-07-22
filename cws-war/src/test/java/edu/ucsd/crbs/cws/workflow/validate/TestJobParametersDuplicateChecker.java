@@ -34,7 +34,7 @@
 package edu.ucsd.crbs.cws.workflow.validate;
 
 import edu.ucsd.crbs.cws.workflow.Parameter;
-import edu.ucsd.crbs.cws.workflow.Task;
+import edu.ucsd.crbs.cws.workflow.Job;
 import java.util.ArrayList;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -52,9 +52,9 @@ import org.junit.runners.JUnit4;
  * @author Christopher Churas <churas@ncmir.ucsd.edu>
  */
 @RunWith(JUnit4.class)
-public class TestTaskParametersDuplicateChecker {
+public class TestJobParametersDuplicateChecker {
 
-    public TestTaskParametersDuplicateChecker() {
+    public TestJobParametersDuplicateChecker() {
     }
 
     @BeforeClass
@@ -75,17 +75,17 @@ public class TestTaskParametersDuplicateChecker {
 
     @Test
     public void testNull(){
-        TaskParametersDuplicateChecker checker = new TaskParametersDuplicateChecker();
+        JobParametersDuplicateChecker checker = new JobParametersDuplicateChecker();
         
         checker.check(null);
-        checker.check(new Task());
+        checker.check(new Job());
     }
     
     @Test
     public void testNoDuplicates(){
-        TaskParametersDuplicateChecker checker = new TaskParametersDuplicateChecker();
+        JobParametersDuplicateChecker checker = new JobParametersDuplicateChecker();
         
-        Task t = new Task();
+        Job t = new Job();
         ArrayList<Parameter> params = new ArrayList<>();
         params.add(new Parameter("n1","v1"));
         params.add(new Parameter("n2","v2"));
@@ -102,9 +102,9 @@ public class TestTaskParametersDuplicateChecker {
     
     @Test
     public void testTwoElementsOneDuplicate(){
-        TaskParametersDuplicateChecker checker = new TaskParametersDuplicateChecker();
+        JobParametersDuplicateChecker checker = new JobParametersDuplicateChecker();
         
-        Task t = new Task();
+        Job t = new Job();
         ArrayList<Parameter> params = new ArrayList<>();
         params.add(new Parameter("n1","v1"));
         params.add(new Parameter("n1","v2"));
@@ -122,9 +122,9 @@ public class TestTaskParametersDuplicateChecker {
     
     @Test
     public void testThreeElementsOneDuplicate(){
-        TaskParametersDuplicateChecker checker = new TaskParametersDuplicateChecker();
+        JobParametersDuplicateChecker checker = new JobParametersDuplicateChecker();
         
-        Task t = new Task();
+        Job t = new Job();
         ArrayList<Parameter> params = new ArrayList<>();
         params.add(new Parameter("n1","v1"));
         params.add(new Parameter("n2","v2"));
@@ -143,9 +143,9 @@ public class TestTaskParametersDuplicateChecker {
     
     @Test
     public void testFourElementsTwoDifferentDuplicates(){
-        TaskParametersDuplicateChecker checker = new TaskParametersDuplicateChecker();
+        JobParametersDuplicateChecker checker = new JobParametersDuplicateChecker();
         
-        Task t = new Task();
+        Job t = new Job();
         ArrayList<Parameter> params = new ArrayList<>();
         params.add(new Parameter("n1","v1"));
         params.add(new Parameter("n2","v2"));

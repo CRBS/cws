@@ -31,11 +31,11 @@ echo "sgejobid: $JOB_ID" >> $jobLogFile 2>&1
 echo "sgejobname: $JOB_NAME" >> $jobLogFile 2>&1
 echo "sgetaskid: $SGE_TASK_ID" >> $jobLogFile 2>&1
 echo "starttime: $startTime" >> $jobLogFile 2>&1
-echo "Arguments: @@TASK_ARGS@@" >> $jobLogFile 2>&1
+echo "Arguments: @@JOB_ARGS@@" >> $jobLogFile 2>&1
 
 export PATH="${PATH}:/usr/java/latest/bin:/usr/java/default/bin"
  
-@@KEPLER_SH@@ @@TASK_ARGS@@ 
+@@KEPLER_SH@@ @@JOB_ARGS@@ 
 
 declare jobExitCode=$?
 declare endTime=`date +%s 2>&1`

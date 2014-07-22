@@ -42,10 +42,10 @@ import com.googlecode.objectify.annotation.Index;
  * @author Christopher Churas <churas@ncmir.ucsd.edu>
  */
 @Entity
-public class TaskWorkspaceFile {
+public class JobWorkspaceFile {
 
     @Id private Long _id;
-    @Index private Long _taskId;
+    @Index private Long _jobId;
     @Index private Long _workspaceFileId;
     @Index private boolean _deleted;
     
@@ -57,12 +57,12 @@ public class TaskWorkspaceFile {
         this._id = _id;
     }
 
-    public Long getTaskId() {
-        return _taskId;
+    public Long getJobId() {
+        return _jobId;
     }
 
-    public void setTaskId(Long _taskId) {
-        this._taskId = _taskId;
+    public void setJobId(Long jobId) {
+        this._jobId = jobId;
     }
 
     public Long getWorkspaceFileId() {

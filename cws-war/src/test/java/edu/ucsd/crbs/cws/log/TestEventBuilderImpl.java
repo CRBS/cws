@@ -35,7 +35,7 @@ package edu.ucsd.crbs.cws.log;
 
 import edu.ucsd.crbs.cws.auth.Permission;
 import edu.ucsd.crbs.cws.auth.User;
-import edu.ucsd.crbs.cws.workflow.Task;
+import edu.ucsd.crbs.cws.workflow.Job;
 import edu.ucsd.crbs.cws.workflow.Workflow;
 import edu.ucsd.crbs.cws.workflow.WorkspaceFile;
 import java.util.Date;
@@ -129,28 +129,28 @@ public class TestEventBuilderImpl {
     @Test
     public void testSetAsCreateTaskEvent(){
         EventBuilderImpl builder = new EventBuilderImpl();
-        assertTrue(builder.setAsCreateTaskEvent(null, null) == null);
+        assertTrue(builder.setAsCreateJobEvent(null, null) == null);
         
         Event e = new Event();
-        assertTrue(builder.setAsCreateTaskEvent(e, null) == null);
+        assertTrue(builder.setAsCreateJobEvent(e, null) == null);
         
-        Task t = new Task();
-        assertTrue(builder.setAsCreateTaskEvent(null, t) == null);
+        Job t = new Job();
+        assertTrue(builder.setAsCreateJobEvent(null, t) == null);
         
-        Event resEvent = builder.setAsCreateTaskEvent(e, t);
+        Event resEvent = builder.setAsCreateJobEvent(e, t);
         assertTrue(resEvent != null);
-        assertTrue(resEvent.getEventType().equals(Event.CREATE_TASK_EVENT_TYPE));
+        assertTrue(resEvent.getEventType().equals(Event.CREATE_JOB_EVENT_TYPE));
         assertTrue(resEvent.getDate() == null);
-        assertTrue(resEvent.getTaskId() == null);
+        assertTrue(resEvent.getJobId() == null);
         
         t.setId(new Long(2));
         Date curDate = new Date();
         t.setCreateDate(curDate);
-        resEvent = builder.setAsCreateTaskEvent(e, t);
+        resEvent = builder.setAsCreateJobEvent(e, t);
         assertTrue(resEvent != null);
-        assertTrue(resEvent.getEventType().equals(Event.CREATE_TASK_EVENT_TYPE));
+        assertTrue(resEvent.getEventType().equals(Event.CREATE_JOB_EVENT_TYPE));
         assertTrue(resEvent.getDate().compareTo(curDate) == 0);
-        assertTrue(resEvent.getTaskId() == 2L);
+        assertTrue(resEvent.getJobId() == 2L);
     }
     
     @Test
@@ -212,23 +212,23 @@ public class TestEventBuilderImpl {
     @Test
     public void testSetAsFailedCreateTaskEvent(){
         EventBuilderImpl builder = new EventBuilderImpl();
-        assertTrue(builder.setAsFailedCreateTaskEvent(null, null) == null);
+        assertTrue(builder.setAsFailedCreateJobEvent(null, null) == null);
         Event e = new Event();
-        assertTrue(builder.setAsFailedCreateTaskEvent(e, null) == null);
+        assertTrue(builder.setAsFailedCreateJobEvent(e, null) == null);
         
-        Task t = new Task();
-        Event resEvent = builder.setAsFailedCreateTaskEvent(e, t);
+        Job t = new Job();
+        Event resEvent = builder.setAsFailedCreateJobEvent(e, t);
         assertTrue(resEvent != null);
-        assertTrue(resEvent.getEventType().equals(Event.FAILED_CREATE_TASK_EVENT_TYPE));
+        assertTrue(resEvent.getEventType().equals(Event.FAILED_CREATE_JOB_EVENT_TYPE));
         assertTrue(resEvent.getDate() != null);
         assertTrue(resEvent.getMessage().equals(""));
         
         t.setError("someerror");
-        resEvent = builder.setAsFailedCreateTaskEvent(e, t);
+        resEvent = builder.setAsFailedCreateJobEvent(e, t);
         assertTrue(resEvent != null);
-        assertTrue(resEvent.getEventType().equals(Event.FAILED_CREATE_TASK_EVENT_TYPE));
+        assertTrue(resEvent.getEventType().equals(Event.FAILED_CREATE_JOB_EVENT_TYPE));
         assertTrue(resEvent.getDate() != null);
-        assertTrue(resEvent.getMessage().startsWith("TaskError: someerror"));
+        assertTrue(resEvent.getMessage().startsWith("JobError: someerror"));
         
     }
     
@@ -247,7 +247,7 @@ public class TestEventBuilderImpl {
         assertTrue(resEvent.getMessage().equals("perms(0)"));
         Date curDate = new Date();
         u.setCreateDate(curDate);
-        u.setPermissions(Permission.CREATE_TASK);
+        u.setPermissions(Permission.CREATE_JOB);
         resEvent = builder.setAsCreateUserEvent(e, u);
         assertTrue(resEvent != null);
         assertTrue(resEvent.getCreatedUserId() == 1);

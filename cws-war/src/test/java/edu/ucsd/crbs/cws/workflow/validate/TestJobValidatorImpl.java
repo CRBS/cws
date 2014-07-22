@@ -39,7 +39,7 @@ import edu.ucsd.crbs.cws.auth.User;
 import edu.ucsd.crbs.cws.dao.WorkflowDAO;
 import edu.ucsd.crbs.cws.workflow.Parameter;
 import edu.ucsd.crbs.cws.workflow.ParameterWithError;
-import edu.ucsd.crbs.cws.workflow.Task;
+import edu.ucsd.crbs.cws.workflow.Job;
 import edu.ucsd.crbs.cws.workflow.Workflow;
 import edu.ucsd.crbs.cws.workflow.WorkflowParameter;
 import java.util.ArrayList;
@@ -58,12 +58,12 @@ import static org.mockito.Mockito.*;
  * @author Christopher Churas <churas@ncmir.ucsd.edu>
  */
 @RunWith(JUnit4.class)
-public class TestTaskValidatorImpl {
+public class TestJobValidatorImpl {
 
      private final LocalServiceTestHelper _helper =
         new LocalServiceTestHelper(new LocalDatastoreServiceTestConfig());
     
-    public TestTaskValidatorImpl() {
+    public TestJobValidatorImpl() {
     }
 
     @BeforeClass
@@ -77,7 +77,7 @@ public class TestTaskValidatorImpl {
     @Before
     public void setUp() {
         _helper.setUp();
-        Task.REFS_ENABLED = false;
+        Job.REFS_ENABLED = false;
     }
 
     @After
@@ -87,47 +87,47 @@ public class TestTaskValidatorImpl {
 
    @Test
    public void testNullTask(){
-       TaskValidatorImpl tvi = new TaskValidatorImpl();
+       JobValidatorImpl tvi = new JobValidatorImpl();
        try {
         tvi.validateParameters(null, null);
         fail("Expected exception");
        }catch(Exception ex){
-           assertTrue(ex.getMessage().startsWith("Task cannot be null"));
+           assertTrue(ex.getMessage().startsWith("Job cannot be null"));
        }
    }
    
    @Test
    public void testUnableToLoadWorkflow() throws Exception{
-       TaskValidatorImpl tvi = new TaskValidatorImpl();
-       TaskParametersChecker mockNullChecker = mock(TaskParametersChecker.class);
-       TaskParametersChecker mockDupChecker = mock(TaskParametersChecker.class);
-       tvi._taskParamNullChecker = mockNullChecker;
-       tvi._taskParamDuplicateChecker = mockDupChecker;
+       JobValidatorImpl tvi = new JobValidatorImpl();
+       JobParametersChecker mockNullChecker = mock(JobParametersChecker.class);
+       JobParametersChecker mockDupChecker = mock(JobParametersChecker.class);
+       tvi._jobParamNullChecker = mockNullChecker;
+       tvi._jobParamDuplicateChecker = mockDupChecker;
        
        WorkflowDAO mockDAO = mock(WorkflowDAO.class);
-       Task t = new Task();
+       Job t = new Job();
        User u = new User();
-       when(mockDAO.getWorkflowForTask(t,u)).thenReturn(null);
+       when(mockDAO.getWorkflowForJob(t,u)).thenReturn(null);
        tvi._workflowDAO = mockDAO;
-       Task res = tvi.validateParameters(t, u);
-       assertTrue(res.getError().equals("Unable to load workflow for task"));
+       Job res = tvi.validateParameters(t, u);
+       assertTrue(res.getError().equals("Unable to load workflow for job"));
       
    }
    
    @Test
    public void testUnableToLoadWorkflowDueToException() throws Exception{
-       TaskValidatorImpl tvi = new TaskValidatorImpl();
-       TaskParametersChecker mockNullChecker = mock(TaskParametersChecker.class);
-       TaskParametersChecker mockDupChecker = mock(TaskParametersChecker.class);
-       tvi._taskParamNullChecker = mockNullChecker;
-       tvi._taskParamDuplicateChecker = mockDupChecker;
+       JobValidatorImpl tvi = new JobValidatorImpl();
+       JobParametersChecker mockNullChecker = mock(JobParametersChecker.class);
+       JobParametersChecker mockDupChecker = mock(JobParametersChecker.class);
+       tvi._jobParamNullChecker = mockNullChecker;
+       tvi._jobParamDuplicateChecker = mockDupChecker;
        
        WorkflowDAO mockDAO = mock(WorkflowDAO.class);
-       Task t = new Task();
+       Job t = new Job();
        User u = new User();
-       when(mockDAO.getWorkflowForTask(t,u)).thenThrow(new IllegalArgumentException("error"));
+       when(mockDAO.getWorkflowForJob(t,u)).thenThrow(new IllegalArgumentException("error"));
        tvi._workflowDAO = mockDAO;
-       Task res = tvi.validateParameters(t, u);
+       Job res = tvi.validateParameters(t, u);
        assertTrue(res.getError().equals("error"));
       
    }
@@ -135,18 +135,18 @@ public class TestTaskValidatorImpl {
 
    @Test
    public void testNoParametersInTaskCase() throws Exception{
-       TaskValidatorImpl tvi = new TaskValidatorImpl();
-       TaskParametersChecker mockNullChecker = mock(TaskParametersChecker.class);
-       TaskParametersChecker mockDupChecker = mock(TaskParametersChecker.class);
-       tvi._taskParamNullChecker = mockNullChecker;
-       tvi._taskParamDuplicateChecker = mockDupChecker;
+       JobValidatorImpl tvi = new JobValidatorImpl();
+       JobParametersChecker mockNullChecker = mock(JobParametersChecker.class);
+       JobParametersChecker mockDupChecker = mock(JobParametersChecker.class);
+       tvi._jobParamNullChecker = mockNullChecker;
+       tvi._jobParamDuplicateChecker = mockDupChecker;
        
        WorkflowDAO mockDAO = mock(WorkflowDAO.class);
-       Task t = new Task();
+       Job t = new Job();
        User u = new User();
-       when(mockDAO.getWorkflowForTask(t,u)).thenReturn(new Workflow());
+       when(mockDAO.getWorkflowForJob(t,u)).thenReturn(new Workflow());
        tvi._workflowDAO = mockDAO;
-       Task res = tvi.validateParameters(t, u);
+       Job res = tvi.validateParameters(t, u);
        assertTrue(res.getError() == null);
       
    }
@@ -154,14 +154,14 @@ public class TestTaskValidatorImpl {
    
    @Test
    public void testOneParameterNoMatchWithWorkflowParameter() throws Exception{
-       TaskValidatorImpl tvi = new TaskValidatorImpl();
-       TaskParametersChecker mockNullChecker = mock(TaskParametersChecker.class);
-       TaskParametersChecker mockDupChecker = mock(TaskParametersChecker.class);
-       tvi._taskParamNullChecker = mockNullChecker;
-       tvi._taskParamDuplicateChecker = mockDupChecker;
+       JobValidatorImpl tvi = new JobValidatorImpl();
+       JobParametersChecker mockNullChecker = mock(JobParametersChecker.class);
+       JobParametersChecker mockDupChecker = mock(JobParametersChecker.class);
+       tvi._jobParamNullChecker = mockNullChecker;
+       tvi._jobParamDuplicateChecker = mockDupChecker;
        
        WorkflowDAO mockDAO = mock(WorkflowDAO.class);
-       Task t = new Task();
+       Job t = new Job();
        Parameter param = new Parameter();
        param.setName("blah");
        param.setValue("value");
@@ -177,10 +177,10 @@ public class TestTaskValidatorImpl {
        ArrayList<WorkflowParameter> wpList = new ArrayList<>();
        wpList.add(wp);
        w.setParameters(wpList);
-       when(mockDAO.getWorkflowForTask(t,u)).thenReturn(w);
+       when(mockDAO.getWorkflowForJob(t,u)).thenReturn(w);
        
        tvi._workflowDAO = mockDAO;
-       Task res = tvi.validateParameters(t, u);
+       Job res = tvi.validateParameters(t, u);
        assertTrue(res.getError() == null);
        assertTrue(res.getParametersWithErrors().size() == 1);
        ParameterWithError reswp = res.getParametersWithErrors().get(0);
@@ -191,14 +191,14 @@ public class TestTaskValidatorImpl {
    
    @Test
    public void testNoMatchRequiredWorkflowParameter() throws Exception{
-       TaskValidatorImpl tvi = new TaskValidatorImpl();
-       TaskParametersChecker mockNullChecker = mock(TaskParametersChecker.class);
-       TaskParametersChecker mockDupChecker = mock(TaskParametersChecker.class);
-       tvi._taskParamNullChecker = mockNullChecker;
-       tvi._taskParamDuplicateChecker = mockDupChecker;
+       JobValidatorImpl tvi = new JobValidatorImpl();
+       JobParametersChecker mockNullChecker = mock(JobParametersChecker.class);
+       JobParametersChecker mockDupChecker = mock(JobParametersChecker.class);
+       tvi._jobParamNullChecker = mockNullChecker;
+       tvi._jobParamDuplicateChecker = mockDupChecker;
        
        WorkflowDAO mockDAO = mock(WorkflowDAO.class);
-       Task t = new Task();
+       Job t = new Job();
        Parameter param = new Parameter();
        param.setName("blah");
        param.setValue("value");
@@ -222,10 +222,10 @@ public class TestTaskValidatorImpl {
        wpList.add(wp);
        
        w.setParameters(wpList);
-       when(mockDAO.getWorkflowForTask(t,u)).thenReturn(w);
+       when(mockDAO.getWorkflowForJob(t,u)).thenReturn(w);
        
        tvi._workflowDAO = mockDAO;
-       Task res = tvi.validateParameters(t, u);
+       Job res = tvi.validateParameters(t, u);
        assertTrue(res.getError() == null);
        assertTrue(res.getParameters().size() == 1);
        assertTrue(res.getParametersWithErrors().size() == 1);
@@ -236,14 +236,14 @@ public class TestTaskValidatorImpl {
 
    @Test
    public void testParameterFailsValidator() throws Exception{
-       TaskValidatorImpl tvi = new TaskValidatorImpl();
-       TaskParametersChecker mockNullChecker = mock(TaskParametersChecker.class);
-       TaskParametersChecker mockDupChecker = mock(TaskParametersChecker.class);
-       tvi._taskParamNullChecker = mockNullChecker;
-       tvi._taskParamDuplicateChecker = mockDupChecker;
+       JobValidatorImpl tvi = new JobValidatorImpl();
+       JobParametersChecker mockNullChecker = mock(JobParametersChecker.class);
+       JobParametersChecker mockDupChecker = mock(JobParametersChecker.class);
+       tvi._jobParamNullChecker = mockNullChecker;
+       tvi._jobParamDuplicateChecker = mockDupChecker;
        
        WorkflowDAO mockDAO = mock(WorkflowDAO.class);
-       Task t = new Task();
+       Job t = new Job();
        Parameter param = new Parameter();
        param.setName("blah");
        param.setValue("1.5");
@@ -263,14 +263,14 @@ public class TestTaskValidatorImpl {
        wpList.add(wp);
        
        w.setParameters(wpList);
-       when(mockDAO.getWorkflowForTask(t,u)).thenReturn(w);
+       when(mockDAO.getWorkflowForJob(t,u)).thenReturn(w);
        
        ParameterValidator pMock = mock(ParameterValidator.class);
        when(pMock.validate(param)).thenReturn("error");
        tvi._parameterValidator = pMock;
        
        tvi._workflowDAO = mockDAO;
-       Task res = tvi.validateParameters(t, u);
+       Job res = tvi.validateParameters(t, u);
        assertTrue(res.getError() == null);
        assertTrue(res.getParameters().isEmpty());
        assertTrue(res.getParametersWithErrors().size() == 1);

@@ -34,8 +34,8 @@
 package edu.ucsd.crbs.cws.cluster;
 
 import edu.ucsd.crbs.cws.App;
-import edu.ucsd.crbs.cws.dao.TaskDAO;
-import edu.ucsd.crbs.cws.workflow.Task;
+import edu.ucsd.crbs.cws.dao.JobDAO;
+import edu.ucsd.crbs.cws.workflow.Job;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -43,81 +43,81 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Updates status of Tasks by querying Panfish
+ * Updates status of Jobs by querying Panfish
  *
  * @author Christopher Churas <churas@ncmir.ucsd.edu>
  */
-public class TaskStatusUpdater {
+public class JobStatusUpdater {
 
     private static final Logger _log
-            = Logger.getLogger(TaskStatusUpdater.class.getName());
+            = Logger.getLogger(JobStatusUpdater.class.getName());
 
-    TaskDAO _taskDAO;
-    MapOfTaskStatusFactory _jobStatusFactory;
+    JobDAO _jobDAO;
+    MapOfJobStatusFactory _jobStatusFactory;
 
     /**
      * Constructor
      *
-     * @param taskDAO Used to get Task objects and update Task objects
+     * @param jobDAO Used to get Task objects and update Task objects
      * @param jobStatusFactory class to obtain status of Tasks from
      */
-    public TaskStatusUpdater(TaskDAO taskDAO,MapOfTaskStatusFactory jobStatusFactory) {
-        _taskDAO = taskDAO;
+    public JobStatusUpdater(JobDAO jobDAO,MapOfJobStatusFactory jobStatusFactory) {
+        _jobDAO = jobDAO;
         _jobStatusFactory = jobStatusFactory;
     }
 
     /**
-     * Query for all tasks that have not completed and attempt to update their
+     * Query for all jobs that have not completed and attempt to update their
      * status
      *
      * @throws Exception
      */
-    public void updateTasks() throws Exception {
+    public void updateJobs() throws Exception {
 
-        _log.log(Level.INFO, "Updating status for uncompleted tasks...");
-        List<Task> tasks = _taskDAO.getTasks(null, App.NOT_COMPLETED_STATUSES, false, false, false);
-        if (tasks != null && tasks.isEmpty() == false) {
+        _log.log(Level.INFO, "Updating status for uncompleted jobs...");
+        List<Job> jobs = _jobDAO.getJobs(null, App.NOT_COMPLETED_STATUSES, false, false, false);
+        if (jobs != null && jobs.isEmpty() == false) {
 
-            _log.log(Level.INFO, " found {0} tasks to possibly update", tasks.size());
-            Map<String, String> jobStatusMap = _jobStatusFactory.getJobStatusMap(tasks);
+            _log.log(Level.INFO, " found {0} jobs to possibly update", jobs.size());
+            Map<String, String> jobStatusMap = _jobStatusFactory.getJobStatusMap(jobs);
             
-            for (Task t : tasks) {
-                if (jobStatusMap.containsKey(t.getJobId())) {
-                    String returnedStatus = jobStatusMap.get(t.getJobId());
-                    if (!returnedStatus.equals(t.getStatus())) {
+            for (Job j : jobs) {
+                if (jobStatusMap.containsKey(j.getSchedulerJobId())) {
+                    String returnedStatus = jobStatusMap.get(j.getSchedulerJobId());
+                    if (!returnedStatus.equals(j.getStatus())) {
                         _log.log(Level.INFO, 
-                                "\tTask: ({0}) {1} old status: {2} new status: {3}", 
-                                new Object[]{t.getId(), t.getName(), 
-                                    t.getStatus(), returnedStatus});
+                                "\tJob: ({0}) {1} old status: {2} new status: {3}", 
+                                new Object[]{j.getId(), j.getName(), 
+                                    j.getStatus(), returnedStatus});
                         
-                        t.setStatus(returnedStatus);
+                        j.setStatus(returnedStatus);
                         
                         Long startDate = null;
                         Long finishDate = null;
                         
-                        if (returnedStatus.equals(Task.RUNNING_STATUS)){
-                            t.setStartDate(new Date());
-                            startDate = t.getStartDate().getTime();
+                        if (returnedStatus.equals(Job.RUNNING_STATUS)){
+                            j.setStartDate(new Date());
+                            startDate = j.getStartDate().getTime();
                             
                         }
-                        else if (returnedStatus.equals(Task.COMPLETED_STATUS)){
-                            t.setFinishDate(new Date());
-                            finishDate = t.getFinishDate().getTime();
+                        else if (returnedStatus.equals(Job.COMPLETED_STATUS)){
+                            j.setFinishDate(new Date());
+                            finishDate = j.getFinishDate().getTime();
                         }
                         try {
-                            _taskDAO.update(t.getId(), t.getStatus(), null, null, null,
+                            _jobDAO.update(j.getId(), j.getStatus(), null, null, null,
                                     null, startDate, finishDate, true, null);
                         }
                         catch(Exception ex){
                            _log.log(Level.SEVERE,
-                                   "There was a problem updating task: {0} Skipping...",
-                                   t.getId());
+                                   "There was a problem updating job: {0} Skipping...",
+                                   j.getId());
                         }
                     }
                 }
             }
         } else {
-            _log.log(Level.INFO, "no tasks to update");
+            _log.log(Level.INFO, "no jobs to update");
         }
     }
 }

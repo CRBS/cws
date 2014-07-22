@@ -1,3 +1,36 @@
+/*
+ * COPYRIGHT AND LICENSE
+ * 
+ * Copyright 2014 The Regents of the University of California All Rights Reserved
+ * 
+ * Permission to copy, modify and distribute any part of this CRBS Workflow 
+ * Service for educational, research and non-profit purposes, without fee, and
+ * without a written agreement is hereby granted, provided that the above 
+ * copyright notice, this paragraph and the following three paragraphs appear
+ * in all copies.
+ * 
+ * Those desiring to incorporate this CRBS Workflow Service into commercial 
+ * products or use for commercial purposes should contact the Technology
+ * Transfer Office, University of California, San Diego, 9500 Gilman Drive, 
+ * Mail Code 0910, La Jolla, CA 92093-0910, Ph: (858) 534-5815, 
+ * FAX: (858) 534-7345, E-MAIL:invent@ucsd.edu.
+ * 
+ * IN NO EVENT SHALL THE UNIVERSITY OF CALIFORNIA BE LIABLE TO ANY PARTY FOR 
+ * DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES, INCLUDING 
+ * LOST PROFITS, ARISING OUT OF THE USE OF THIS CRBS Workflow Service, EVEN IF 
+ * THE UNIVERSITY OF CALIFORNIA HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH
+ * DAMAGE.
+ * 
+ * THE CRBS Workflow Service PROVIDED HEREIN IS ON AN "AS IS" BASIS, AND THE
+ * UNIVERSITY OF CALIFORNIA HAS NO OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, 
+ * UPDATES, ENHANCEMENTS, OR MODIFICATIONS. THE UNIVERSITY OF CALIFORNIA MAKES
+ * NO REPRESENTATIONS AND EXTENDS NO WARRANTIES OF ANY KIND, EITHER IMPLIED OR 
+ * EXPRESS, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF 
+ * MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE, OR THAT THE USE OF 
+ * THE CRBS Workflow Service WILL NOT INFRINGE ANY PATENT, TRADEMARK OR OTHER
+ * RIGHTS. 
+ */
+
 package edu.ucsd.crbs.cws.log;
 
 import com.googlecode.objectify.annotation.Entity;
@@ -20,9 +53,9 @@ public class Event {
    
     
     /**
-     * Creation of a Task
+     * Creation of a {@link Job}
      */
-    public static final String CREATE_TASK_EVENT_TYPE = "createtask";
+    public static final String CREATE_JOB_EVENT_TYPE = "createjob";
     
      
     /**
@@ -31,9 +64,9 @@ public class Event {
     public static final String CREATE_USER_EVENT_TYPE = "createuser";
     
     /**
-     * Failed creation of a Task
+     * Failed creation of a {@link Job}
      */
-    public static final String FAILED_CREATE_TASK_EVENT_TYPE = "failedcreatetask";
+    public static final String FAILED_CREATE_JOB_EVENT_TYPE = "failedcreatejob";
     
     
     /**
@@ -55,7 +88,7 @@ public class Event {
     private String _cityLatLong;
     @Index({IfNotNull.class}) private String _eventType;
     @Index({IfNotNull.class}) private Long _workflowId;
-    @Index({IfNotNull.class}) private Long _taskId;
+    @Index({IfNotNull.class}) private Long _jobId;
     @Index({IfNotNull.class}) private Long _userId;
     @Index({IfNotNull.class}) private Long _createdUserId;
     @Index({IfNotNull.class}) private Long _workspaceFileId;
@@ -245,16 +278,16 @@ public class Event {
      * Gets id of Task object pertaining to this Event
      * @return 
      */
-    public Long getTaskId() {
-        return _taskId;
+    public Long getJobId() {
+        return _jobId;
     }
 
     /**
-     * Sets id of Task object pertaining to this Event
-     * @param taskId 
+     * Sets id of Job object pertaining to this Event
+     * @param jobId 
      */
-    public void setTaskId(Long taskId) {
-        this._taskId = taskId;
+    public void setJobId(Long jobId) {
+        this._jobId = jobId;
     }
 
     /**

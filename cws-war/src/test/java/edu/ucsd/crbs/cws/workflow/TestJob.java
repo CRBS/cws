@@ -18,9 +18,9 @@ import org.junit.runners.JUnit4;
  * @author Christopher Churas <churas@ncmir.ucsd.edu>
  */
 @RunWith(JUnit4.class)
-public class TestTask {
+public class TestJob {
 
-    public TestTask() {
+    public TestJob() {
     }
 
     @BeforeClass
@@ -41,7 +41,7 @@ public class TestTask {
  
     @Test
     public void testBasicGettersAndSetters(){
-        Task t = new Task();
+        Job t = new Job();
         assertTrue(t.getId() == null);
         assertTrue(t.getWorkflow() == null);
         assertTrue(t.getName() == null);
@@ -103,7 +103,7 @@ public class TestTask {
 
     @Test
     public void testAddParameterWithError(){
-        Task t = new Task();
+        Job t = new Job();
         
         t.addParameterWithError(null);
         
@@ -120,7 +120,7 @@ public class TestTask {
     
     @Test
     public void testGetSummaryOfErrors(){
-        Task t = new Task();
+        Job t = new Job();
         assertTrue(t.getSummaryOfErrors().equals(""));
         t.addParameterWithError(new ParameterWithError("someparam","3","bad"));
         
@@ -129,7 +129,7 @@ public class TestTask {
         assertTrue(t.getSummaryOfErrors().equals("Parameter: name=someparam,value=3,error=bad\nParameter: name=m,value=v,error=x\n"));
         
         t.setError("some error");
-        assertTrue(t.getSummaryOfErrors().equals("TaskError: some error\nParameter: name=someparam,value=3,error=bad\nParameter: name=m,value=v,error=x\n"));
+        assertTrue(t.getSummaryOfErrors().equals("JobError: some error\nParameter: name=someparam,value=3,error=bad\nParameter: name=m,value=v,error=x\n"));
     }
     
 }
