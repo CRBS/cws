@@ -150,6 +150,12 @@ public class App {
     
     public static final String PREVIEW_WORKFLOW_ARG = "preview";
     
+    public static final String DESCRIPTION_ARG = "description";
+    
+    public static final String TYPE_ARG = "type";
+    
+    public static final String REGISTAR_JAR = "registerjar";
+
     //public static final String LOAD_TEST = "loadtest";
     public static final String PROGRAM_HELP = "\nCRBS Workflow Service Command Line Tools "
             + "\n\nThis program provides options to run Workflow Jobs on the local cluster as well"
@@ -199,6 +205,9 @@ public class App {
                     accepts(RESAVE_JOB_ARG,"Resaves Job").withRequiredArg().ofType(Long.class).describedAs("Job Id");
                     accepts(RESAVE_WORKFLOW_ARG,"Resaves Workflow").withRequiredArg().ofType(Long.class).describedAs("Workflow Id");
                     accepts(PREVIEW_WORKFLOW_ARG,"Preview Workflow on Web, requires --"+URL_ARG+" currently it should be: http://imafish.dynamic.ucsd.edu/cws/makepreview").withRequiredArg().ofType(File.class).describedAs("Kepler .kar file");
+                    accepts(DESCRIPTION_ARG,"Description for WorkspaceFile").withRequiredArg().ofType(String.class);
+                    accepts(TYPE_ARG,"Type of WorkspaceFile").withRequiredArg().ofType(String.class);
+                    accepts(REGISTAR_JAR,"Path to Jar to register WorkspaceFiles").withRequiredArg().ofType(File.class).describedAs("Path to this jar");
                     accepts(HELP_ARG).forHelp();
                 }
             };
@@ -561,6 +570,12 @@ public class App {
         if (optionSet.has(MD5_ARG)){
             wsp.setMd5((String)optionSet.valueOf(MD5_ARG));
         }
+        if (optionSet.has(DESCRIPTION_ARG)){
+            wsp.setDescription((String)optionSet.valueOf(DESCRIPTION_ARG));
+        }
+        if (optionSet.has(TYPE_ARG)){
+            wsp.setType((String)optionSet.valueOf(TYPE_ARG));
+        }
 
         ObjectMapper om = new ObjectMapper();
         ObjectWriter ow = om.writerWithDefaultPrettyPrinter();
@@ -660,7 +675,6 @@ public class App {
         System.out.println("--------------- END OF OUTPUT FROM CURL ---------");
 
     }
-
     
     public static void uploadPreviewWorkflowFile(final String url,Workflow w) throws Exception {
 
@@ -697,7 +711,6 @@ public class App {
         }
 
     }
-    
     
     /**
      * Using a curl this method uploads via POST a 
