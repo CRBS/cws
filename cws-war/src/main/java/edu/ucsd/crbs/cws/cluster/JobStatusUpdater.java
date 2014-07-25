@@ -100,7 +100,8 @@ public class JobStatusUpdater {
                             startDate = j.getStartDate().getTime();
                             
                         }
-                        else if (returnedStatus.equals(Job.COMPLETED_STATUS)){
+                        else if (returnedStatus.equals(Job.COMPLETED_STATUS) ||
+                                 returnedStatus.equals(Job.ERROR_STATUS)){
                             j.setFinishDate(new Date());
                             finishDate = j.getFinishDate().getTime();
                         }
