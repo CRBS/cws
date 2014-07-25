@@ -68,7 +68,9 @@ import edu.ucsd.crbs.cws.workflow.WorkflowParameter;
 import edu.ucsd.crbs.cws.workflow.WorkspaceFile;
 import edu.ucsd.crbs.cws.workflow.kepler.WorkflowFromAnnotatedXmlFactory;
 import java.io.BufferedInputStream;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -146,6 +148,8 @@ public class App {
 
     public static final String RESAVE_WORKFLOW_ARG = "resaveworkflow";
     
+    public static final String PREVIEW_WORKFLOW_ARG = "preview";
+    
     //public static final String LOAD_TEST = "loadtest";
     public static final String PROGRAM_HELP = "\nCRBS Workflow Service Command Line Tools "
             + "\n\nThis program provides options to run Workflow Jobs on the local cluster as well"
@@ -166,7 +170,7 @@ public class App {
 
             OptionParser parser = new OptionParser() {
                 {
-                    accepts(UPLOAD_WF_ARG, "Add/Update Workflow").withRequiredArg().ofType(File.class).describedAs(".kar");
+                    accepts(UPLOAD_WF_ARG, "Add/Update Workflow").withRequiredArg().ofType(File.class).describedAs("Kepler .kar file");
                     //accepts(LOAD_TEST,"creates lots of workflows and jobs");
                     accepts(SYNC_WITH_CLUSTER_ARG, "Submits & Synchronizes Workflow Jobs on local cluster with CRBS Workflow Webservice").withRequiredArg().ofType(String.class).describedAs("URL");
                     accepts(UPLOAD_FILE_ARG,"Registers and uploads Workspace file to REST service").withRequiredArg().ofType(File.class);
@@ -194,9 +198,8 @@ public class App {
                     accepts(RESAVE_WORKSPACEFILE_ARG,"Resaves Workspace file").withRequiredArg().ofType(Long.class).describedAs("WorkspaceFile Id");
                     accepts(RESAVE_JOB_ARG,"Resaves Job").withRequiredArg().ofType(Long.class).describedAs("Job Id");
                     accepts(RESAVE_WORKFLOW_ARG,"Resaves Workflow").withRequiredArg().ofType(Long.class).describedAs("Workflow Id");
-
+                    accepts(PREVIEW_WORKFLOW_ARG,"Preview Workflow on Web, requires --"+URL_ARG+" currently it should be: http://imafish.dynamic.ucsd.edu/cws/makepreview").withRequiredArg().ofType(File.class).describedAs("Kepler .kar file");
                     accepts(HELP_ARG).forHelp();
-                    
                 }
             };
 
@@ -219,7 +222,8 @@ public class App {
                      !optionSet.has(REGISTER_FILE_ARG) &&
                      !optionSet.has(RESAVE_WORKSPACEFILE_ARG) &&
                      !optionSet.has(RESAVE_JOB_ARG) &&
-                     !optionSet.has(RESAVE_WORKFLOW_ARG)) {
+                     !optionSet.has(RESAVE_WORKFLOW_ARG) &&
+                     !optionSet.has(PREVIEW_WORKFLOW_ARG)) {
                 System.out.println(PROGRAM_HELP + "\n");
                 parser.printHelpOn(System.out);
                 System.exit(0);
@@ -232,6 +236,18 @@ public class App {
             }
 
             MultivaluedMapFactory multivaluedMapFactory = new MultivaluedMapFactoryImpl();
+            
+            if (optionSet.has(PREVIEW_WORKFLOW_ARG)){
+                failIfOptionSetMissingURL(optionSet,"--"+PREVIEW_WORKFLOW_ARG+" flag");
+                                
+                File workflowFile = (File)optionSet.valueOf(PREVIEW_WORKFLOW_ARG);
+                Workflow w = getWorkflowFromFile(workflowFile);
+                if (w == null){
+                    throw new Exception("Unable to extract workflow from file");
+                }
+                uploadPreviewWorkflowFile((String)optionSet.valueOf(URL_ARG),w);
+                System.exit(0);
+            }
             
             if (optionSet.has(REGISTER_FILE_ARG)){
                 addNewWorkspaceFile(optionSet,false,REGISTER_FILE_ARG);
@@ -454,13 +470,8 @@ public class App {
                 if (optionSet.has(PARENT_WFID_ARG)) {
                     parentWfId = (Long) optionSet.valueOf(PARENT_WFID_ARG);
                 }
-
-                File workflowFile = (File) optionSet.valueOf(UPLOAD_WF_ARG);
-                //WorkflowFromXmlFactory xmlFactory = new WorkflowFromXmlFactory();
-                WorkflowFromAnnotatedXmlFactory xmlFactory = new WorkflowFromAnnotatedXmlFactory();
-                xmlFactory.setWorkflowXml(new BufferedInputStream(KeplerMomlFromKar.getInputStreamOfWorkflowMoml(workflowFile)));
-
-                Workflow w = xmlFactory.getWorkflow();
+                File workflowFile = (File)optionSet.valueOf(UPLOAD_WF_ARG);
+                Workflow w = getWorkflowFromFile(workflowFile);
                 if (w != null) {
 
                     if (optionSet.has(OWNER_ARG)) {
@@ -517,6 +528,13 @@ public class App {
         }
 
         System.exit(0);
+    }
+    
+    public static Workflow getWorkflowFromFile(File workflowFile) throws Exception {
+        WorkflowFromAnnotatedXmlFactory xmlFactory = new WorkflowFromAnnotatedXmlFactory();
+        xmlFactory.setWorkflowXml(new BufferedInputStream(KeplerMomlFromKar.getInputStreamOfWorkflowMoml(workflowFile)));
+
+        return xmlFactory.getWorkflow();
     }
     
     public static void addNewWorkspaceFile(OptionSet optionSet,boolean uploadFile,final String theArg) throws Exception {
@@ -643,6 +661,44 @@ public class App {
 
     }
 
+    
+    public static void uploadPreviewWorkflowFile(final String url,Workflow w) throws Exception {
+
+        
+        ObjectMapper om = new ObjectMapper();
+        File tmpFile = File.createTempFile("preview", ".json");
+        try {
+            BufferedWriter bw = new BufferedWriter(new FileWriter(tmpFile));
+            ObjectWriter ow = om.writer();
+            bw.write(ow.writeValueAsString(w));
+            bw.flush();
+            bw.close();
+        
+            RunCommandLineProcess procRunner = new RunCommandLineProcessImpl();
+            System.out.println("TODO SWITCH THIS TO USE JERSEY CLIENT!!!\n"+
+                    "Attempting to run this command: curl -i -X POST --form '" + 
+                    "_formexamplefile=@" + tmpFile.getAbsolutePath() + "' " +
+                    url);
+
+            String res = procRunner.runCommandLineProcess("curl",
+                    "-i", "-X", "POST", "--form",
+                    "_formexamplefile=@" + tmpFile.getAbsolutePath(),
+                    url);
+        
+            System.out.println("\n");
+            System.out.println("--------------- URL to Preview ----------------");
+            System.out.println(res);
+            System.out.println("-----------------------------------------------");
+        }
+        finally {
+            if (tmpFile != null){
+                tmpFile.delete();
+            }
+        }
+
+    }
+    
+    
     /**
      * Using a curl this method uploads via POST a 
      * {@link WorkspaceFile} file to REST service
