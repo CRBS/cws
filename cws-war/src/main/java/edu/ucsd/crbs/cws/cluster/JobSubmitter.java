@@ -127,7 +127,9 @@ public class JobSubmitter {
                         j.getSchedulerJobId());
                 }
                 catch(Exception ex){
-                    log.log(Level.SEVERE,"Problems submitting job: {0}.  Skipping...",j.getId());
+                    log.log(Level.SEVERE,
+                            "Problems submitting job: {0} -- {1}.  Skipping...",
+                            new Object[]{j.getId(),ex.getMessage()});
                 }
             }
         } else {
