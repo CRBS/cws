@@ -78,6 +78,15 @@ public class UserRestService {
     
     static UserDAO _userDAO = new UserObjectifyDAOImpl();
     
+    /**
+     * Gets a {@link User}
+     * @param userid
+     * @param userLogin
+     * @param userToken
+     * @param userLoginToRunAs
+     * @param request
+     * @return 
+     */
     @GET
     @Path(Constants.USER_ID_REST_PATH)
     @Produces(MediaType.APPLICATION_JSON)
@@ -101,6 +110,15 @@ public class UserRestService {
         }
     }
     
+    /**
+     * Creates a new {@link User}
+     * @param u
+     * @param userLogin
+     * @param userToken
+     * @param userLoginToRunAs
+     * @param request
+     * @return 
+     */
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
