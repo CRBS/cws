@@ -67,6 +67,7 @@ public class Workflow {
     private Date _createDate;
     private String _releaseNotes;
     private String _owner;
+    private String _author;
     @Index private boolean _deleted;
     private List<WorkflowParameter> _parameters;
     private @Load(Workflow.Everything.class) Ref<Workflow> _parent;
@@ -215,5 +216,14 @@ public class Workflow {
     public void setOwner(String owner) {
         _owner = owner;
     }
+    
+    public String getAuthor() {
+        return _author;
+    }
+
+    public void setAuthor(String author) {
+        _author = author;
+    }
+
 }
 

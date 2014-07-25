@@ -92,6 +92,7 @@ public class WorkflowFromAnnotatedXmlFactory {
     public static final String WORKFLOW_NAME="workflowname";
     public static final String RELEASE_NOTES="releasenotes";
     public static final String DESCRIPTION="description";
+    public static final String AUTHOR = "author";
     
     public static final String TYPE_KEY = "type";
     public static final String HELP_KEY = "help";
@@ -221,6 +222,10 @@ public class WorkflowFromAnnotatedXmlFactory {
                 else if (doesRectangleNameMatch(ra,DESCRIPTION)){
                     workflow.setDescription(ra.getTextFromTextAttributes());
                 }
+                else if (doesRectangleNameMatch(ra,AUTHOR)){
+                    workflow.setAuthor(ra.getTextFromTextAttributes());
+                }
+
                 else {
                     List<WorkflowParameter> wpList = getWorkflowParameters(ra);
                     if (wpList != null && wpList.isEmpty() == false){

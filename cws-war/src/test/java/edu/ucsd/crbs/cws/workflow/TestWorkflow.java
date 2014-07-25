@@ -56,7 +56,8 @@ public class TestWorkflow {
         assertTrue(w.getName() == null);
         assertTrue(w.getParameters() == null);
         assertTrue(w.getDescription() == null);
-        
+        assertTrue(w.getOwner() == null);
+        assertTrue(w.getAuthor() == null);
         w.setId(new Long(2));
         w.setVersion(3);
         Date createDate = new Date();
@@ -65,6 +66,8 @@ public class TestWorkflow {
         w.setName("name");
         w.setParameters(new ArrayList<WorkflowParameter>());
         w.setDescription("description");
+        w.setOwner("owner");
+        w.setAuthor("author");
         
         assertTrue(w.getId() == 2);
         assertTrue(w.getVersion() == 3);
@@ -73,6 +76,8 @@ public class TestWorkflow {
         assertTrue(w.getName().equals("name"));
         assertTrue(w.getParameters().isEmpty());
         assertTrue(w.getDescription().equals("description"));
+        assertTrue(w.getOwner().equals("owner"));
+        assertTrue(w.getAuthor().equals("author"));
     }
 
     @Test

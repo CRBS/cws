@@ -112,6 +112,7 @@ public class TestWorkflowFromAnnotatedXmlFactory {
         assertTrue(w.getDescription().startsWith("This is an example workflow that can be used as a template\n\nThe Blue"));
         assertTrue(w.getDescription().contains("This text is the description for the workflow."));
         assertTrue(w.getReleaseNotes().contains("-- Some new feature"));
+        assertTrue(w.getAuthor().contains("Chuck Norris"));
         assertTrue(w.getParameters().size() == 10);
 
         //put parameters into a hash to make it easier to test
