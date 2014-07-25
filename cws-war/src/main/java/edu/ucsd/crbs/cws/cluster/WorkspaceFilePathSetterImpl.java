@@ -126,6 +126,11 @@ public class WorkspaceFilePathSetterImpl implements WorkspaceFilePathSetter {
      * @throws Exception 
      */
     private Map<Long, WorkspaceFile> getMapOfWorkspaceFiles(final String workspaceIds) throws Exception {
+        
+        if (workspaceIds == null || workspaceIds.isEmpty()){
+            return new HashMap<>();
+        }
+        
         List<WorkspaceFile> wsFiles = _workspaceFileDAO.getWorkspaceFilesById(workspaceIds, null);
         HashMap<Long, WorkspaceFile> wspMap = new HashMap<>();
         for (WorkspaceFile wsf : wsFiles) {

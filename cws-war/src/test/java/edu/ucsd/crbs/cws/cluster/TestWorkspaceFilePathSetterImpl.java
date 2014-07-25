@@ -185,7 +185,7 @@ public class TestWorkspaceFilePathSetterImpl {
     public void testSetPathsWhereNoParametersAreWorkspaceParametersNull() throws Exception {
         WorkspaceFileDAO workspaceDAO = mock(WorkspaceFileDAO.class);
         WorkspaceFilePathSetterImpl setter = new WorkspaceFilePathSetterImpl(workspaceDAO);
-                
+        when(workspaceDAO.getWorkspaceFilesById("", null)).thenThrow(new Exception("This should not be called"));
         Job t = new Job();
         t.setId(new Long(1));
         ArrayList<Parameter> params = new ArrayList<>();
