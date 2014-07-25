@@ -27,3 +27,8 @@ echo ""
 echo ""
 echo "Get a user"
 echo "curl -i -X GET \"${baseURL}/rest/users/1?${usertoken}\"
+
+# To preview a workflow first save the json to foo.json and then run this
+# 
+# curl -i -X POST --form "_formexamplefile=@/home/churas/src/cws/foo.json" http://imafish.dynamic.ucsd.edu/cws/makepreview
+#
