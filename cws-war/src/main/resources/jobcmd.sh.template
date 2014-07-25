@@ -34,7 +34,18 @@ echo "starttime: $startTime" >> $jobLogFile 2>&1
 echo "Arguments: @@JOB_ARGS@@" >> $jobLogFile 2>&1
 
 export PATH="${PATH}:/usr/java/latest/bin:/usr/java/default/bin"
- 
+
+# 
+# Registers the output as WorkspaceFile, but sets path null
+#
+# @@JAVA@@ @@REGISTER_OUTPUT_TO_WORKSPACE@@
+
+
+# TODO:  Need to run kepler in the background so that code can periodically
+#        check for a workflow.status file and if found and different the code
+#        can call the REST service with updates.
+#        Also code can also listen for kill requests?
+
 @@KEPLER_SH@@ @@JOB_ARGS@@ 
 
 declare jobExitCode=$?
@@ -42,6 +53,13 @@ declare endTime=`date +%s 2>&1`
 
 echo "endtime: $endTime" >> $jobLogFile 2>&1
 echo "exitcode: $jobExitCode"  >> $jobLogFile 2>&1
+
+# 
+# Updates the WorkspaceFile Path
+#
+# @@JAVA@@ @@REGISTER_OUTPUT_TO_WORKSPACE@@
+
+
 
 exit $jobExitCode
 
