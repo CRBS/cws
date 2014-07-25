@@ -194,7 +194,8 @@ public class WorkspaceFileRestService {
             Event event = _eventBuilder.createEvent(request, user);
             _log.info(event.getStringOfLocationData());
             
-            if (user.isAuthorizedTo(Permission.CREATE_JOB)) {
+            if (user.isAuthorizedTo(Permission.CREATE_WORKSPACEFILE)) {
+                workspaceFile.setOwner(user.getLoginToRunJobAs());
                 WorkspaceFile resWorkspaceFile = _workspaceFileDAO.insert(workspaceFile,false);
                 if (addUploadURL == null || addUploadURL == true){
                     resWorkspaceFile = setFileUploadURL(resWorkspaceFile);
