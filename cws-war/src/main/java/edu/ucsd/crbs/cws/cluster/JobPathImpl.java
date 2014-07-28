@@ -70,10 +70,23 @@ public class JobPathImpl implements JobPath{
      * Generates base directory by appending the {@link Job#getOwner()} and
      * {@link Job#getId()} to the <b>baseExecDir</b> passed in to the constructor
      * @return 
-     * @throws Exception
+     * @throws Exception If the <b>j</b> is null, if baseExec Directory is null, if {@link Job#getOwner() } or {@link Job#getId()} is null
      */
     @Override
     public String getJobBaseDirectory(Job j) throws Exception {
+        if (_baseExecDir == null){
+            throw new NullPointerException("Base directory cannot be null");
+        }
+        if (j == null){
+            throw new NullPointerException("Job cannot be null");
+        }
+        if (j.getOwner() == null){
+            throw new NullPointerException("Job owner cannot be null");
+        }
+        
+        if (j.getId() == null){
+            throw new NullPointerException("Job id cannot be null");
+        }
         return _baseExecDir+File.separator+j.getOwner()+
                 File.separator+j.getId().toString();
     }
