@@ -200,7 +200,7 @@ public class JobRestService {
     @Path(Constants.JOB_ID_REST_PATH)
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Job updateTask(@PathParam(Constants.JOB_ID_PATH_PARAM) final Long jobId,
+    public Job updateJob(@PathParam(Constants.JOB_ID_PATH_PARAM) final Long jobId,
             @QueryParam(Constants.STATUS_QUERY_PARAM) final String status,
             @QueryParam(Constants.ESTCPU_QUERY_PARAM) final Long estCpu,
             @QueryParam(Constants.ESTRUNTIME_QUERY_PARAM) final Long estRunTime,
@@ -257,7 +257,7 @@ public class JobRestService {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Job createTask(Job j,
+    public Job createJob(Job j,
             @QueryParam(Constants.USER_LOGIN_PARAM) final String userLogin,
             @QueryParam(Constants.USER_TOKEN_PARAM) final String userToken,
             @QueryParam(Constants.USER_LOGIN_TO_RUN_AS_PARAM) final String userLoginToRunAs,
