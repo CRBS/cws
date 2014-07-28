@@ -36,6 +36,7 @@ package edu.ucsd.crbs.cws.cluster;
 import edu.ucsd.crbs.cws.auth.User;
 import edu.ucsd.crbs.cws.dao.JobDAO;
 import edu.ucsd.crbs.cws.workflow.Job;
+import edu.ucsd.crbs.cws.workflow.WorkspaceFile;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -55,6 +56,7 @@ public class JobSubmitter {
     JobCmdScriptSubmitter _cmdScriptSubmitter;
     SyncWorkflowFileToFileSystem _workflowSync;
     WorkspaceFilePathSetter _workspacePathSetter;
+    OutputWorkspaceFileUtil _outputWorkspaceFileCreator;
     private JobDAO _jobDAO;
 
     /**
@@ -62,6 +64,7 @@ public class JobSubmitter {
      *
      * @param jobDAO
      * @param workspaceFilePathSetter
+     * @param outputWorkspaceFileCreator
      * @param workflowExecDir Directory under where workflow Tasks should be run
      * @param workflowsDir Directory where workflows are stored
      * @param keplerScript Full path to Kepler program
@@ -73,18 +76,20 @@ public class JobSubmitter {
      */
     public JobSubmitter(JobDAO jobDAO,
             WorkspaceFilePathSetter workspaceFilePathSetter,
-            final String workflowExecDir,
+            OutputWorkspaceFileUtil outputWorkspaceFileCreator,
+            JobPath jobPath,
             final String workflowsDir,
             final String keplerScript,
             final String panfishCast,
             final String queue,
             final User user,
             final String url) {
-        _directoryCreator = new JobDirectoryCreatorImpl(workflowExecDir);
+        _directoryCreator = new JobDirectoryCreatorImpl(jobPath);
         _cmdScriptCreator = new JobCmdScriptCreatorImpl(workflowsDir, keplerScript);
         _cmdScriptSubmitter = new JobCmdScriptSubmitterImpl(panfishCast, queue);
         _workflowSync = new SyncWorkflowFileToFileSystemImpl(workflowsDir, url, user.getLogin(), user.getToken());
         _workspacePathSetter = workspaceFilePathSetter;
+        _outputWorkspaceFileCreator = outputWorkspaceFileCreator;
 
         _jobDAO = jobDAO;
     }
@@ -142,5 +147,7 @@ public class JobSubmitter {
         String jobDir = _directoryCreator.create(j);
         String cmdScript = _cmdScriptCreator.create(jobDir, j);
         _cmdScriptSubmitter.submit(cmdScript, j);
+        WorkspaceFile wsf = _outputWorkspaceFileCreator.createAndRegisterJobOutputAsWorkspaceFile(j,
+                 null);
     }
 }
