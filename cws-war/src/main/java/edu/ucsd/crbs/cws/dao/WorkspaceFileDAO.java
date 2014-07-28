@@ -62,6 +62,7 @@ public interface WorkspaceFileDAO {
      */
     public WorkspaceFile getWorkspaceFileById(final String workspaceFileId,User user) throws Exception;
     
+    public List<WorkspaceFile> getWorkspaceFilesBySourceJobId(long sourceJobId) throws Exception;
     
     public List<WorkspaceFile> getWorkspaceFilesById(final String workspaceFileIds,User user) throws Exception;
     

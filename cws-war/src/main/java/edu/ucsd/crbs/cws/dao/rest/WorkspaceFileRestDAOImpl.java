@@ -216,4 +216,25 @@ public class WorkspaceFileRestDAOImpl implements WorkspaceFileDAO {
         return mapper.readValue(json, new TypeReference<WorkspaceFile>() {
         });
     }
+
+    @Override
+    public List<WorkspaceFile> getWorkspaceFilesBySourceJobId(long sourceJobId) throws Exception {
+        ClientConfig cc = new DefaultClientConfig();
+        cc.getFeatures().put(JSONConfiguration.FEATURE_POJO_MAPPING, Boolean.TRUE);
+        Client client = Client.create(cc);
+        client.setFollowRedirects(true);
+        WebResource resource = client.resource(_restURL).path(Constants.REST_PATH).path(Constants.WORKSPACEFILES_PATH);
+        
+        MultivaluedMap queryParams = _multivaluedMapFactory.getMultivaluedMap(_user);
+        
+        queryParams.add(Constants.SOURCE_JOB_ID_QUERY_PARAM, Long.toString(sourceJobId));
+
+        String json = resource.queryParams(queryParams).accept(MediaType.APPLICATION_JSON).get(String.class);
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new ObjectifyJacksonModule());
+        return mapper.readValue(json, new TypeReference<List<WorkspaceFile>>() {
+        });
+    }
+    
+    
 }

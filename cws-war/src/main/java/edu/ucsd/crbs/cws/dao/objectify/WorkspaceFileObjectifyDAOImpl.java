@@ -53,7 +53,6 @@ import java.util.logging.Logger;
  */
 public class WorkspaceFileObjectifyDAOImpl implements WorkspaceFileDAO {
 
-    
     private static final Logger _log
             = Logger.getLogger(WorkspaceFileObjectifyDAOImpl.class.getName());
 
@@ -238,4 +237,12 @@ public class WorkspaceFileObjectifyDAOImpl implements WorkspaceFileDAO {
         return wsp;
     }
 
+    
+    @Override
+    public List<WorkspaceFile> getWorkspaceFilesBySourceJobId(long sourceJobId) throws Exception {
+        Query<WorkspaceFile> q = ofy().load().type(WorkspaceFile.class);
+        q = q.filter("_sourceJobId ==", sourceJobId);
+
+        return q.list();
+    }
 }
