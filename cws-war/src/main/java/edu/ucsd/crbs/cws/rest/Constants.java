@@ -146,6 +146,8 @@ public class Constants {
     
     public static final String ADD_UPLOAD_URL_PARAM = "adduploadurl";
     
+    public static final String SOURCE_JOB_ID_QUERY_PARAM = "sourcejobid";
+    
     /**
      * Tells REST services to load and resave given object.  This is needed
      * in cases where object has new updated fields or indexes have changed.
