@@ -57,7 +57,7 @@ echo "exitcode: $jobExitCode"  >> $jobLogFile 2>&1
 # 
 # Updates the WorkspaceFile Path
 #
-# @@JAVA@@ @@REGISTER_OUTPUT_TO_WORKSPACE@@
+# @@JAVA@@ @@UPDATE_WORKSPACE_PATH@@
 
 
 
