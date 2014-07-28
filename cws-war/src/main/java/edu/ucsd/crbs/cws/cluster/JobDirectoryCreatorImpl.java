@@ -43,10 +43,10 @@ import java.io.File;
  */
 public class JobDirectoryCreatorImpl implements JobDirectoryCreator{
 
-    private final String _baseExecDir;
+    private JobPath _jobPath;
     
-    public JobDirectoryCreatorImpl(final String baseJobExecutionDirectory){
-        _baseExecDir = baseJobExecutionDirectory;
+    public JobDirectoryCreatorImpl(JobPath jobPath){
+        _jobPath = jobPath;
     }
     
     /**
@@ -61,18 +61,7 @@ public class JobDirectoryCreatorImpl implements JobDirectoryCreator{
             throw new NullPointerException("Job cannot be null");
         }
         
-        Long id = j.getId();
-        if (id == null){
-            throw new NullPointerException("Job id cannot be null");
-        }
-    
-        if (_baseExecDir == null){
-            throw new NullPointerException("Base Job Execution directory is null");
-        }
-        
-        File dirToCreate = new File(_baseExecDir+File.separator+j.getOwner()+
-                File.separator+id.toString()+File.separator+
-                Constants.OUTPUTS_DIR_NAME);
+        File dirToCreate = new File(_jobPath.getJobOutputDirectory(j));
         
         if (dirToCreate.mkdirs() == false){
             throw new Exception("Unable to create directory: "+dirToCreate.getAbsolutePath());
