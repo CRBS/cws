@@ -42,10 +42,18 @@ public class User {
        _id = id;
     }
     
+    /**
+     * Gets ip address of request.  May be ip4 or ip6
+     * @return 
+     */
     public String getIpAddress(){
         return _ipAddress;
     }
-    
+
+    /**
+     * Sets ip address of request.
+     * @param ipAddress 
+     */
     public void setIpAddress(final String ipAddress){
         _ipAddress = ipAddress;
     }
