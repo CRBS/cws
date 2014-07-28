@@ -54,16 +54,23 @@ public class JobStatusUpdater {
 
     JobDAO _jobDAO;
     MapOfJobStatusFactory _jobStatusFactory;
+    private OutputWorkspaceFileUtil _outputWorkspaceFileUtil;
+    private JobPath _jobPath;
 
     /**
      * Constructor
      *
      * @param jobDAO Used to get Task objects and update Task objects
      * @param jobStatusFactory class to obtain status of Tasks from
+     * @param outputWorkspaceFileUtil
      */
-    public JobStatusUpdater(JobDAO jobDAO,MapOfJobStatusFactory jobStatusFactory) {
+    public JobStatusUpdater(JobDAO jobDAO,MapOfJobStatusFactory jobStatusFactory,
+            OutputWorkspaceFileUtil outputWorkspaceFileUtil,
+            JobPath jobPath) {
         _jobDAO = jobDAO;
         _jobStatusFactory = jobStatusFactory;
+        _outputWorkspaceFileUtil = outputWorkspaceFileUtil;
+        _jobPath = jobPath;
     }
 
     /**
@@ -104,6 +111,8 @@ public class JobStatusUpdater {
                                  returnedStatus.equals(Job.ERROR_STATUS)){
                             j.setFinishDate(new Date());
                             finishDate = j.getFinishDate().getTime();
+                            _outputWorkspaceFileUtil.updateJobOutputWorkspaceFilePath(j, 
+                                    _jobPath.getJobOutputDirectory(j));
                         }
                         try {
                             _jobDAO.update(j.getId(), j.getStatus(), null, null, null,
