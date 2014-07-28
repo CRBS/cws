@@ -332,5 +332,4 @@ public class TestWorkspaceFilePathSetterImpl {
         assertTrue(setter.setPaths(t) == false);
         verify(workspaceDAO).getWorkspaceFilesById("123,456", null);
     }
-    
 }
