@@ -84,6 +84,7 @@ public class WorkspaceFileRestService {
      * Gets a list of {@link WorkspaceFile} objects
      * @param owner
      * @param workspaceFileIdList
+     * @param sourceJobId
      * @param synced
      * @param userLogin
      * @param userToken
@@ -95,6 +96,7 @@ public class WorkspaceFileRestService {
     @Produces(MediaType.APPLICATION_JSON)
     public List<WorkspaceFile> getWorkspaceFiles(@QueryParam(Constants.OWNER_QUERY_PARAM) final String owner,
             @QueryParam(Constants.WSFID_PARAM) final String workspaceFileIdList,
+            @QueryParam(Constants.SOURCE_JOB_ID_QUERY_PARAM)final Long sourceJobId,
             @QueryParam(Constants.SYNCED_QUERY_PARAM) final Boolean synced,
             @QueryParam(Constants.USER_LOGIN_PARAM) final String userLogin,
             @QueryParam(Constants.USER_TOKEN_PARAM) final String userToken,
@@ -107,6 +109,9 @@ public class WorkspaceFileRestService {
             _log.info(event.getStringOfLocationData());
 
             if (user.isAuthorizedTo(Permission.LIST_ALL_WORKSPACEFILES)) {
+                if (sourceJobId != null){
+                    return _workspaceFileDAO.getWorkspaceFilesBySourceJobId(sourceJobId);
+                }
                 if (workspaceFileIdList == null){
                     _log.log(Level.INFO,"calling getWorkspaceFiles");
                     return _workspaceFileDAO.getWorkspaceFiles(owner,synced);
