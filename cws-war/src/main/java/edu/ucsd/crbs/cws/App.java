@@ -47,9 +47,13 @@ import static edu.ucsd.crbs.cws.App.RUN_AS_ARG;
 import static edu.ucsd.crbs.cws.App.TOKEN_ARG;
 import edu.ucsd.crbs.cws.auth.Permission;
 import edu.ucsd.crbs.cws.auth.User;
+import edu.ucsd.crbs.cws.cluster.JobPath;
+import edu.ucsd.crbs.cws.cluster.JobPathImpl;
 import edu.ucsd.crbs.cws.cluster.MapOfJobStatusFactoryImpl;
 import edu.ucsd.crbs.cws.cluster.JobStatusUpdater;
 import edu.ucsd.crbs.cws.cluster.JobSubmitter;
+import edu.ucsd.crbs.cws.cluster.OutputWorkspaceFileUtil;
+import edu.ucsd.crbs.cws.cluster.OutputWorkspaceFileUtilImpl;
 import edu.ucsd.crbs.cws.cluster.WorkspaceFilePathSetterImpl;
 import edu.ucsd.crbs.cws.dao.rest.JobRestDAOImpl;
 import edu.ucsd.crbs.cws.dao.rest.WorkflowRestDAOImpl;
@@ -408,23 +412,26 @@ public class App {
 
                 WorkspaceFileRestDAOImpl workspaceFileDAO = new WorkspaceFileRestDAOImpl();
                 workspaceFileDAO.setRestURL(url);
-                
+                workspaceFileDAO.setUser(u);
+                JobPath jobPath = new JobPathImpl(wfExecDir.getAbsolutePath());
                 WorkspaceFilePathSetterImpl pathSetter = new WorkspaceFilePathSetterImpl(workspaceFileDAO);
                 
+                OutputWorkspaceFileUtil  workspaceFileUtil = new OutputWorkspaceFileUtilImpl(workspaceFileDAO);
                 // Submit jobs to scheduler
                 JobSubmitter submitter = new JobSubmitter(jobDAO,
                         pathSetter,
-                        wfExecDir.getAbsolutePath(),
+                        workspaceFileUtil,
+                        jobPath,
                         wfDir.getAbsolutePath(),
                         keplerScript.getAbsolutePath(),
                         castPath, queue,u,
                         url);
 
                 submitter.submitJobs();
-
+                
                 // Update job status for all jobs in system
                 MapOfJobStatusFactoryImpl jobStatusFactory = new MapOfJobStatusFactoryImpl(statPath);
-                JobStatusUpdater updater = new JobStatusUpdater(jobDAO, jobStatusFactory);
+                JobStatusUpdater updater = new JobStatusUpdater(jobDAO, jobStatusFactory,workspaceFileUtil,jobPath);
                 updater.updateJobs();
 
                 System.exit(0);
