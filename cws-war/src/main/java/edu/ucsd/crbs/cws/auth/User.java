@@ -7,6 +7,7 @@ import com.googlecode.objectify.annotation.Ignore;
 import com.googlecode.objectify.annotation.Index;
 import edu.ucsd.crbs.cws.rest.Constants;
 import java.util.Date;
+import java.util.List;
 
 
 /**
@@ -18,12 +19,13 @@ public class User {
 
     @Id private Long _id;    
     @Index private String _login;
-    @Index private String _ipAddress;
+    @Ignore private String _ipAddress;
     @Index private String _token;
     private Date _createDate;
     @Index private int _permissions;
     @Ignore private String _loginToRunJobAs;
     @Index private boolean _deleted;
+    private List<String> _allowedIpAddresses;
     
     public User(){
         
@@ -43,7 +45,7 @@ public class User {
     }
     
     /**
-     * Gets ip address of request.  May be ip4 or ip6
+     * Gets ip address of request.  
      * @return 
      */
     public String getIpAddress(){
@@ -56,6 +58,26 @@ public class User {
      */
     public void setIpAddress(final String ipAddress){
         _ipAddress = ipAddress;
+    }
+
+    /**
+     * Gets list of ip addresses that requests from this user are allowed
+     * to originate from.  The addresses can be ipv4 or ipv6 and be in CIDR
+     * notation.
+     * @return 
+     */
+    public List<String> getAllowedIpAddresses() {
+        return _allowedIpAddresses;
+    }
+
+    /**
+     * Sets list of ip addresses that requests from this user are allowed
+     * to originate from.  The addresses can be ipv4 or ipv6 and be in CIDR
+     * notation.
+     * @param allowedIpAddresses 
+     */
+    public void setAllowedIpAddresses(List<String> allowedIpAddresses) {
+        _allowedIpAddresses = allowedIpAddresses;
     }
     
     public String getToken(){

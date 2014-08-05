@@ -33,6 +33,7 @@
 
 package edu.ucsd.crbs.cws.auth;
 
+import java.util.ArrayList;
 import java.util.Date;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -82,6 +83,8 @@ public class TestUser {
         assertTrue(user.getCreateDate() == null);
         assertTrue(user.getId() == null);
         assertTrue(user.getPermissions() == 0);
+        assertTrue(user.getAllowedIpAddresses() == null);
+        assertTrue(user.isDeleted() == false);
         Date aDate = new Date();
         user.setCreateDate(aDate);
         user.setId(1L);
@@ -90,6 +93,11 @@ public class TestUser {
         user.setLoginToRunJobAs("runas");
         user.setPermissions(Permission.CREATE_JOB);
         user.setToken("token");
+        user.setDeleted(true);
+        user.setAllowedIpAddresses(new ArrayList<String>());
+        assertTrue(user.isDeleted() == true);
+        assertTrue(user.getAllowedIpAddresses().isEmpty() == true);
+        
         assertTrue(user.getIpAddress().equals("ip"));
         assertTrue(user.getLogin().equals("login"));
         assertTrue(user.getLoginToRunJobAs().equals("runas"));
@@ -97,6 +105,7 @@ public class TestUser {
         assertTrue(user.getCreateDate().equals(aDate));
         assertTrue(user.getId() == 1L);
         assertTrue(user.getPermissions() == Permission.CREATE_JOB);
+        
     }
     
     
