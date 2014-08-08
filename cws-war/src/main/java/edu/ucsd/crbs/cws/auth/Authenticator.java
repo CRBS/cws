@@ -19,8 +19,5 @@ public interface Authenticator {
      * @param request Web request to authenticate
      * @return Authenticated User object
      */
-    public User authenticate(HttpServletRequest request,final String userLogin,
-            final String userToken,final String loginToRunAs) throws Exception;
-    
     public User authenticate(HttpServletRequest request) throws Exception;
 }
