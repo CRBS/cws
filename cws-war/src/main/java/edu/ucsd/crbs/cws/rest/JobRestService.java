@@ -45,12 +45,14 @@ import edu.ucsd.crbs.cws.log.Event;
 import edu.ucsd.crbs.cws.log.EventBuilder;
 import edu.ucsd.crbs.cws.log.EventBuilderImpl;
 import edu.ucsd.crbs.cws.workflow.Job;
+import edu.ucsd.crbs.cws.workflow.Workflow;
 import edu.ucsd.crbs.cws.workflow.validate.JobValidator;
 import edu.ucsd.crbs.cws.workflow.validate.JobValidatorImpl;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -63,7 +65,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
 /**
- * REST Service to manipulate workflow {@link Job} objects.
+ * REST Service to manipulate {@link Workflow} {@link Job} objects.
  *
  * @author Christopher Churas <churas@ncmir.ucsd.edu>
  */
@@ -73,7 +75,7 @@ public class JobRestService {
     
     private static final Logger _log
             = Logger.getLogger(JobRestService.class.getName());
-
+    
     static JobDAO _jobDAO = new JobObjectifyDAOImpl();
     
     static EventDAO _eventDAO = new EventObjectifyDAOImpl();
@@ -94,15 +96,31 @@ public class JobRestService {
      *
      * http://.../jobs?status=Running&owner=foo
      *
+     * Permissions really change output of this call.<br/>
+     * This method first authenticates <br/>
+     * the user associated with <b>userLogin</b> and <b>userToken</b> and verifies
+     * that <b>userLoginToRunAs</b> if set is allowed.<p/>
+     * 
+     * If the {@link User} has {@link Permission#LIST_ALL_JOBS} then the code
+     * will take the value in <b>owner</b> and return the results.<br/>
+     * If the {@link User} has {@link Permission#LIST_THEIR_JOBS} then the code
+     * will only return jobs owned by that User, with the added check to verify
+     * that the value of <b>owner</b> if set matches {@link User#getLoginToRunJobAs()}
+     * otherwise an error will result.
+     * 
+     * 
      * @param status Only Jobs with given status are returned (?status=)
-     * @param owner Only Jobs matching this owner are returned (?owner=)
+     * @param owner Only Jobs matching this owner are returned (?owner=) This 
+     *              parameter should only be used if the {@link User} has 
+     *              {@link Permission#LIST_ALL_JOBS} otherwise it should be left
+     *              unset or set to match the <b>userLogin</b>
      * @param noParams Job parameters are stripped from Job objects returned
      * (?noparams=)
      * @param noWorkflowParams Workflow Parameters are stripped from Workflow
      * objects within Job objects returned (?noworkflowparams=)
      * @param notSubmitted Only Jobs that have not been submitted to scheduler
      * are returned (?notsubmittedtoscheduler=)
-     * @param userLogin
+     * @param userLogin 
      * @param userToken
      * @param userLoginToRunAs
      * @param request
@@ -123,16 +141,29 @@ public class JobRestService {
             @Context HttpServletRequest request) {
 
         try {
-            User user = _authenticator.authenticate(request, userLogin, userToken,
-                    userLoginToRunAs);
+            User user = _authenticator.authenticate(request);
              Event event = _eventBuilder.createEvent(request, user);
             _log.info(event.getStringOfLocationData());
             
-            // user can list everything  
+            // user can list everything so let them do whatever
             if (user.isAuthorizedTo(Permission.LIST_ALL_JOBS)) {
                 return _jobDAO.getJobs(owner, status, notSubmitted, noParams, noWorkflowParams);
             }
-            throw new Exception("Not Authorized");
+            
+            // user can only list their jobs so return error message if they try to
+            // list jobs for another user otherwise use their login
+            if (user.isAuthorizedTo(Permission.LIST_THEIR_JOBS)){
+                if (owner != null && !owner.equals(user.getLoginToRunJobAs())){
+                    throw new Exception("Not authorized to list jobs owned by "+owner);
+                }
+                return _jobDAO.getJobs(user.getLoginToRunJobAs(), status, notSubmitted, noParams, noWorkflowParams);
+            }
+            
+            throw new WebApplicationException(HttpServletResponse.SC_UNAUTHORIZED);
+        }catch(WebApplicationException wae){
+            _log.log(Level.SEVERE,"Caught WebApplicationException",wae);
+            throw wae;
+            
 
         } catch (Exception ex) {
             _log.log(Level.SEVERE,"Caught Exception",ex);
@@ -141,14 +172,20 @@ public class JobRestService {
     }
 
     /**
-     * Gets a specific {@link Job} by id
+     * Gets a specific {@link Job} by id.  Return value of this method
+     * is dependent on permissions set for <b>userLogin</b> and <b>userToken</b>
+     * set by caller.  If user has {@link Permission#LIST_ALL_JOBS} then the job
+     * matching <b>jobid</b> will be returned.  If the user only has 
+     * {@link Permission#LIST_THEIR_JOBS} then the job will only be returned if
+     * it is owned by the {@link User} associated with <b>userLogin</b> and <b>userToken</b>
+     * otherwise no job will be returned.
      *
      * @param jobid Path parameter that denotes id of job to retrieve
      * @param userLogin
      * @param userToken
      * @param userLoginToRunAs
      * @param request
-     * @return
+     * @return Json representation of Job matching id
      */
     @GET
     @Path(Constants.JOB_ID_REST_PATH)
@@ -159,15 +196,20 @@ public class JobRestService {
             @QueryParam(Constants.USER_LOGIN_TO_RUN_AS_PARAM) final String userLoginToRunAs,
             @Context HttpServletRequest request) {
         try {
-            User user = _authenticator.authenticate(request, userLogin, userToken,
-                    userLoginToRunAs);
+            User user = _authenticator.authenticate(request);
              Event event = _eventBuilder.createEvent(request, user);
             _log.info(event.getStringOfLocationData());
 
             if (user.isAuthorizedTo(Permission.LIST_ALL_JOBS)) {
                 return _jobDAO.getJobById(jobid);
             }
-            throw new Exception("Not authorized");
+            if (user.isAuthorizedTo(Permission.LIST_THEIR_JOBS)){
+                return _jobDAO.getJobByIdAndUser(jobid,user.getLoginToRunJobAs());
+            }
+            throw new WebApplicationException(HttpServletResponse.SC_UNAUTHORIZED);
+        }catch(WebApplicationException wae){
+            _log.log(Level.SEVERE,"Caught WebApplicationException",wae);
+            throw wae;
         } catch (Exception ex) {
             _log.log(Level.SEVERE,"Caught Exception",ex);
             throw new WebApplicationException(ex);
@@ -217,8 +259,7 @@ public class JobRestService {
             @Context HttpServletRequest request) {
 
         try {
-            User user = _authenticator.authenticate(request, userLogin, userToken,
-                    userLoginToRunAs);
+            User user = _authenticator.authenticate(request);
             Event event = _eventBuilder.createEvent(request, user);
             _log.info(event.getStringOfLocationData());
             if (jobId != null) {
@@ -236,8 +277,23 @@ public class JobRestService {
                         submitDate, startDate, finishDate, submittedToScheduler,
                         schedulerJobId);
             }
+            if (user.isAuthorizedTo(Permission.UPDATE_THEIR_JOBS)){
+                Job job = _jobDAO.getJobByIdAndUser(jobId.toString(),user.getLoginToRunJobAs());
+                if (job == null){
+                    throw new Exception("Error retrieving Job or not authorized");
+                }
+                if (resave != null && resave.equalsIgnoreCase("true")){
+                    return _jobDAO.resave(jobId);
+                }
+                return _jobDAO.update(jobId, status, estCpu, estRunTime, estDisk,
+                        submitDate, startDate, finishDate, submittedToScheduler,
+                        schedulerJobId);
+            }
 
-            throw new Exception("Not Authorized");
+            throw new WebApplicationException(HttpServletResponse.SC_UNAUTHORIZED);
+        }catch(WebApplicationException wae){
+            _log.log(Level.SEVERE,"Caught WebApplicationException",wae);
+            throw wae;
         } catch (Exception ex) {
             _log.log(Level.SEVERE,"Caught Exception",ex);
             throw new WebApplicationException(ex);
@@ -263,8 +319,7 @@ public class JobRestService {
             @QueryParam(Constants.USER_LOGIN_TO_RUN_AS_PARAM) final String userLoginToRunAs,
             @Context HttpServletRequest request) {
         try {
-            User user = _authenticator.authenticate(request, userLogin, userToken,
-                    userLoginToRunAs);
+            User user = _authenticator.authenticate(request);
             Event event = _eventBuilder.createEvent(request, user);
             _log.info(event.getStringOfLocationData());
             
@@ -297,7 +352,10 @@ public class JobRestService {
                 
                 return job;
             }
-            throw new Exception("Not Authorized");
+            throw new WebApplicationException(HttpServletResponse.SC_UNAUTHORIZED);
+        }catch(WebApplicationException wae){
+            _log.log(Level.SEVERE,"Caught WebApplicationException",wae);
+            throw wae;
         } catch (Exception ex) {
             _log.log(Level.SEVERE,"Caught Exception",ex);
             throw new WebApplicationException(ex);
