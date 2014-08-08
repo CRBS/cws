@@ -62,6 +62,7 @@ import edu.ucsd.crbs.cws.servlet.ServletUtil;
 import edu.ucsd.crbs.cws.workflow.WorkflowParameter;
 import java.util.logging.Level;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
@@ -110,16 +111,20 @@ public class WorkflowRestService {
             @Context HttpServletRequest request) {
         List<Workflow> workflows = null;
         try {
-            User user = _authenticator.authenticate(request, userLogin,
-                    userToken,userLoginToRunAs);
+            User user = _authenticator.authenticate(request);
             Event event = _eventBuilder.createEvent(request, user);
             _log.info(event.getStringOfLocationData());
             
             if (user.isAuthorizedTo(Permission.LIST_ALL_WORKFLOWS)) {
                 return _workflowDAO.getAllWorkflows(true);
             }
-            throw new Exception("Not authorized");
-        } catch (Exception ex) {
+            throw new WebApplicationException(HttpServletResponse.SC_UNAUTHORIZED);
+        }
+        catch(WebApplicationException wae){
+            _log.log(Level.SEVERE,"Caught WebApplicationException",wae);
+            throw wae;
+        }
+        catch (Exception ex) {
             _log.log(Level.SEVERE,"Caught Exception",ex);
             throw new WebApplicationException(ex);
         }
@@ -146,8 +151,7 @@ public class WorkflowRestService {
 
         Workflow wf = null;
         try {
-            User user = _authenticator.authenticate(request, userLogin, userToken,
-                    userLoginToRunAs);
+            User user = _authenticator.authenticate(request);
             Event event = _eventBuilder.createEvent(request, user);
             _log.info(event.getStringOfLocationData());
             
@@ -168,7 +172,11 @@ public class WorkflowRestService {
                 }
                 return w;
             }
-            throw new Exception("Not authorized");
+            throw new WebApplicationException(HttpServletResponse.SC_UNAUTHORIZED);
+            
+        }catch(WebApplicationException wae){
+            _log.log(Level.SEVERE,"Caught WebApplicationException",wae);
+            throw wae;
         } catch (Exception ex) {
             _log.log(Level.SEVERE,"Caught Exception",ex);
             throw new WebApplicationException(ex);
@@ -194,8 +202,7 @@ public class WorkflowRestService {
             @QueryParam(Constants.USER_LOGIN_TO_RUN_AS_PARAM) final String userLoginToRunAs,
             @Context HttpServletRequest request) {
         try {
-            User user = _authenticator.authenticate(request, userLogin, userToken,
-                    userLoginToRunAs);
+            User user = _authenticator.authenticate(request);
              Event event = _eventBuilder.createEvent(request, user);
             _log.info(event.getStringOfLocationData());
             
@@ -235,8 +242,7 @@ public class WorkflowRestService {
             @Context HttpServletRequest request) {
         
         try {
-            User user = _authenticator.authenticate(request, userLogin, userToken,
-                    userLoginToRunAs);
+            User user = _authenticator.authenticate(request);
             Event event = _eventBuilder.createEvent(request, user);
             _log.info(event.getStringOfLocationData());
             
@@ -246,8 +252,10 @@ public class WorkflowRestService {
                 }
                 return null;
             }
-            
-            throw new Exception("Not Authorized");
+            throw new WebApplicationException(HttpServletResponse.SC_UNAUTHORIZED);
+        }catch(WebApplicationException wae){
+            _log.log(Level.SEVERE,"Caught WebApplicationException",wae);
+            throw wae;
         } catch(Exception ex){
              _log.log(Level.SEVERE,"Caught Exception",ex);
             throw new WebApplicationException(ex);
