@@ -10,4 +10,7 @@
     <static-files>
         <include path="/favicon.ico" />
     </static-files>
+    <admin-console>
+        <page name="Users" url="/users.html"/>
+    </admin-console>
 </appengine-web-app>
