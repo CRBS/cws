@@ -51,6 +51,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -103,8 +104,7 @@ public class WorkspaceFileRestService {
             @QueryParam(Constants.USER_LOGIN_TO_RUN_AS_PARAM) final String userLoginToRunAs,
             @Context HttpServletRequest request) {
         try {
-            User user = _authenticator.authenticate(request, userLogin, userToken,
-                    userLoginToRunAs);
+            User user = _authenticator.authenticate(request);
             Event event = _eventBuilder.createEvent(request, user);
             _log.info(event.getStringOfLocationData());
 
@@ -121,7 +121,10 @@ public class WorkspaceFileRestService {
 
                 return _workspaceFileDAO.getWorkspaceFilesById(workspaceFileIdList, user);
             }
-            throw new Exception("Not authorized");
+           throw new WebApplicationException(HttpServletResponse.SC_UNAUTHORIZED);
+        }catch(WebApplicationException wae){
+            _log.log(Level.SEVERE,"Caught WebApplicationException",wae);
+            throw wae;
 
         } catch (Exception ex) {
             _log.log(Level.SEVERE, "Caught exception ", ex);
@@ -150,8 +153,7 @@ public class WorkspaceFileRestService {
             @QueryParam(Constants.USER_LOGIN_TO_RUN_AS_PARAM) final String userLoginToRunAs,
             @Context HttpServletRequest request) {
         try {
-            User user = _authenticator.authenticate(request, userLogin, userToken,
-                    userLoginToRunAs);
+            User user = _authenticator.authenticate(request);
             Event event = _eventBuilder.createEvent(request, user);
             _log.info(event.getStringOfLocationData());
 
@@ -165,7 +167,10 @@ public class WorkspaceFileRestService {
                 }
                 return wsf;
             }
-            throw new Exception("Not authorized");
+            throw new WebApplicationException(HttpServletResponse.SC_UNAUTHORIZED);
+        }catch(WebApplicationException wae){
+            _log.log(Level.SEVERE,"Caught WebApplicationException",wae);
+            throw wae;
         } catch (Exception ex) {
             _log.log(Level.SEVERE, "Caught Exception", ex);
             throw new WebApplicationException(ex);
@@ -194,8 +199,7 @@ public class WorkspaceFileRestService {
             @Context HttpServletRequest request) {
 
          try {
-            User user = _authenticator.authenticate(request, userLogin, userToken,
-                    userLoginToRunAs);
+            User user = _authenticator.authenticate(request);
             Event event = _eventBuilder.createEvent(request, user);
             _log.info(event.getStringOfLocationData());
             
@@ -210,7 +214,10 @@ public class WorkspaceFileRestService {
                 
                 return resWorkspaceFile;
             }
-            throw new Exception("Not Authorized");
+            throw new WebApplicationException(HttpServletResponse.SC_UNAUTHORIZED);
+        }catch(WebApplicationException wae){
+            _log.log(Level.SEVERE,"Caught WebApplicationException",wae);
+            throw wae;
         } catch (Exception ex) {
             _log.log(Level.SEVERE,"Caught Exception",ex);
             throw new WebApplicationException(ex);
@@ -242,8 +249,7 @@ public class WorkspaceFileRestService {
             @Context HttpServletRequest request) {
     
          try {
-            User user = _authenticator.authenticate(request, userLogin, userToken,
-                    userLoginToRunAs);
+            User user = _authenticator.authenticate(request);
             Event event = _eventBuilder.createEvent(request, user);
             _log.info(event.getStringOfLocationData());
             
@@ -261,7 +267,10 @@ public class WorkspaceFileRestService {
                         adjustedPath);
                 return resWorkspaceFile;
             }
-            throw new Exception("Not Authorized");
+            throw new WebApplicationException(HttpServletResponse.SC_UNAUTHORIZED);
+        }catch(WebApplicationException wae){
+            _log.log(Level.SEVERE,"Caught WebApplicationException",wae);
+            throw wae;
         } catch (Exception ex) {
             _log.log(Level.SEVERE,"Caught Exception",ex);
             throw new WebApplicationException(ex);
