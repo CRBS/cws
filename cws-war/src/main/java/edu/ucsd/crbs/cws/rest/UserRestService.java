@@ -47,6 +47,7 @@ import edu.ucsd.crbs.cws.log.EventBuilderImpl;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -97,13 +98,16 @@ public class UserRestService {
             @Context HttpServletRequest request){
     
         try {
-            User user = _authenticator.authenticate(request,userLogin,userToken,userLoginToRunAs);
+            User user = _authenticator.authenticate(request);
             Event event = _eventBuilder.createEvent(request, user);
             _log.info(event.getStringOfLocationData());
             if (user.isAuthorizedTo(Permission.LIST_ALL_USERS)){
                 return _userDAO.getUserById(userid);
             }
-            throw new Exception("Not Authorized");
+            throw new WebApplicationException(HttpServletResponse.SC_UNAUTHORIZED);
+        }catch(WebApplicationException wae){
+            _log.log(Level.SEVERE,"Caught WebApplicationException",wae);
+            throw wae;
         } catch(Exception ex){
             _log.log(Level.SEVERE,"Caught Exception",ex);
             throw new WebApplicationException(ex);
@@ -128,7 +132,7 @@ public class UserRestService {
             @QueryParam(Constants.USER_LOGIN_TO_RUN_AS_PARAM) final String userLoginToRunAs,
             @Context HttpServletRequest request){
         try {
-            User user = _authenticator.authenticate(request,userLogin,userToken,userLoginToRunAs);
+            User user = _authenticator.authenticate(request);
             Event event = _eventBuilder.createEvent(request, user);
             _log.info(event.getStringOfLocationData());
             if (user.isAuthorizedTo(Permission.CREATE_USER)){
@@ -143,7 +147,10 @@ public class UserRestService {
                 _eventDAO.neverComplainInsert(_eventBuilder.setAsCreateUserEvent(event, u));
                 return u;
             }
-            throw new Exception("Not Authorized");
+            throw new WebApplicationException(HttpServletResponse.SC_UNAUTHORIZED);
+        }catch(WebApplicationException wae){
+            _log.log(Level.SEVERE,"Caught WebApplicationException",wae);
+            throw wae;
         } catch(Exception ex){
             _log.log(Level.SEVERE,"Caught Exception",ex);
             throw new WebApplicationException(ex);
