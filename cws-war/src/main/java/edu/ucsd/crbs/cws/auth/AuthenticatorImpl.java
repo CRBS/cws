@@ -3,8 +3,9 @@ package edu.ucsd.crbs.cws.auth;
 import edu.ucsd.crbs.cws.dao.UserDAO;
 import edu.ucsd.crbs.cws.dao.objectify.UserObjectifyDAOImpl;
 import edu.ucsd.crbs.cws.rest.Constants;
-import javax.management.relation.Role;
+import java.util.List;
 import javax.servlet.http.HttpServletRequest;
+import javax.xml.bind.DatatypeConverter;
 
 /**
  * Default authentication class.  See {@link authenticate} for 
@@ -13,12 +14,20 @@ import javax.servlet.http.HttpServletRequest;
  */
 public class AuthenticatorImpl implements Authenticator {
 
+    public static final String AUTHORIZATION_HEADER = "authorization";
     
     UserDAO _userDAO = new UserObjectifyDAOImpl();
+    UserIpAddressValidator _ipAddressValidator;
+    
+    private User createInvalidUser(HttpServletRequest request){
+        User invalidUser = new User();
+        invalidUser.setIpAddress(request.getRemoteAddr());
+        invalidUser.setPermissions(Permission.NONE);
+        return invalidUser;
+    }
     
     /**
-     * Currently this method considers all requests authenticated with
-     * <b>SUPER</b> {@link Role}.
+     * 
      * @param userLogin
      * @param userToken
      * @param loginToRunAs
@@ -27,15 +36,14 @@ public class AuthenticatorImpl implements Authenticator {
      * @param request
      * @return <b>SUPER</b> role Authentication
      */
-    @Override
-    public User authenticate(HttpServletRequest request,final String userLogin,
+    private User authenticate(HttpServletRequest request,final String userLogin,
             final String userToken,final String loginToRunAs) throws Exception {
 
         //call get special users to see if this request is a special one.
         // if it is we bypass the query and directly create the object
-        String ipAddress = request.getRemoteAddr();
-        User user = getUserIfTheyAreSpecial(ipAddress,userLogin,userToken,
-                loginToRunAs);
+        
+        User user = getUserIfTheyAreSpecial(request.getRemoteAddr(),
+                userLogin,userToken,loginToRunAs);
         if (user != null){
             return user;
         }
@@ -43,27 +51,61 @@ public class AuthenticatorImpl implements Authenticator {
         //query data store for user with username and token and return it
         user = _userDAO.getUserByLoginAndToken(userLogin,userToken);
         if (user != null){
-            user.setIpAddress(ipAddress);
-            if (user.isAuthorizedTo(Permission.RUN_AS_ANOTHER_USER) == true){
-                user.setLoginToRunJobAs(loginToRunAs);
+            user.setIpAddress(request.getRemoteAddr());
+            
+            
+            if (loginToRunAs != null){
+                if (user.isAuthorizedTo(Permission.RUN_AS_ANOTHER_USER) == true){
+                    user.setLoginToRunJobAs(loginToRunAs);
+                }
+                else {
+                    throw new Exception("User does not have permission to run as another user");
+                }
             }
+            
+            if (_ipAddressValidator.isUserRequestFromValidIpAddress(user) == false){
+                return createInvalidUser(request);
+            }
+            
             return user;
         }
         
         //fail cause we couldn't find anybody so make a user with no permission
-        User invalidUser = new User();
-        invalidUser.setIpAddress(ipAddress);
-        invalidUser.setPermissions(Permission.NONE);
-        return invalidUser;
+        return createInvalidUser(request);
     }
-    
+        
+    /**
+     * Authenticates request by first looking for HTTP Basic Authentication 
+     * credentials to get a user login and token.  If not set, then 
+     * {@link Constants#USER_LOGIN_PARAM} and {@link Constants#USER_TOKEN_PARAM} 
+     * query parameters are used.<p/>
+     * These values are then compared against the {@link User} database and if a
+     * match is found and the request is coming from a valid ip address for that
+     * {@link User} then the {@link User} object is returned.
+     * @param request
+     * @return {@link User} matching authentication upon success or {@link User}
+     * with null login and token and permissions set to {@link Permission#NONE}
+     * if authentication failed.
+     * @throws Exception 
+     */
     @Override
     public User authenticate(HttpServletRequest request) throws Exception {
-        if (request == null){
+        if (request == null) {
             throw new Exception("Request is null");
         }
-        return authenticate(request,request.getParameter(Constants.USER_LOGIN_PARAM),
-                request.getParameter(Constants.USER_TOKEN_PARAM),
+
+        String auth = request.getHeader(AUTHORIZATION_HEADER);
+        if (auth == null) {
+            return authenticate(request, request.getParameter(Constants.USER_LOGIN_PARAM),
+                    request.getParameter(Constants.USER_TOKEN_PARAM),
+                    request.getParameter(Constants.USER_LOGIN_TO_RUN_AS_PARAM));
+        }
+        String[] userPass = this.decodeAuthString(auth);
+        if (userPass == null || userPass.length != 2) {
+            return createInvalidUser(request);
+        }
+        return authenticate(request, userPass[0],
+                userPass[1],
                 request.getParameter(Constants.USER_LOGIN_TO_RUN_AS_PARAM));
     }
 
@@ -94,5 +136,22 @@ public class AuthenticatorImpl implements Authenticator {
             return user;
         }
         return null;
+    }
+    
+    private String[] decodeAuthString(final String auth){
+        
+        if (auth == null){
+            return null;
+        }
+        String authWithBasicRemoved = auth.replaceFirst("[B|b]asic ", "");
+        byte[] decodedBytes = DatatypeConverter.parseBase64Binary(authWithBasicRemoved);
+        if (decodedBytes == null || decodedBytes.length == 0){
+            return null;
+        }
+        String decodedUserPass = new String(decodedBytes);
+        if (!decodedUserPass.contains(":")){
+            return null;
+        }
+        return decodedUserPass.split(":");
     }
 }
