@@ -14,7 +14,7 @@
     </parent>
 
     <properties>
-        <appengine.app.version>11</appengine.app.version>
+        <appengine.app.version>12</appengine.app.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
@@ -135,6 +135,27 @@
             <groupId>com.googlecode.objectify</groupId>
             <artifactId>objectify</artifactId>
             <version>5.0.3</version>
+        </dependency>
+        
+        <!-- Used to parse ip addresses to determine if they are ipv4 or ipv6 -->
+        <dependency>
+	    <groupId>com.google.guava</groupId>
+	    <artifactId>guava</artifactId>
+	    <version>17.0</version>
+        </dependency>
+    
+        <!-- used to handle ipv6 addresses with CIDR notation -->    
+        <dependency>
+            <groupId>com.googlecode.java-ipv6</groupId>
+            <artifactId>java-ipv6</artifactId>
+            <version>0.15</version>
+        </dependency>
+
+        <!-- used to handle ipv4 addresses with CIDR notation -->        
+        <dependency>
+            <groupId>commons-net</groupId>
+            <artifactId>commons-net</artifactId>
+            <version>3.3</version>
         </dependency>
         
         <!-- only used by the command line program -->
