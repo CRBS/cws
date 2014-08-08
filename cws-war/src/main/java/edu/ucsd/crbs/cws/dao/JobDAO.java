@@ -51,6 +51,17 @@ public interface JobDAO {
      */
     public Job getJobById(final String jobId) throws Exception;
     
+    
+    /**
+     * Gets {@link Job} from Data Store by querying using <b>jobId</b> and <b>user</b>
+     * passed in
+     * @param jobId id of job
+     * @param user login of user
+     * @return
+     * @throws Exception 
+     */
+    public Job getJobByIdAndUser(final String jobId,final String user) throws Exception;
+    
     /**
      * Gets jobs using parameters as filters
      * @param owner If non null only Jobs with matching owners will be returned

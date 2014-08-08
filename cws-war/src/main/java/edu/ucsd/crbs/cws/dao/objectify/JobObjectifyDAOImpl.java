@@ -97,6 +97,38 @@ public class JobObjectifyDAOImpl implements JobDAO {
         return ofy().load().type(Job.class).id(jobIdAsLong).now();
     }
 
+    /**
+     * Gets {@link Job} matching <b>jobId</b> and <b>user</b>
+     * @param jobId
+     * @param user 
+     * @return {@link Job} if the {@link Job#getOwner()} matches <b>user</b> 
+     *         and neither value is null otherwise null is returned
+     * @throws Exception if <b>jobId</b> is not parseable as a Long or there was 
+     *         an issue with the data store
+     */
+    @Override
+    public Job getJobByIdAndUser(String jobId, String user) throws Exception {
+
+        if (user == null){
+            return null;
+        }
+        
+        Job job = this.getJobById(jobId);
+        if (job == null){
+            return null;
+        }
+        if (job.getOwner() == null){
+            return null;
+        }
+        
+        if (job.getOwner().equals(user)){
+            return job;
+        }
+        return null;
+    }
+    
+    
+
     @Override
     public List<Job> getJobs(String owner, String status, Boolean notSubmittedToScheduler, boolean noParams, boolean noWorkflowParams) throws Exception {
         Query<Job> q = ofy().load().type(Job.class);

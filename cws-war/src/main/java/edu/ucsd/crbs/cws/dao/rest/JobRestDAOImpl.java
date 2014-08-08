@@ -87,6 +87,11 @@ public class JobRestDAOImpl implements JobDAO {
     }
 
     @Override
+    public Job getJobByIdAndUser(String jobId, String user) throws Exception {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+    
+    @Override
     public List<Job> getJobs(String owner, String status, Boolean notSubmittedToScheduler, boolean noParams, boolean noWorkflowParams) throws Exception {
         ClientConfig cc = new DefaultClientConfig();
         cc.getFeatures().put(JSONConfiguration.FEATURE_POJO_MAPPING, Boolean.TRUE);
