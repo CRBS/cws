@@ -11,6 +11,18 @@
         </user-data-constraint>
     </security-constraint>
     
+    <!-- any request going to rest/users can only be invoked by google accounts with
+         admin,viewer, or developer access -->
+     <security-constraint>
+        <web-resource-collection>
+            <web-resource-name>admin</web-resource-name>
+            <url-pattern>/rest/users/*</url-pattern>
+        </web-resource-collection>
+        <auth-constraint>
+            <role-name>admin</role-name>
+        </auth-constraint>
+    </security-constraint>
+    
     <!-- Enables Jersey REST Service and Jackson JSON pojo mapping -->
     <servlet>
         <servlet-name>jersey-serlvet</servlet-name>
