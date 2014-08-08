@@ -62,7 +62,7 @@ public class User {
 
     /**
      * Gets list of ip addresses that requests from this user are allowed
-     * to originate from.  The addresses can be ipv4 or ipv6 and be in CIDR
+     * to originate from.  The addresses can be ipv4 or ipv6 and have CIDR 
      * notation.
      * @return 
      */
@@ -72,7 +72,7 @@ public class User {
 
     /**
      * Sets list of ip addresses that requests from this user are allowed
-     * to originate from.  The addresses can be ipv4 or ipv6 and be in CIDR
+     * to originate from.  The addresses can be ipv4 or ipv6  and have CIDR 
      * notation.
      * @param allowedIpAddresses 
      */
