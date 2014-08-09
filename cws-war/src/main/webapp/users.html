@@ -35,10 +35,97 @@ RIGHTS.
     <head>
         <title>Users</title>
         <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+       
+        <script>
+           $(document).ready(function() {
+             var theurl = $(location).attr('protocol')+"//"+$(location).attr('host');
+             var line = "<br>theurl = "+theurl+"</br>";
+             $(line).appendTo("#pageinfo");
+             
+             
+              $( "#submitbutton" ).click(function(event){
+                 var permissionVal = 0;
+                 $( 'input[type="checkbox"]').each(function(index,boxy){
+                    if ($(boxy).is(':checked')){
+                        permissionVal += Number($(boxy).val());
+                    }
+                 });
+                 var line = "<br>Permission = "+permissionVal+"</br>";
+                 $(line).appendTo("#pageinfo");
+                 event.preventDefault();
+              });
+
+              $( "#addip" ).click(function(event){
+                 event.preventDefault();
+                 var ip = $( "#iptext" ).val();
+                 var data = "<br id=\"iplist\">"+ip+"</br>";
+                 $( data ).appendTo("#ipadds");
+              });  
+              $( "#iptext" ).keypress(function(event){
+                 if (event.which == 13){
+                    event.preventDefault();
+                    var ip = $( "#iptext" ).val();
+                    var data = "<br id=\"iplist\">"+ip+"</br>";
+                    $( data ).appendTo("#ipadds");
+                }
+              });  
+              
+              
+              $( "#checkall" ).click(function(event){
+                 event.preventDefault();
+                 $( 'input[type="checkbox"]').each(function(index,boxy){
+                    $(boxy).prop('checked',true);
+                 });
+              });  
+              
+              $( "#uncheckall" ).click(function(event){
+                 event.preventDefault();
+                 $( 'input[type="checkbox"]').each(function(index,boxy){
+                    $(boxy).prop('checked',false);
+                 });
+              });  
+
+              // look into thishttp://stackoverflow.com/questions/11078324/how-to-create-json-object-using-jquery
+
+           });
+        </script>
     </head>
     <body>
-        Need to write user admin page here
-        <div>TODO write content</div>
+       <p>Add User Form</p>
+       <form id="adduser" action="users.html">
+           <div id="pageinfo"></div>
+          User Login: <input type="text" value=""/><p/>
+         
+          <b>Permissions: </b><p/>
+         
+          <button type="button" id="checkall" name="checkall">check all</button> <button type="button" id="uncheckall" name="uncheckall">uncheck all</button><br/>
+          
+          <input type="checkbox" name="permission" value="1">List all jobs</input><br/>
+          <input type="checkbox" name="permission" value="2">List their jobs</input><br/>
+          <input type="checkbox" name="permission" value="4">Update all jobs</input><br/>
+          <input type="checkbox" name="permission" value="8">Update their jobs</input><br/>
+          <input type="checkbox" name="permission" value="16">Create job</input><br/>
+          <input type="checkbox" name="permission" value="32">List all workflows</input><br/>
+          <input type="checkbox" name="permission" value="64">Update all workflows</input><br/>
+          <input type="checkbox" name="permission" value="128">Create workflow</input><br/>
+          <input type="checkbox" name="permission" value="256">Download all workflows</input><br/>
+          <input type="checkbox" name="permission" value="512">Download their workflows</input><br/>
+          <input type="checkbox" name="permission" value="1024">Run as another user</input><br/>
+          <input type="checkbox" name="permission" value="2048">List all workspacefiles</input><br/>
+          <input type="checkbox" name="permission" value="4096">List their workspacefiles</input><br/>
+          <input type="checkbox" name="permission" value="8192">Create workspacefile</input><br/>
+          <input type="checkbox" name="permission" value="16384">Update all workspacefiles</input><br/>
+          <input type="checkbox" name="permission" value="32768">Download all workspacefiles</input><br/>
+          <input type="checkbox" name="permission" value="65536">List all users</input><br/>
+          <input type="checkbox" name="permission" value="131072">Create user</input><br/>
+          
+          <p/>
+          
+          Add IP Address: <input id="iptext" type="text" value=""/> <button id="addip" value="">Add</button><p/>
+          <div id="ipadds" class="ipaddresses"></div>
+          <button id="submitbutton" type="submit" form="adduser" value="Add">Add User</button>
+       </form>
+
     </body>
 </html>
