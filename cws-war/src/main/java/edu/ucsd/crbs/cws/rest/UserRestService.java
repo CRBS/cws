@@ -101,13 +101,7 @@ public class UserRestService {
             User user = _authenticator.authenticate(request);
             Event event = _eventBuilder.createEvent(request, user);
             _log.info(event.getStringOfLocationData());
-            if (user.isAuthorizedTo(Permission.LIST_ALL_USERS)){
-                return _userDAO.getUserById(userid);
-            }
-            throw new WebApplicationException(HttpServletResponse.SC_UNAUTHORIZED);
-        }catch(WebApplicationException wae){
-            _log.log(Level.SEVERE,"Caught WebApplicationException",wae);
-            throw wae;
+            return _userDAO.getUserById(userid);
         } catch(Exception ex){
             _log.log(Level.SEVERE,"Caught Exception",ex);
             throw new WebApplicationException(ex);
@@ -130,32 +124,27 @@ public class UserRestService {
             @QueryParam(Constants.USER_LOGIN_PARAM) final String userLogin,
             @QueryParam(Constants.USER_TOKEN_PARAM) final String userToken,
             @QueryParam(Constants.USER_LOGIN_TO_RUN_AS_PARAM) final String userLoginToRunAs,
-            @Context HttpServletRequest request){
+            @Context HttpServletRequest request) {
         try {
             User user = _authenticator.authenticate(request);
             Event event = _eventBuilder.createEvent(request, user);
             _log.info(event.getStringOfLocationData());
-            if (user.isAuthorizedTo(Permission.CREATE_USER)){
-                if (u.getLogin() == null || u.getLogin().trim().equals("")){
-                    throw new Exception("Login must be set");
-                }
-                //create token
-                u.setToken(java.util.UUID.randomUUID().toString());
-                u.setCreateDate(null);
-               
-                u = _userDAO.insert(u);
-                _eventDAO.neverComplainInsert(_eventBuilder.setAsCreateUserEvent(event, u));
-                return u;
+
+            if (u.getLogin() == null || u.getLogin().trim().equals("")) {
+                throw new Exception("Login must be set");
             }
-            throw new WebApplicationException(HttpServletResponse.SC_UNAUTHORIZED);
-        }catch(WebApplicationException wae){
-            _log.log(Level.SEVERE,"Caught WebApplicationException",wae);
-            throw wae;
-        } catch(Exception ex){
-            _log.log(Level.SEVERE,"Caught Exception",ex);
+            //create token
+            u.setToken(java.util.UUID.randomUUID().toString());
+            u.setCreateDate(null);
+
+            u = _userDAO.insert(u);
+            _eventDAO.neverComplainInsert(_eventBuilder.setAsCreateUserEvent(event, u));
+            return u;
+        } catch (Exception ex) {
+            _log.log(Level.SEVERE, "Caught Exception", ex);
             throw new WebApplicationException(ex);
         }
-        
+
     }
     
     
