@@ -67,14 +67,16 @@ import edu.ucsd.crbs.cws.util.RunCommandLineProcess;
 import edu.ucsd.crbs.cws.util.RunCommandLineProcessImpl;
 import edu.ucsd.crbs.cws.workflow.Parameter;
 import edu.ucsd.crbs.cws.workflow.Job;
+import edu.ucsd.crbs.cws.workflow.VersionOneWorkflowXmlWriter;
 import edu.ucsd.crbs.cws.workflow.Workflow;
 import edu.ucsd.crbs.cws.workflow.WorkflowParameter;
 import edu.ucsd.crbs.cws.workflow.WorkspaceFile;
-import edu.ucsd.crbs.cws.workflow.kepler.WorkflowFromAnnotatedXmlFactory;
+import edu.ucsd.crbs.cws.workflow.WorkflowFromAnnotatedVersionTwoFourMomlXmlFactory;
 import java.io.BufferedInputStream;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -125,6 +127,8 @@ public class App {
     public static final String URL_ARG = "url";
 
     public static final String WF_EXEC_DIR_ARG = "execdir";
+    
+    public static final String WORKSPACE_DIR_ARG = "workspacedir";
 
     public static final String WF_DIR_ARG = "wfdir";
 
@@ -157,6 +161,8 @@ public class App {
     public static final String DESCRIPTION_ARG = "description";
     
     public static final String TYPE_ARG = "type";
+
+    public static final String GEN_OLD_KEPLER_XML_ARG = "genoldkeplerxml";
     
     public static final String REGISTAR_JAR = "registerjar";
 
@@ -183,6 +189,7 @@ public class App {
                     accepts(UPLOAD_WF_ARG, "Add/Update Workflow").withRequiredArg().ofType(File.class).describedAs("Kepler .kar file");
                     //accepts(LOAD_TEST,"creates lots of workflows and jobs");
                     accepts(SYNC_WITH_CLUSTER_ARG, "Submits & Synchronizes Workflow Jobs on local cluster with CRBS Workflow Webservice").withRequiredArg().ofType(String.class).describedAs("URL");
+                    accepts(GEN_OLD_KEPLER_XML_ARG,"Generates version 1.x kepler xml for given workflow").withRequiredArg().ofType(String.class).describedAs("wfid or .kar file");
                     accepts(UPLOAD_FILE_ARG,"Registers and uploads Workspace file to REST service").withRequiredArg().ofType(File.class);
                     accepts(REGISTER_FILE_ARG,"Registers Workspace file to REST service (DOES NOT UPLOAD FILE TO REST SERVICE)").withRequiredArg().ofType(File.class);
                     accepts(GET_WORKSPACE_FILE_INFO_ARG,"Outputs JSON of specified workspace file(s)").withRequiredArg().ofType(String.class).describedAs("workspace file id");
@@ -236,7 +243,8 @@ public class App {
                      !optionSet.has(RESAVE_WORKSPACEFILE_ARG) &&
                      !optionSet.has(RESAVE_JOB_ARG) &&
                      !optionSet.has(RESAVE_WORKFLOW_ARG) &&
-                     !optionSet.has(PREVIEW_WORKFLOW_ARG)) {
+                     !optionSet.has(PREVIEW_WORKFLOW_ARG) &&
+                     !optionSet.has(GEN_OLD_KEPLER_XML_ARG)) {
                 System.out.println(PROGRAM_HELP + "\n");
                 parser.printHelpOn(System.out);
                 System.exit(0);
@@ -249,6 +257,32 @@ public class App {
             }
 
             MultivaluedMapFactory multivaluedMapFactory = new MultivaluedMapFactoryImpl();
+            
+            if (optionSet.has(GEN_OLD_KEPLER_XML_ARG)){
+                String workflowFileOrId = (String)optionSet.valueOf(GEN_OLD_KEPLER_XML_ARG);
+                File workflowFile = new File(workflowFileOrId);
+                Workflow w = null;
+                
+                //if value is a file attempt to load it as a workflow file
+                if (workflowFile.exists() && workflowFile.isFile()){
+                    w = getWorkflowFromFile(workflowFile);
+                    if (w == null){
+                        throw new Exception("Unable to extract workflow from file");
+                    }   
+                } else {
+                    //assume the value is a workflow id and get it from the service
+                    //but fail if url is missing
+                    failIfOptionSetMissingURL(optionSet,"--"+GEN_OLD_KEPLER_XML_ARG+" flag");
+                    
+                }
+                    
+                VersionOneWorkflowXmlWriter xmlWriter = new VersionOneWorkflowXmlWriter();
+                StringWriter sw = new StringWriter();
+                xmlWriter.write(sw, w);
+                System.out.println(sw.toString());
+                System.exit(0);
+                    
+            }
             
             if (optionSet.has(PREVIEW_WORKFLOW_ARG)){
                 failIfOptionSetMissingURL(optionSet,"--"+PREVIEW_WORKFLOW_ARG+" flag");
@@ -547,7 +581,7 @@ public class App {
     }
     
     public static Workflow getWorkflowFromFile(File workflowFile) throws Exception {
-        WorkflowFromAnnotatedXmlFactory xmlFactory = new WorkflowFromAnnotatedXmlFactory();
+        WorkflowFromAnnotatedVersionTwoFourMomlXmlFactory xmlFactory = new WorkflowFromAnnotatedVersionTwoFourMomlXmlFactory();
         xmlFactory.setWorkflowXml(new BufferedInputStream(KeplerMomlFromKar.getInputStreamOfWorkflowMoml(workflowFile)));
 
         return xmlFactory.getWorkflow();
