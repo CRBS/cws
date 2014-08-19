@@ -21,14 +21,27 @@ def install_kepler(install_dir):
     os.makedirs(abs_install_dir)
 
   kepler_tarball = _download_kepler(abs_install_dir)
-  return _uncompress_kepler(abs_install_dir,kepler_tarball)
+  kepler_dir = _uncompress_kepler(abs_install_dir,kepler_tarball)
+
+  home_dir = os.path.expanduser("~")
+
+  modules_tarball = _download_kepler_modules(home_dir)
+
+  print "Downloaded ",modules_tarball
+
+  return kepler_dir
+  # Need to grab kepler.modules.tar.gz file from this link and
+  # perhaps its best to run kepler once to create the base folders then dump this in?
+  # write it to $HOME/KeplerData/kepler.modules
+  #wget --no-check-certificate "https://googledrive.com/host/0B_BG-weuWJa3dVBFLXZWZkVSLTg"
+
 
 
 def _uncompress_kepler(install_dir,kepler_tarball):
   cmd = "tar --directory="+install_dir+" -zxf "+kepler_tarball
 
   print "Running %s" % cmd
- 
+  
   (status,out) = commands.getstatusoutput(cmd)
   suffix = kepler_tarball.find('.tar.gz')
   if suffix > 0:
@@ -46,6 +59,16 @@ def _download_kepler(install_dir):
   sys.stdout.write("\n")
 
   return kepler_tarball
+
+def _download_kepler_modules(install_dir):
+  remote_modules_binary_url = 'https://googledrive.com/host/0B_BG-weuWJa3dVBFLXZWZkVSLTg'
+  modules_tarball = os.path.join(install_dir,'kepler.modules.tar.gz')
+
+  print "Please wait downloading kepler.modules -- ",
+  # retrieve kepler.modules tar ball
+  urllib.urlretrieve(remote_modules_binary_url,filename=modules_tarball,reporthook=_download_progress)
+  sys.stdout.write("\n")
+  return modules_tarball
 
 def _download_progress(count,block_size, total_size):
   percent = int(count*block_size*100/total_size)
