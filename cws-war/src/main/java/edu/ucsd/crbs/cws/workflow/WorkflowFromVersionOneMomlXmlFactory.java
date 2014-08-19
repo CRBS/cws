@@ -55,7 +55,7 @@ import org.jdom2.xpath.XPathFactory;
  *
  * @author Christopher Churas <churas@ncmir.ucsd.edu>
  */
-public class WorkflowFromXmlFactory {
+public class WorkflowFromVersionOneMomlXmlFactory {
 
     /**
      * MoML Xpath to get basic canvas parameters
@@ -101,7 +101,7 @@ public class WorkflowFromXmlFactory {
     
     public static final HashMap<String, String> _keplerParameterTypes;
 
-    public static final Logger log = Logger.getLogger(WorkflowFromXmlFactory.class.getName());
+    public static final Logger log = Logger.getLogger(WorkflowFromVersionOneMomlXmlFactory.class.getName());
 
     static {
         _keplerParameterTypes = new HashMap<>();

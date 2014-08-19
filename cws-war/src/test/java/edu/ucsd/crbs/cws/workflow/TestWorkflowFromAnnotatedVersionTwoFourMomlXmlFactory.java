@@ -31,8 +31,9 @@
  * RIGHTS. 
  */
 
-package edu.ucsd.crbs.cws.workflow.kepler;
+package edu.ucsd.crbs.cws.workflow;
 
+import edu.ucsd.crbs.cws.workflow.WorkflowFromAnnotatedVersionTwoFourMomlXmlFactory;
 import edu.ucsd.crbs.cws.io.KeplerMomlFromKar;
 import edu.ucsd.crbs.cws.workflow.Workflow;
 import edu.ucsd.crbs.cws.workflow.WorkflowParameter;
@@ -59,13 +60,13 @@ import org.junit.runners.JUnit4;
  * @author Christopher Churas <churas@ncmir.ucsd.edu>
  */
 @RunWith(JUnit4.class)
-public class TestWorkflowFromAnnotatedXmlFactory {
+public class TestWorkflowFromAnnotatedVersionTwoFourMomlXmlFactory {
 
     
      @Rule
     public TemporaryFolder Folder = new TemporaryFolder();
     
-    public TestWorkflowFromAnnotatedXmlFactory() {
+    public TestWorkflowFromAnnotatedVersionTwoFourMomlXmlFactory() {
     }
 
     @BeforeClass
@@ -86,21 +87,21 @@ public class TestWorkflowFromAnnotatedXmlFactory {
 
     @Test
     public void testWhereWorkflowStreamIsNull() throws Exception {
-        WorkflowFromAnnotatedXmlFactory xmlFactory = new WorkflowFromAnnotatedXmlFactory();
+        WorkflowFromAnnotatedVersionTwoFourMomlXmlFactory xmlFactory = new WorkflowFromAnnotatedVersionTwoFourMomlXmlFactory();
         xmlFactory.setWorkflowXml(null);
         assertTrue(xmlFactory.getWorkflow() == null);
     }
     
     @Test
     public void testWhereWorkflowStreamPointsToEmptyFile() throws Exception {
-        WorkflowFromAnnotatedXmlFactory xmlFactory = new WorkflowFromAnnotatedXmlFactory();
+        WorkflowFromAnnotatedVersionTwoFourMomlXmlFactory xmlFactory = new WorkflowFromAnnotatedVersionTwoFourMomlXmlFactory();
         xmlFactory.setWorkflowXml(new FileInputStream(Folder.newFile("tempy.xml")));
         assertTrue(xmlFactory.getWorkflow() == null);
     }
     
      @Test
     public void testExampleKarInTestResourcesDirectory() throws Exception {
-        WorkflowFromAnnotatedXmlFactory xmlFactory = new WorkflowFromAnnotatedXmlFactory();
+        WorkflowFromAnnotatedVersionTwoFourMomlXmlFactory xmlFactory = new WorkflowFromAnnotatedVersionTwoFourMomlXmlFactory();
         
         URL resourceUrl = getClass().getResource("/example.kar");
         Path resourcePath = Paths.get(resourceUrl.toURI());

@@ -30,11 +30,14 @@
  * THE CRBS Workflow Service WILL NOT INFRINGE ANY PATENT, TRADEMARK OR OTHER
  * RIGHTS. 
  */
-package edu.ucsd.crbs.cws.workflow.kepler;
+package edu.ucsd.crbs.cws.workflow;
 
 import edu.ucsd.crbs.cws.workflow.Workflow;
-import edu.ucsd.crbs.cws.workflow.WorkflowFromXmlFactory;
+import edu.ucsd.crbs.cws.workflow.WorkflowFromVersionOneMomlXmlFactory;
 import edu.ucsd.crbs.cws.workflow.WorkflowParameter;
+import edu.ucsd.crbs.cws.workflow.kepler.ParameterAttribute;
+import edu.ucsd.crbs.cws.workflow.kepler.RectangleAttribute;
+import edu.ucsd.crbs.cws.workflow.kepler.TextAttribute;
 import java.io.InputStream;
 import java.io.StringReader;
 import java.util.ArrayList;
@@ -59,7 +62,7 @@ import org.jdom2.xpath.XPathFactory;
  * 
  * @author Christopher Churas <churas@ncmir.ucsd.edu>
  */
-public class WorkflowFromAnnotatedXmlFactory {
+public class WorkflowFromAnnotatedVersionTwoFourMomlXmlFactory {
 
     // Query to find all Parameters
     public static final String MOML_CANVAS_PARAMETER = "/entity/property[@class='ptolemy.data.expr.StringParameter' or @class='ptolemy.data.expr.Parameter' or @class='ptolemy.data.expr.FileParameter']";
@@ -111,7 +114,7 @@ public class WorkflowFromAnnotatedXmlFactory {
     public static final String MINVALUE_KEY = "minvalue";
     public static final String ROWS_KEY = "rows";
 
-    public static final Logger log = Logger.getLogger(WorkflowFromXmlFactory.class.getName());
+    public static final Logger log = Logger.getLogger(WorkflowFromVersionOneMomlXmlFactory.class.getName());
 
     /**
      * Input Stream set via {@link #setWorkflowXml(java.io.InputStream)} 

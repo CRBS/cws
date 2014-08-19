@@ -23,12 +23,12 @@ import org.junit.runners.JUnit4;
  * @author Christopher Churas <churas@ncmir.ucsd.edu>
  */
 @RunWith(JUnit4.class)
-public class TestWorkflowFromXmlFactory {
+public class TestWorkflowFromVersionOneMomlXmlFactory {
     
     @Rule
     public TemporaryFolder Folder = new TemporaryFolder();
 
-    public TestWorkflowFromXmlFactory() {
+    public TestWorkflowFromVersionOneMomlXmlFactory() {
     }
 
     @BeforeClass
@@ -50,21 +50,21 @@ public class TestWorkflowFromXmlFactory {
     
     @Test
     public void testWhereWorkflowStreamIsNull() throws Exception {
-        WorkflowFromXmlFactory xmlFactory = new WorkflowFromXmlFactory();
+        WorkflowFromVersionOneMomlXmlFactory xmlFactory = new WorkflowFromVersionOneMomlXmlFactory();
         xmlFactory.setWorkflowXml(null);
         assertTrue(xmlFactory.getWorkflow() == null);
     }
     
     @Test
     public void testWhereWorkflowStreamPointsToEmptyFile() throws Exception {
-        WorkflowFromXmlFactory xmlFactory = new WorkflowFromXmlFactory();
+        WorkflowFromVersionOneMomlXmlFactory xmlFactory = new WorkflowFromVersionOneMomlXmlFactory();
         xmlFactory.setWorkflowXml(new FileInputStream(Folder.newFile("tempy.xml")));
         assertTrue(xmlFactory.getWorkflow() == null);
     }
     
     @Test
     public void testExampleKarInTestResourcesDirectory() throws Exception {
-        WorkflowFromXmlFactory xmlFactory = new WorkflowFromXmlFactory();
+        WorkflowFromVersionOneMomlXmlFactory xmlFactory = new WorkflowFromVersionOneMomlXmlFactory();
         
         URL resourceUrl = getClass().getResource("/example.old.kar");
         Path resourcePath = Paths.get(resourceUrl.toURI());
