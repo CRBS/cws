@@ -55,6 +55,7 @@ import edu.ucsd.crbs.cws.cluster.JobSubmitter;
 import edu.ucsd.crbs.cws.cluster.OutputWorkspaceFileUtil;
 import edu.ucsd.crbs.cws.cluster.OutputWorkspaceFileUtilImpl;
 import edu.ucsd.crbs.cws.cluster.WorkspaceFilePathSetterImpl;
+import edu.ucsd.crbs.cws.dao.WorkflowDAO;
 import edu.ucsd.crbs.cws.dao.rest.JobRestDAOImpl;
 import edu.ucsd.crbs.cws.dao.rest.WorkflowRestDAOImpl;
 import edu.ucsd.crbs.cws.dao.rest.WorkspaceFileRestDAOImpl;
@@ -150,6 +151,8 @@ public class App {
     
     public static final String RUN_AS_ARG = "runas";
     
+    public static final String NAME_ARG = "name";
+    
     public static final String RESAVE_WORKSPACEFILE_ARG = "resavefile";
 
     public static final String RESAVE_JOB_ARG = "resavejob";
@@ -218,6 +221,7 @@ public class App {
                     accepts(PREVIEW_WORKFLOW_ARG,"Preview Workflow on Web, requires --"+URL_ARG+" currently it should be: http://imafish.dynamic.ucsd.edu/cws/makepreview").withRequiredArg().ofType(File.class).describedAs("Kepler .kar file");
                     accepts(DESCRIPTION_ARG,"Description for WorkspaceFile").withRequiredArg().ofType(String.class);
                     accepts(TYPE_ARG,"Type of WorkspaceFile").withRequiredArg().ofType(String.class);
+                    accepts(NAME_ARG,"Sets name for Workspace file when used with --"+UPLOAD_FILE_ARG+" and --"+REGISTER_FILE_ARG).withRequiredArg().ofType(String.class).describedAs("WorkspaceFile name");
                     accepts(REGISTAR_JAR,"Path to Jar to register WorkspaceFiles").withRequiredArg().ofType(File.class).describedAs("Path to this jar");
                     accepts(HELP_ARG).forHelp();
                 }
@@ -267,13 +271,23 @@ public class App {
                 if (workflowFile.exists() && workflowFile.isFile()){
                     w = getWorkflowFromFile(workflowFile);
                     if (w == null){
-                        throw new Exception("Unable to extract workflow from file");
+                        throw new Exception("Unable to extract workflow from file: "+
+                                workflowFile);
                     }   
                 } else {
                     //assume the value is a workflow id and get it from the service
                     //but fail if url is missing
-                    failIfOptionSetMissingURL(optionSet,"--"+GEN_OLD_KEPLER_XML_ARG+" flag");
-                    
+                    failIfOptionSetMissingURLOrLoginOrToken(optionSet,"--"+
+                            GEN_OLD_KEPLER_XML_ARG+" flag");
+                     User u = getUserFromOptionSet(optionSet);
+                    WorkflowRestDAOImpl workflowDAO = new WorkflowRestDAOImpl();
+                    workflowDAO.setRestURL((String)optionSet.valueOf(URL_ARG));
+                    workflowDAO.setUser(u);
+                    w = workflowDAO.getWorkflowById(workflowFileOrId, u);
+                    if (w == null){
+                        throw new Exception("Unable to extract workflow from id: "+
+                                workflowFileOrId);
+                    }
                 }
                     
                 VersionOneWorkflowXmlWriter xmlWriter = new VersionOneWorkflowXmlWriter();
@@ -616,6 +630,10 @@ public class App {
         }
         if (optionSet.has(TYPE_ARG)){
             wsp.setType((String)optionSet.valueOf(TYPE_ARG));
+        }
+        
+        if (optionSet.has(NAME_ARG)){
+            wsp.setName((String)optionSet.valueOf(NAME_ARG));
         }
 
         ObjectMapper om = new ObjectMapper();
