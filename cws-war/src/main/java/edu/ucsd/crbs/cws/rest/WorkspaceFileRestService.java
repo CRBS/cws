@@ -103,6 +103,19 @@ public class WorkspaceFileRestService {
             @QueryParam(Constants.USER_TOKEN_PARAM) final String userToken,
             @QueryParam(Constants.USER_LOGIN_TO_RUN_AS_PARAM) final String userLoginToRunAs,
             @Context HttpServletRequest request) {
+        
+        return getWorkspaceFileList(owner,workspaceFileIdList,sourceJobId,synced,
+                userLogin,userToken,userLoginToRunAs,request);
+    }
+    
+    private List<WorkspaceFile> getWorkspaceFileList(final String owner,
+            final String workspaceFileIdList,
+            final Long sourceJobId,
+            final Boolean synced,
+            final String userLogin,
+            final String userToken,
+            final String userLoginToRunAs,
+            HttpServletRequest request) throws WebApplicationException {
         try {
             User user = _authenticator.authenticate(request);
             Event event = _eventBuilder.createEvent(request, user);
@@ -131,7 +144,65 @@ public class WorkspaceFileRestService {
             throw new WebApplicationException(ex);
         }
     }
+    
+    @GET
+    @Produces(MediaType.TEXT_PLAIN)
+    @Path(Constants.WORKSPACEFILES_AS_LIST_REST_PATH)
+    public String getWorkspaceFilesAsList(@QueryParam(Constants.OWNER_QUERY_PARAM) final String owner,
+            @QueryParam(Constants.WSFID_PARAM) final String workspaceFileIdList,
+            @QueryParam(Constants.SOURCE_JOB_ID_QUERY_PARAM) final Long sourceJobId,
+            @QueryParam(Constants.SYNCED_QUERY_PARAM) final Boolean synced,
+            @QueryParam(Constants.USER_LOGIN_PARAM) final String userLogin,
+            @QueryParam(Constants.USER_TOKEN_PARAM) final String userToken,
+            @QueryParam(Constants.USER_LOGIN_TO_RUN_AS_PARAM) final String userLoginToRunAs,
+            @Context HttpServletRequest request) {
+        
+        List<WorkspaceFile> workspaceFileList = getWorkspaceFileList(owner,
+                workspaceFileIdList,sourceJobId,synced,
+                userLogin,userToken,userLoginToRunAs,request);
+        if (workspaceFileList == null || workspaceFileList.isEmpty()){
+            return "";
+        }
+        
+        StringBuilder result = new StringBuilder();
+        for (WorkspaceFile wsf : workspaceFileList){
+            if (wsf.getPath() == null){
+                result.append("notsyncd - ");
+            }
+            if (wsf.getDir()){
+                result.append("dir: ");
+            }
+            result.append(wsf.getName());
+            result.append(" ( ");
+            result.append(wsf.getType());
+            result.append(" ) ");
+            result.append(wsf.getSize());
+            result.append(" bytes");
+            result.append(getTruncatedDescription(wsf));
+            result.append(Constants.DEFAULT_LINE_DELIMITER);
+            result.append(wsf.getId());
+            result.append("\n");
+        }
+        return result.toString();
+    }
 
+    private String getTruncatedDescription(WorkspaceFile wsf){
+        if (wsf.getDescription() == null){
+            return "";
+        }
+        int descLen = wsf.getDescription().length();
+        StringBuilder sb = new StringBuilder();
+        sb.append(" [");
+        if (descLen < 50){
+            sb.append(wsf.getDescription());
+        }
+        else {
+            sb.append(wsf.getDescription().substring(0, 50));
+        }
+        sb.append("]");
+        return sb.toString();
+    }
+    
     /**
      * Retrieves {@link WorkspaceFile} with corresponding <b>workspaceFileId</b>
      * 
@@ -202,9 +273,14 @@ public class WorkspaceFileRestService {
             User user = _authenticator.authenticate(request);
             Event event = _eventBuilder.createEvent(request, user);
             _log.info(event.getStringOfLocationData());
-            
-            if (user.isAuthorizedTo(Permission.CREATE_WORKSPACEFILE)) {
-                workspaceFile.setOwner(user.getLoginToRunJobAs());
+            if (user.isAuthorizedTo(Permission.CREATE_WORKSPACEFILE) ||
+                user.isAuthorizedTo(Permission.CREATE_ANY_WORKSPACEFILE)) {
+                
+                //if user is NOT authorized to create any workspace file then set owner
+                //to the user
+                if (!user.isAuthorizedTo(Permission.CREATE_ANY_WORKSPACEFILE)){
+                    workspaceFile.setOwner(user.getLoginToRunJobAs());
+                }
                 WorkspaceFile resWorkspaceFile = _workspaceFileDAO.insert(workspaceFile,false);
                 if (addUploadURL == null || addUploadURL == true){
                     resWorkspaceFile = setFileUploadURL(resWorkspaceFile);
