@@ -167,7 +167,7 @@ public class App {
 
     public static final String GEN_OLD_KEPLER_XML_ARG = "genoldkeplerxml";
     
-    public static final String REGISTAR_JAR = "registerjar";
+    public static final String REGISTER_JAR_ARG = "registerjar";
 
     //public static final String LOAD_TEST = "loadtest";
     public static final String PROGRAM_HELP = "\nCRBS Workflow Service Command Line Tools "
@@ -212,9 +212,9 @@ public class App {
                     accepts(TOKEN_ARG, "User Token").withRequiredArg().ofType(String.class).describedAs("token");
                     accepts(RUN_AS_ARG, "User to run as (for power accounts that can run as other users)").withRequiredArg().ofType(String.class).describedAs("runas");
                     accepts(OWNER_ARG,"Sets owner when creating Workspace file and Workflow").withRequiredArg().ofType(String.class).describedAs("username");
-                    accepts(JOB_ID_ARG,"Sets job id for Workspace file when used with --"+UPLOAD_FILE_ARG+" and --"+REGISTER_FILE_ARG).withRequiredArg().ofType(Long.class).describedAs("Job Id");
+                    accepts(JOB_ID_ARG,"Sets source job id for Workspace file when used with --"+UPLOAD_FILE_ARG+" and --"+REGISTER_FILE_ARG).withRequiredArg().ofType(Long.class).describedAs("Job Id");
                     accepts(MD5_ARG,"Sets md5 for Workspace file when used with --"+UPLOAD_FILE_ARG+" and --"+REGISTER_FILE_ARG).withRequiredArg().ofType(String.class).describedAs("MD5 message digest");
-                    accepts(SIZE_ARG,"Sets size in bytes for Workspace file when used with --"+UPLOAD_FILE_ARG+" and --"+REGISTER_FILE_ARG).withRequiredArg().ofType(String.class).describedAs("Size of file/dir in bytes");
+                    accepts(SIZE_ARG,"Sets size in bytes for Workspace file when used with --"+UPLOAD_FILE_ARG+" and --"+REGISTER_FILE_ARG).withRequiredArg().ofType(Long.class).describedAs("Size of file/dir in bytes");
                     accepts(RESAVE_WORKSPACEFILE_ARG,"Resaves Workspace file").withRequiredArg().ofType(Long.class).describedAs("WorkspaceFile Id");
                     accepts(RESAVE_JOB_ARG,"Resaves Job").withRequiredArg().ofType(Long.class).describedAs("Job Id");
                     accepts(RESAVE_WORKFLOW_ARG,"Resaves Workflow").withRequiredArg().ofType(Long.class).describedAs("Workflow Id");
@@ -222,7 +222,7 @@ public class App {
                     accepts(DESCRIPTION_ARG,"Description for WorkspaceFile").withRequiredArg().ofType(String.class);
                     accepts(TYPE_ARG,"Type of WorkspaceFile").withRequiredArg().ofType(String.class);
                     accepts(NAME_ARG,"Sets name for Workspace file when used with --"+UPLOAD_FILE_ARG+" and --"+REGISTER_FILE_ARG).withRequiredArg().ofType(String.class).describedAs("WorkspaceFile name");
-                    accepts(REGISTAR_JAR,"Path to Jar to register WorkspaceFiles").withRequiredArg().ofType(File.class).describedAs("Path to this jar");
+                    accepts(REGISTER_JAR_ARG,"Path to Jar to register WorkspaceFiles").withRequiredArg().ofType(File.class).describedAs("Path to this jar");
                     accepts(HELP_ARG).forHelp();
                 }
             };
@@ -447,7 +447,14 @@ public class App {
                 File wfExecDir = (File) optionSet.valueOf(WF_EXEC_DIR_ARG);
                 File wfDir = (File) optionSet.valueOf(WF_DIR_ARG);
                 File keplerScript = (File) optionSet.valueOf(KEPLER_SCRIPT_ARG);
-
+                
+                String registerJar = null;
+                if (optionSet.has(REGISTER_JAR_ARG)){
+                    File registerJarFile = (File)optionSet.valueOf(REGISTER_JAR_ARG);
+                    registerJar = registerJarFile.getAbsolutePath();
+                }
+                
+                
                 User u = getUserFromOptionSet(optionSet);
                 
                 ObjectifyService.ofy();
@@ -473,7 +480,8 @@ public class App {
                         wfDir.getAbsolutePath(),
                         keplerScript.getAbsolutePath(),
                         castPath, queue,u,
-                        url);
+                        url,
+                        registerJar);
 
                 submitter.submitJobs();
                 
@@ -635,6 +643,10 @@ public class App {
         if (optionSet.has(NAME_ARG)){
             wsp.setName((String)optionSet.valueOf(NAME_ARG));
         }
+        
+        if (optionSet.has(SIZE_ARG)){
+            wsp.setSize((Long)optionSet.valueOf(SIZE_ARG));
+        }
 
         ObjectMapper om = new ObjectMapper();
         ObjectWriter ow = om.writerWithDefaultPrettyPrinter();
@@ -651,7 +663,8 @@ public class App {
         workspaceFileDAO.setUser(u);
         
         WorkspaceFile workspaceFileRes = workspaceFileDAO.insert(wsp,uploadFile);
-        
+        System.out.println("WorkspaceFile id: "+workspaceFileRes.getId());
+
         if (uploadFile == false){
             return;
         }
