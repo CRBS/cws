@@ -140,4 +140,10 @@ public class Permission {
      * Permission to create user
      */
     public static final int CREATE_USER = 131072;
+    
+    /**
+     * Permission to create workspace file under any user
+     */
+    public static final int CREATE_ANY_WORKSPACEFILE = 262144;
+
 }
