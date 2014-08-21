@@ -65,11 +65,13 @@ public class JobSubmitter {
      * @param jobDAO
      * @param workspaceFilePathSetter
      * @param outputWorkspaceFileCreator
+     * @param jobPath
      * @param workflowExecDir Directory under where workflow Tasks should be run
      * @param workflowsDir Directory where workflows are stored
      * @param keplerScript Full path to Kepler program
      * @param panfishCast
      * @param queue
+     * @param user
      * @param login
      * @param token
      * @param url
@@ -83,9 +85,12 @@ public class JobSubmitter {
             final String panfishCast,
             final String queue,
             final User user,
-            final String url) {
+            final String url,
+            final String registerUpdateJar) {
+       
         _directoryCreator = new JobDirectoryCreatorImpl(jobPath);
-        _cmdScriptCreator = new JobCmdScriptCreatorImpl(workflowsDir, keplerScript);
+        _cmdScriptCreator = new JobCmdScriptCreatorImpl(workflowsDir, keplerScript,registerUpdateJar+"--url "+url+" --login "+
+                user.getLogin()+" --token "+user.getToken());
         _cmdScriptSubmitter = new JobCmdScriptSubmitterImpl(panfishCast, queue);
         _workflowSync = new SyncWorkflowFileToFileSystemImpl(workflowsDir, url, user.getLogin(), user.getToken());
         _workspacePathSetter = workspaceFilePathSetter;
