@@ -45,6 +45,11 @@ import java.io.Writer;
  */
 public class VersionOneWorkflowXmlWriter implements WorkflowWriter {
 
+    
+    private static final String SLASH_LESS_THEN = "/>";
+    
+    private static final String LESS_THEN = ">";
+    
     /**
      * Writes {@link Workflow} <b>w</b> to <b>writer</b> in 1.x Kepler moml 
      * xml format.  This output will <b>NOT</b> properly load in Kepler!!!
@@ -65,7 +70,7 @@ public class VersionOneWorkflowXmlWriter implements WorkflowWriter {
             throw new IllegalArgumentException("Workflow is null");
         }
         writeHeader(writer,w);
-        
+        writeHiddenCAMERAParameters(writer);
         for (WorkflowParameter param : w.getParameters()){
             writeParameter(writer,param);
         }
@@ -75,14 +80,17 @@ public class VersionOneWorkflowXmlWriter implements WorkflowWriter {
     
     private void writeParameter(Writer writer,WorkflowParameter param) throws Exception {
         
-        writer.write("\t<property name=\""+param.getName()+
-                "\" class=\"ptolemy.data.expr.StringParameter\" value=\""+
-                param.getValue()+"\">\n");
+        if (param.getType() != null && param.getType().equals("file")){
+            writeParameter(writer,param.getName(),param.getValue().replace("/workspacefiles", "/workspacefiles/aslist").replaceAll("&","&amp;"),false);
+        }
+        else {
+            writeParameter(writer,param.getName(),param.getValue(),false);
+        }
         
         writer.write("\t\t<display name=\""+param.getDisplayName()+"\"/>\n");
-
+        
         if (param.getHelp() != null){
-            writeParameterAttribute(writer,"tooltip",param.getHelp());
+            writeParameterAttribute(writer,"tooltip",getPrettyTooltip(param.getHelp()));
         }
         if (param.getIsAdvanced() == true){
             writeParameterAttribute(writer,"advanced","true");
@@ -107,6 +115,11 @@ public class VersionOneWorkflowXmlWriter implements WorkflowWriter {
             else if (param.getType().equals("checkbox")){
                 writeParameterAttribute(writer,"displaytype","checkbox");
             }
+            else if (param.getType().equals("file")){
+                writeParameterAttribute(writer,"displaytype","dropdown");
+                writeParameterAttribute(writer,"delimitervalue","==");
+                param.setNameValueDelimiter(null);
+            }
         }
         
         if (param.getNameValueDelimiter() != null){
@@ -118,6 +131,34 @@ public class VersionOneWorkflowXmlWriter implements WorkflowWriter {
         
         writer.write("\t</property>\n");
         
+    }
+    
+    /**
+     * This crude implementation just adds a <br/> tag when 77 characters is
+     * hit without any consideration to splitting at spaces.  
+     * @param tooltip
+     * @return 
+     */
+    private String getPrettyTooltip(final String tooltip){
+        StringBuilder sb = new StringBuilder();
+        sb.append("&lt;pre&gt;");
+        int charCount = 0;
+        int charsPerLine = 77;
+        for (char c : tooltip.toCharArray()){
+            if (c == '\n'){
+                charCount = 0;
+                sb.append("&lt;br/&gt;");
+                continue;
+            }
+            else if (charCount >= charsPerLine){
+                sb.append("&lt;br/&gt;");
+                charCount = 0;
+            }
+            sb.append(c);
+            charCount++;
+        }
+        sb.append("&lt;/pre&gt;");
+        return sb.toString();
     }
     
     private void writeHeader(Writer writer,Workflow w) throws Exception{
@@ -132,11 +173,31 @@ public class VersionOneWorkflowXmlWriter implements WorkflowWriter {
         writer.write("</entity>\n");
     }
     
+    private void writeParameter(Writer writer, final String name,
+            final String value,boolean addCloseSlash) throws Exception {
+        
+        String endTag = LESS_THEN;
+        if (addCloseSlash == true){
+            endTag = SLASH_LESS_THEN;
+        }
+        
+        writer.write("\t<property name=\"" + name
+                + "\" class=\"ptolemy.data.expr.StringParameter\" value=\""
+                + value + "\""+endTag+"\n");
+    }
+    
     private void writeParameterAttribute(Writer writer,final String name,
-            final String value) throws Exception {
+            final String value) throws Exception {        
         writer.write("\t\t<property name=\""+name+
                 "\" class=\"ptolemy.data.expr.StringParameter\" value=\""+
                 value+"\"/>\n");
+    }
+    
+    private void writeHiddenCAMERAParameters(Writer writer) throws Exception {
+        writeParameter(writer,"CAMERA_outputdir","",true);
+        writeParameter(writer,"CAMERA_userid","",true);
+        writeParameter(writer,"CAMERA_taskid","",true);
+        writeParameter(writer,"CAMERA_taskname","",true);
     }
 
 }
