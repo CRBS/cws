@@ -87,6 +87,8 @@ public class Constants {
      */
     public static final String WORKSPACEFILES_PATH = "workspacefiles";
     
+    public static final String WORKSPACEFILES_AS_LIST_REST_PATH = SLASH+"aslist";
+    
     /**
      * REST path added at end of address like so:  IE https://blah.com/rest/
      */
@@ -181,5 +183,5 @@ public class Constants {
      */
     public static final String CWS_OUTPUTDIR = "CWS_outputdir";
 
-    
+    public static final String DEFAULT_LINE_DELIMITER = "==";
 }
