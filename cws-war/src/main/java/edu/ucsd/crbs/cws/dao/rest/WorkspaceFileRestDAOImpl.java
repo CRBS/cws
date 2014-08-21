@@ -87,7 +87,7 @@ public class WorkspaceFileRestDAOImpl implements WorkspaceFileDAO {
         client.addFilter(new HTTPBasicAuthFilter(user.getLogin(),user.getToken()));
         client.setFollowRedirects(true);
         WebResource resource = client.resource(_restURL).path(Constants.REST_PATH).path(Constants.WORKSPACEFILES_PATH);
-        MultivaluedMap queryParams = new MultivaluedMapImpl();
+        MultivaluedMap queryParams = _multivaluedMapFactory.getMultivaluedMap(user);
         if (workspaceFileIds != null){
             queryParams.add(Constants.WSFID_PARAM,workspaceFileIds);
         }
@@ -111,7 +111,7 @@ public class WorkspaceFileRestDAOImpl implements WorkspaceFileDAO {
         client.setFollowRedirects(true);
         WebResource resource = client.resource(_restURL).path(Constants.REST_PATH).path(Constants.WORKSPACEFILES_PATH);
         
-        MultivaluedMap queryParams = new MultivaluedMapImpl();
+        MultivaluedMap queryParams = _multivaluedMapFactory.getMultivaluedMap(_user);
 
         if (owner != null) {
             queryParams.add(Constants.OWNER_QUERY_PARAM, owner);
@@ -147,7 +147,7 @@ public class WorkspaceFileRestDAOImpl implements WorkspaceFileDAO {
 
         String workspaceFileAsJson = om.writeValueAsString(wsp);
 
-        MultivaluedMap queryParams = new MultivaluedMapImpl();
+        MultivaluedMap queryParams = _multivaluedMapFactory.getMultivaluedMap(_user);
 
         if (generateUploadURL == false){
             queryParams.add(Constants.ADD_UPLOAD_URL_PARAM, "false");
@@ -176,7 +176,7 @@ public class WorkspaceFileRestDAOImpl implements WorkspaceFileDAO {
                 path(Constants.REST_PATH).path(Constants.WORKSPACEFILES_PATH).
                 path(Long.toString(workspaceFileId));
         
-        MultivaluedMap queryParams = new MultivaluedMapImpl();
+        MultivaluedMap queryParams = _multivaluedMapFactory.getMultivaluedMap(_user);
         queryParams.add(Constants.PATH_QUERY_PARAM, path);
         
          String json = resource.queryParams(queryParams)
@@ -208,7 +208,7 @@ public class WorkspaceFileRestDAOImpl implements WorkspaceFileDAO {
                 path(Constants.REST_PATH).path(Constants.WORKSPACEFILES_PATH).
                 path(Long.toString(workspaceFileId));
         
-        MultivaluedMap queryParams = new MultivaluedMapImpl();
+        MultivaluedMap queryParams = _multivaluedMapFactory.getMultivaluedMap(_user);
         queryParams.add(Constants.RESAVE_QUERY_PARAM, "true");
         
          String json = resource.queryParams(queryParams)
@@ -232,7 +232,7 @@ public class WorkspaceFileRestDAOImpl implements WorkspaceFileDAO {
         client.setFollowRedirects(true);
         WebResource resource = client.resource(_restURL).path(Constants.REST_PATH).path(Constants.WORKSPACEFILES_PATH);
         
-        MultivaluedMap queryParams = new MultivaluedMapImpl();        
+        MultivaluedMap queryParams = _multivaluedMapFactory.getMultivaluedMap(_user);
         queryParams.add(Constants.SOURCE_JOB_ID_QUERY_PARAM, Long.toString(sourceJobId));
 
         String json = resource.queryParams(queryParams).accept(MediaType.APPLICATION_JSON).get(String.class);

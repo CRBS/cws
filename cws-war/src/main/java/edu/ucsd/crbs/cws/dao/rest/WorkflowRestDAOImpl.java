@@ -40,6 +40,7 @@ import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
+import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
 import com.sun.jersey.api.json.JSONConfiguration;
 import com.sun.jersey.core.impl.provider.entity.StringProvider;
 import edu.ucsd.crbs.cws.auth.User;
@@ -83,6 +84,7 @@ public class WorkflowRestDAOImpl implements WorkflowDAO {
         ClientConfig cc = new DefaultClientConfig();
         cc.getFeatures().put(JSONConfiguration.FEATURE_POJO_MAPPING, Boolean.TRUE);
         Client client = Client.create(cc);
+        client.addFilter(new HTTPBasicAuthFilter(user.getLogin(),user.getToken()));
         client.setFollowRedirects(true);
         WebResource resource = client.resource(_restURL).path(Constants.REST_PATH).path(Constants.WORKFLOWS_PATH).path(workflowId);
         MultivaluedMap queryParams = _multivaluedMapFactory.getMultivaluedMap(_user);
@@ -98,6 +100,7 @@ public class WorkflowRestDAOImpl implements WorkflowDAO {
         ClientConfig cc = new DefaultClientConfig();
         cc.getFeatures().put(JSONConfiguration.FEATURE_POJO_MAPPING, Boolean.TRUE);
         Client client = Client.create(cc);
+        client.addFilter(new HTTPBasicAuthFilter(_user.getLogin(),_user.getToken()));
         client.setFollowRedirects(true);
         WebResource resource = client.resource(_restURL).path(Constants.REST_PATH).path(Constants.WORKFLOWS_PATH);
         MultivaluedMap queryParams = _multivaluedMapFactory.getMultivaluedMap(_user);
@@ -133,6 +136,7 @@ public class WorkflowRestDAOImpl implements WorkflowDAO {
         ClientConfig cc = new DefaultClientConfig();
         cc.getClasses().add(StringProvider.class);
         Client client = Client.create(cc);
+        client.addFilter(new HTTPBasicAuthFilter(_user.getLogin(),_user.getToken()));
         client.setFollowRedirects(true);
         WebResource resource = client.resource(_restURL).path(Constants.REST_PATH).
                 path(Constants.WORKFLOWS_PATH).path(Long.toString(workflowId));
