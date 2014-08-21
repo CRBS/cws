@@ -81,7 +81,17 @@ public class JobCmdScriptCreatorImpl implements JobCmdScriptCreator, StringRepla
      * line arguments needed to run the workflow
      */
     public static final String JOB_ARGS_TOKEN = "@@JOB_ARGS@@";
+    
+    public static final String JAVA_TOKEN = "@@JAVA@@";
+    
+    public static final String REGISTER_OUTPUT_TO_WORKSPACE_TOKEN = "@@REGISTER_OUTPUT_TO_WORKSPACE@@";
+    
+    public static final String UPDATE_WORKSPACE_PATH_TOKEN = "@@UPDATE_WORKSPACE_PATH@@";
 
+    public static final String REGISTER_WSF_OUTPUT = "registerworkspacefile.out";
+
+    public static final String UPDATE_WSF_OUTPUT = "updateworkspacefile.out";
+    
     /**
      * Base directory under which the Workflow kar files reside
      */
@@ -101,7 +111,15 @@ public class JobCmdScriptCreatorImpl implements JobCmdScriptCreator, StringRepla
      * The working directory for the Workflow Task
      */
     private String _workingDir;
+    
+    private String _registerOutputWorkspaceFile;
+    
+    private String _updateOutputWorkspaceFilePath;
 
+    private String _registerUpdateJar;
+    
+    
+    
     /**
      * Contains a mapping of ASCII characters to HTML escape codes.  This
      * is needed to replace certain characters with special characters when
@@ -118,13 +136,17 @@ public class JobCmdScriptCreatorImpl implements JobCmdScriptCreator, StringRepla
     @Override
     public String replace(String line) {
         return line.replace(KEPLER_SH_TOKEN, _keplerScript).
-                replace(JOB_ARGS_TOKEN, _jobArgs);
+                replace(JOB_ARGS_TOKEN, _jobArgs).
+                replace(JAVA_TOKEN,"java").
+                replace(REGISTER_OUTPUT_TO_WORKSPACE_TOKEN,_registerOutputWorkspaceFile).
+                replace(UPDATE_WORKSPACE_PATH_TOKEN,_updateOutputWorkspaceFilePath);
     }
 
-    public JobCmdScriptCreatorImpl(final String workflowsDir, final String keplerScript) {
+    public JobCmdScriptCreatorImpl(final String workflowsDir, final String keplerScript,
+            final String registerUpdateJar) {
         _workflowsDir = workflowsDir;
         _keplerScript = keplerScript;
-
+        _registerUpdateJar = registerUpdateJar;
         m_EscapeMap = new LinkedHashMap<>();
         m_EscapeMap.put("&", "&#38;");
         m_EscapeMap.put(" ", "&#32;");
@@ -154,11 +176,26 @@ public class JobCmdScriptCreatorImpl implements JobCmdScriptCreator, StringRepla
      */
     @Override
     public String create(final String jobDirectory, Job j) throws Exception {
-
+        
         _workingDir = jobDirectory + File.separator + Constants.OUTPUTS_DIR_NAME;
 
         _jobArgs = generateJobArguments(j);
 
+        
+        _registerOutputWorkspaceFile = " -jar "+_registerUpdateJar+
+                " --registerfile \""+_workingDir+"\" --jobid "+j.getId()+
+                " --name \""+j.getName()+" [Job Output]\""+
+                " --type \""+j.getWorkflow().getName()+"("+j.getWorkflow().getVersion()+
+                ") Output\""+
+                " --description \"Output of Workflow Job ("+j.getId()+")\" >> "+
+                jobDirectory+File.separator+REGISTER_WSF_OUTPUT+" 2>&1";
+        
+        _updateOutputWorkspaceFilePath = " -jar "+_registerUpdateJar+
+                " --updatepath \"`cat "+jobDirectory+File.separator+REGISTER_WSF_OUTPUT+" | sed \"s/^Workspace.*: //\"`\""+
+                " --path \""+_workingDir+"\""+
+                " --size `du "+_workingDir+" -bs | sed \"s/\\W*\\/.*//\"` >> "+
+                jobDirectory+File.separator+UPDATE_WSF_OUTPUT+" 2>&1";
+        
         ResourceToExecutableScriptWriterImpl resToFile = new ResourceToExecutableScriptWriterImpl();
 
         String jobCmd = _workingDir + File.separator + JOB_CMD_SH;
