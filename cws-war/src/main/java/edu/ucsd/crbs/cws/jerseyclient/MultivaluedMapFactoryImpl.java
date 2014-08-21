@@ -54,14 +54,12 @@ public class MultivaluedMapFactoryImpl implements MultivaluedMapFactory {
             return queryParams;
         }
         
-        if (u.getLogin() != null){
-            queryParams.add(Constants.USER_LOGIN_PARAM, u.getLogin());
-        }
-        if (u.getToken() != null){
-            queryParams.add(Constants.USER_TOKEN_PARAM, u.getToken());
-        }
-        
         if (u.getLoginToRunJobAs() != null) {
+            //if login matches login to run as dont add it to query parameters
+            if (u.getLogin() != null && u.getLogin().equals(u.getLoginToRunJobAs())){
+                return queryParams;
+            }
+            
             queryParams.add(Constants.USER_LOGIN_TO_RUN_AS_PARAM, u.getLoginToRunJobAs());
         }
         return queryParams;
