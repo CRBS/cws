@@ -40,6 +40,7 @@ import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
+import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
 import com.sun.jersey.core.impl.provider.entity.StringProvider;
 import com.sun.jersey.multipart.impl.MultiPartWriter;
 import static edu.ucsd.crbs.cws.App.LOGIN_ARG;
@@ -570,11 +571,13 @@ public class App {
                         cc.getClasses().add(StringProvider.class);
                         cc.getClasses().add(MultiPartWriter.class);
                         Client client = Client.create(cc);
+                        
                         client.setFollowRedirects(true);
                         WebResource resource = client.resource(postURL);
                         String workflowAsJson = om.writeValueAsString(w);
 
                         User u = getUserFromOptionSet(optionSet);
+                        client.addFilter(new HTTPBasicAuthFilter(u.getLogin(),u.getToken()));
                         MultivaluedMap queryParams = multivaluedMapFactory.getMultivaluedMap(u);
 
                         String response = resource.queryParams(queryParams).type(MediaType.APPLICATION_JSON_TYPE)
