@@ -3,7 +3,8 @@ package edu.ucsd.crbs.cws.auth;
 import edu.ucsd.crbs.cws.dao.UserDAO;
 import edu.ucsd.crbs.cws.dao.objectify.UserObjectifyDAOImpl;
 import edu.ucsd.crbs.cws.rest.Constants;
-import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.xml.bind.DatatypeConverter;
 
@@ -14,6 +15,10 @@ import javax.xml.bind.DatatypeConverter;
  */
 public class AuthenticatorImpl implements Authenticator {
 
+    
+    private static final Logger _log
+            = Logger.getLogger(AuthenticatorImpl.class.getName());
+    
     public static final String AUTHORIZATION_HEADER = "authorization";
     
     UserDAO _userDAO = new UserObjectifyDAOImpl();
@@ -39,12 +44,15 @@ public class AuthenticatorImpl implements Authenticator {
     private User authenticate(HttpServletRequest request,final String userLogin,
             final String userToken,final String loginToRunAs) throws Exception {
 
+        _log.log(Level.INFO,"Authenticating user: {0} token: {1}",
+                new Object[]{userLogin,userToken});
         //call get special users to see if this request is a special one.
         // if it is we bypass the query and directly create the object
         
         User user = getUserIfTheyAreSpecial(request.getRemoteAddr(),
                 userLogin,userToken,loginToRunAs);
         if (user != null){
+            _log.log(Level.INFO, "Found a special User: {0}", user.getLogin());
             return user;
         }
         
@@ -96,6 +104,7 @@ public class AuthenticatorImpl implements Authenticator {
 
         String auth = request.getHeader(AUTHORIZATION_HEADER);
         if (auth == null) {
+            _log.log(Level.INFO,"No authentication information in header.  Will attempt to look at query parameters");
             return authenticate(request, request.getParameter(Constants.USER_LOGIN_PARAM),
                     request.getParameter(Constants.USER_TOKEN_PARAM),
                     request.getParameter(Constants.USER_LOGIN_TO_RUN_AS_PARAM));
@@ -115,10 +124,12 @@ public class AuthenticatorImpl implements Authenticator {
                                          final String userToken,
                                          final String loginToRunAs){
         if (ipAddress == null){
+            _log.log(Level.INFO,"Unable to get ip address");
             return null;
         }
 
         if (userToken == null || userLogin == null){
+            _log.log(Level.INFO,"User token or login is null");
             return null;
         }
         
@@ -137,7 +148,20 @@ public class AuthenticatorImpl implements Authenticator {
         }
         return null;
     }
-    
+
+    /**
+     * Takes Basic HTTP Authentication string via <b>auth</b> parameter in format:<p/>
+     * 
+     *  Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ== <p/>
+     * 
+     * and extracts login and password token from value to right of <b>Basic</b> above
+     * which should be in format of <b>login:pass</b> once decoded via {@link DatatypeConverter#parseBase64Binary(java.lang.String)}
+     * method
+     * 
+     * @param auth Basic Http Authentication string in format above
+     * @return String array of length two with first element being login value 
+     *         and second being password upon success or <b>null</b> upon error
+     */
     private String[] decodeAuthString(final String auth){
         
         if (auth == null){
