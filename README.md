@@ -8,15 +8,48 @@ Is a REST Service to enable execution of Kepler Workflows
 Building and running a local instance
 =====================================
 
-The below commands will compile and build cws and start a 
+The below commands will build CRBS Workflow and start a 
 local webserver to host the webservice
 
     mvn clean install
     cd cws-ear
     mvn appengine:devserver
 
+The script **local.sh** runs the above commands
 
 
+
+Deploying to Google App Engine
+==============================
+
+The below commands will build and deploy CRBS Workflow Service
+to Google App Engine.  The version deployed to is whatever is
+set in cws-war/pom.xml line <appengine.app.version>##</appengine.app.version>
+
+    mvn clean install
+    cd cws-ear
+    mvn appengine:update
+
+The script **deploy.sh** runs the above commands
+
+
+
+Command line program
+====================
+
+This build system creates a commandline executable jar located at
+ 
+    cws-war/target/cws-war-VERSION-jar.with-dependencies.jar
+
+The above jar can be invoked via java -jar <above jar file> for more
+information. 
+
+
+Adding a new Workflow via Command line program
+----------------------------------------------
+
+    # Adds example.kar workflow into the local instance of REST service
+    java -jar cws-war/target/cws-war-VERSION-jar.with-dependendies.jar --uploadwf cws-war/src/test/resources/example.kar --url http://localhost:8080 --login foo --token bar
 
 
 Copyright
