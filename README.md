@@ -3,6 +3,20 @@ cws
 
 CRBS Workflow Service
 
+Is a REST Service to enable execution of Kepler Workflows
+
+Building and running a local instance
+=====================================
+
+The below commands will compile and build cws and start a 
+local webserver to host the webservice
+
+    mvn clean install
+    cd cws-ear
+    mvn appengine:devserver
+
+
+
 
 
 Copyright
