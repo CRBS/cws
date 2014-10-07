@@ -93,7 +93,7 @@ public class Attribute {
      * 
      * @param location String containing location data in format <b>[X,Y]</b>
      */
-    public void setCoordinatesViaString(final String location) {
+    public void setCoordinatesViaString(final String location) throws Exception {
         if (location == null) {
             return;
         }
@@ -101,10 +101,15 @@ public class Attribute {
         String spacelessLoc = location.replace(" ", "").replace("[", "").replace("]", "").replace("{","").replace("}","");
         String splitCoords[] = spacelessLoc.split(",");
         //@TODO need to catch exception and redo this logic better
-        if (splitCoords.length == 2) {
-            _xCoordinate = Double.parseDouble(splitCoords[0]);
-            _yCoordinate = Double.parseDouble(splitCoords[1]);
+        if (splitCoords.length < 2){
+            throw new Exception("No comma delimiting x and y coordinates found");
         }
+        if (splitCoords.length > 2){
+            throw new Exception("Multiple commas found, expected only 1 to delimit x and y coordinates");
+        }
+        
+        _xCoordinate = Double.parseDouble(splitCoords[0]);
+        _yCoordinate = Double.parseDouble(splitCoords[1]);
     }
 
     public double getXCoordinate() {

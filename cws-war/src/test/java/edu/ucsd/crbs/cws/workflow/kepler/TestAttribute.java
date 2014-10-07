@@ -92,7 +92,7 @@ public class TestAttribute {
     }
     
     @Test
-    public void testSetCoordinatesViaString(){
+    public void testSetCoordinatesViaString() throws Exception{
         Attribute attrib = new Attribute();
         
         //try null string
@@ -120,13 +120,18 @@ public class TestAttribute {
         assertTrue(attrib.getXCoordinate() == -0.4);
         assertTrue(attrib.getYCoordinate() == 28);
     
-        //try with missing ,
-        attrib.setXCoordinate(10);
-        attrib.setYCoordinate(10);
-        attrib.setCoordinatesViaString("[-4 6]");
-        assertTrue(attrib.getXCoordinate() == 10);
-        assertTrue(attrib.getYCoordinate() == 10);
-        
+        try {
+            //try with missing ,
+            attrib.setCoordinatesViaString("[-4 6]");
+            fail("Expected exception cause we didnt set a comma in location string");
+        } catch (Exception ex) {
+            assertTrue(ex.getMessage().equals("No comma delimiting x and y coordinates found"));
+        }
+        // try with { } 
+        attrib.setCoordinatesViaString("{-19.2, 6.6}");
+        assertTrue(attrib.getXCoordinate() == -19.2);
+        assertTrue(attrib.getYCoordinate() == 6.6);
+     
     }
     
     
