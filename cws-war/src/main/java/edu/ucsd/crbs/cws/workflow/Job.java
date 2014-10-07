@@ -98,7 +98,7 @@ public class Job  {
     
     /**
      * Empty class that is used with Objectify queries to skip retrieval of the
-     * Workflow object associated with this Task
+     * Workflow object associated with this Job
      */
     public static class Everything {}
     
@@ -278,7 +278,7 @@ public class Job  {
     
     /**
      * Contains any high level error encountered during creation or validation
-     * of Task
+     * of Job
      * @return Error message if there was a problem or null 
      */
     public String getError() {
@@ -287,7 +287,7 @@ public class Job  {
 
     /**
      * Sets a human readable message describing an error during creation or validation
-     * of Task
+     * of this Job
      * @param error 
      */
     public void setError(String error) {
