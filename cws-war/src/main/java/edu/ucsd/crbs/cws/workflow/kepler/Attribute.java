@@ -98,7 +98,7 @@ public class Attribute {
             return;
         }
 
-        String spacelessLoc = location.replace(" ", "").replace("[", "").replace("]", "");
+        String spacelessLoc = location.replace(" ", "").replace("[", "").replace("]", "").replace("{","").replace("}","");
         String splitCoords[] = spacelessLoc.split(",");
         //@TODO need to catch exception and redo this logic better
         if (splitCoords.length == 2) {
