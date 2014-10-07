@@ -45,13 +45,12 @@ import edu.ucsd.crbs.cws.workflow.Job;
 public interface JobValidator {
     
     /**
-     * Examines <b>job</b> and verifies all parameters meet requirements of {@link WorkflowParameter}
-     * objects within.  
+     * Examines <b>job</b> and verifies job meets all requirements
      * @param job
      * @param user
      * @return
      * @throws Exception 
      */
-    public Job validateParameters(Job job,User user) throws Exception;
-
+    public Job validate(Job job,User user) throws Exception;
+    
 }
