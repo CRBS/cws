@@ -86,10 +86,10 @@ public class TestJobValidatorImpl {
     }
 
    @Test
-   public void testNullTask(){
+   public void testNullJob(){
        JobValidatorImpl tvi = new JobValidatorImpl();
        try {
-        tvi.validateParameters(null, null);
+        tvi.validate(null, null);
         fail("Expected exception");
        }catch(Exception ex){
            assertTrue(ex.getMessage().startsWith("Job cannot be null"));
@@ -107,9 +107,10 @@ public class TestJobValidatorImpl {
        WorkflowDAO mockDAO = mock(WorkflowDAO.class);
        Job t = new Job();
        User u = new User();
+       u.setLogin("george");
        when(mockDAO.getWorkflowForJob(t,u)).thenReturn(null);
        tvi._workflowDAO = mockDAO;
-       Job res = tvi.validateParameters(t, u);
+       Job res = tvi.validate(t, u);
        assertTrue(res.getError().equals("Unable to load workflow for job"));
       
    }
@@ -125,16 +126,17 @@ public class TestJobValidatorImpl {
        WorkflowDAO mockDAO = mock(WorkflowDAO.class);
        Job t = new Job();
        User u = new User();
+       u.setLogin("billy");
        when(mockDAO.getWorkflowForJob(t,u)).thenThrow(new IllegalArgumentException("error"));
        tvi._workflowDAO = mockDAO;
-       Job res = tvi.validateParameters(t, u);
+       Job res = tvi.validate(t, u);
        assertTrue(res.getError().equals("error"));
       
    }
 
 
    @Test
-   public void testNoParametersInTaskCase() throws Exception{
+   public void testNoParametersInJobCase() throws Exception{
        JobValidatorImpl tvi = new JobValidatorImpl();
        JobParametersChecker mockNullChecker = mock(JobParametersChecker.class);
        JobParametersChecker mockDupChecker = mock(JobParametersChecker.class);
@@ -144,9 +146,11 @@ public class TestJobValidatorImpl {
        WorkflowDAO mockDAO = mock(WorkflowDAO.class);
        Job t = new Job();
        User u = new User();
+       u.setLogin("john");
+       
        when(mockDAO.getWorkflowForJob(t,u)).thenReturn(new Workflow());
        tvi._workflowDAO = mockDAO;
-       Job res = tvi.validateParameters(t, u);
+       Job res = tvi.validate(t, u);
        assertTrue(res.getError() == null);
       
    }
@@ -170,6 +174,7 @@ public class TestJobValidatorImpl {
        t.setParameters(paramList);
        
        User u = new User();
+       u.setLogin("joe");
        Workflow w = new Workflow();
        WorkflowParameter wp = new WorkflowParameter();
        wp.setName("foo");
@@ -180,7 +185,7 @@ public class TestJobValidatorImpl {
        when(mockDAO.getWorkflowForJob(t,u)).thenReturn(w);
        
        tvi._workflowDAO = mockDAO;
-       Job res = tvi.validateParameters(t, u);
+       Job res = tvi.validate(t, u);
        assertTrue(res.getError() == null);
        assertTrue(res.getParametersWithErrors().size() == 1);
        ParameterWithError reswp = res.getParametersWithErrors().get(0);
@@ -207,6 +212,7 @@ public class TestJobValidatorImpl {
        t.setParameters(paramList);
        
        User u = new User();
+       u.setLogin("phil");
        Workflow w = new Workflow();
        WorkflowParameter wp = new WorkflowParameter();
        wp.setIsRequired(true);
@@ -225,7 +231,7 @@ public class TestJobValidatorImpl {
        when(mockDAO.getWorkflowForJob(t,u)).thenReturn(w);
        
        tvi._workflowDAO = mockDAO;
-       Job res = tvi.validateParameters(t, u);
+       Job res = tvi.validate(t, u);
        assertTrue(res.getError() == null);
        assertTrue(res.getParameters().size() == 1);
        assertTrue(res.getParametersWithErrors().size() == 1);
@@ -252,6 +258,7 @@ public class TestJobValidatorImpl {
        t.setParameters(paramList);
        
        User u = new User();
+       u.setLogin("bob");
        Workflow w = new Workflow();
        WorkflowParameter wp;
        ArrayList<WorkflowParameter> wpList = new ArrayList<>();       
@@ -270,13 +277,58 @@ public class TestJobValidatorImpl {
        tvi._parameterValidator = pMock;
        
        tvi._workflowDAO = mockDAO;
-       Job res = tvi.validateParameters(t, u);
+       Job res = tvi.validate(t, u);
        assertTrue(res.getError() == null);
        assertTrue(res.getParameters().isEmpty());
        assertTrue(res.getParametersWithErrors().size() == 1);
+       assertTrue(res.getOwner().equals(u.getLogin()));
        ParameterWithError reswp = res.getParametersWithErrors().get(0);
        assertTrue(reswp.getError().startsWith("error"));
        assertTrue(reswp.getName().equals("blah"));
+   }
+
+   
+   @Test
+   public void testValidateWithOwnerNull() throws Exception{
+       JobValidatorImpl tvi = new JobValidatorImpl();
+       JobParametersChecker mockNullChecker = mock(JobParametersChecker.class);
+       JobParametersChecker mockDupChecker = mock(JobParametersChecker.class);
+       tvi._jobParamNullChecker = mockNullChecker;
+       tvi._jobParamDuplicateChecker = mockDupChecker;
+       
+       WorkflowDAO mockDAO = mock(WorkflowDAO.class);
+       Job t = new Job();
+       
+       User u = new User();
+       u.setLogin("bob");
+       
+       when(mockDAO.getWorkflowForJob(t,u)).thenReturn(new Workflow());
+       tvi._workflowDAO = mockDAO;
+       Job res = tvi.validate(t, u);
+       assertTrue(res.getError() == null);
+       assertTrue(res.getOwner().equals("bob"));
+   }
+
+   @Test
+   public void testValidateWithOwnerThatDoesNotMatchUserLoginToRunAs() throws Exception{
+       JobValidatorImpl tvi = new JobValidatorImpl();
+       JobParametersChecker mockNullChecker = mock(JobParametersChecker.class);
+       JobParametersChecker mockDupChecker = mock(JobParametersChecker.class);
+       tvi._jobParamNullChecker = mockNullChecker;
+       tvi._jobParamDuplicateChecker = mockDupChecker;
+       
+       WorkflowDAO mockDAO = mock(WorkflowDAO.class);
+       Job t = new Job();
+       t.setOwner("bob");
+       User u = new User();
+       u.setLogin("bob");
+       u.setLoginToRunJobAs("phil");
+       
+       when(mockDAO.getWorkflowForJob(t,u)).thenReturn(new Workflow());
+       tvi._workflowDAO = mockDAO;
+       Job res = tvi.validate(t, u);
+       assertTrue(res.getError().equals("Error job owner bob does not match login to run job as phil"));
+       assertTrue(res.getOwner().equals("bob"));
    }
 
    

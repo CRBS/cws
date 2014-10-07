@@ -62,6 +62,36 @@ public class JobValidatorImpl implements JobValidator {
     JobParametersChecker _jobParamDuplicateChecker = new JobParametersDuplicateChecker();
     ParameterValidator _parameterValidator = new ParameterValidatorImpl();
 
+    @Override
+    public Job validate(Job job, User user) throws Exception {
+        
+        if (job == null) {
+            throw new Exception("Job cannot be null");
+        }
+        
+        if (user == null){ 
+           throw new Exception("User cannot be null");
+        }
+        
+        if (user.getLoginToRunJobAs() == null){
+            throw new Exception("User.getLoginToRunJobAs() cannot be null");
+        }
+
+        // If the owner of the job is not set, use the user.getLoginToRunAs() 
+        // If owner is set verify it matches the user.getLoginToRunAs() otherwise
+        // its an error
+        if (job.getOwner() == null) {
+            job.setOwner(user.getLoginToRunJobAs());
+        } else if (!job.getOwner().equals(user.getLoginToRunJobAs())) {
+            job.setError("Error job owner " + job.getOwner()
+                    + " does not match login to run job as "
+                    + user.getLoginToRunJobAs());
+
+        }
+        
+        return validateParameters(job, user);
+    }
+    
     /**
      * Performs validation of {@link Job} against the {@link Workflow} the <b>job</b>
      * is supposed to be running. If problems are found they will be set in the
@@ -73,12 +103,9 @@ public class JobValidatorImpl implements JobValidator {
      * @return <b>job</b> passed in with errors set as appropriate
      * @throws Exception If the <b>job</b> is null
      */
-    @Override
-    public Job validateParameters(Job job, User user) throws Exception {
-        if (job == null) {
-            throw new Exception("Job cannot be null");
-        }
-
+    
+    private Job validateParameters(Job job, User user) throws Exception {
+        
         _log.log(Level.INFO, "Checking for null parameters");
         _jobParamNullChecker.check(job);
 
@@ -87,7 +114,7 @@ public class JobValidatorImpl implements JobValidator {
         // no duplicates first if there are set error
         _jobParamDuplicateChecker.check(job);
 
-        //load Workflow For Task and if this has problems bail cause we need the
+        //load Workflow For Job and if this has problems bail cause we need the
         // Workflow object to do anything else
         try {
             Workflow w = _workflowDAO.getWorkflowForJob(job, user);
