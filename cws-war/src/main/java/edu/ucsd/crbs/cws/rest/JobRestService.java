@@ -324,7 +324,7 @@ public class JobRestService {
             _log.info(event.getStringOfLocationData());
             
             if (user.isAuthorizedTo(Permission.CREATE_JOB)) {
-                j = _validator.validateParameters(j,user);
+                j = _validator.validate(j,user);
                 // @TODO add failed create job event
                 if (j.getError() != null || j.getParametersWithErrors() != null){
                     _log.log(Level.WARNING,"Validation of Job failed: {0}",
