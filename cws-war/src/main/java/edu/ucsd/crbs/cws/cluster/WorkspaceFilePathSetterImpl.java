@@ -83,8 +83,9 @@ public class WorkspaceFilePathSetterImpl implements WorkspaceFilePathSetter {
             if (param.isIsWorkspaceId() == false) {
                 continue;
             }
-            if (param.getValue() == null){
-                throw new NullPointerException("Parameter value is null");
+            
+            if (param.getValue() == null || param.getValue().isEmpty()){
+                continue;
             }
             
             if (sb.length() > 0) {
@@ -93,11 +94,10 @@ public class WorkspaceFilePathSetterImpl implements WorkspaceFilePathSetter {
             sb.append(param.getValue());
         }
         
-        if (_workspaceFileDAO == null){
-            throw new NullPointerException("WorkspaceFileDAO must be set via constructor");
+        if (sb.length() == 0){
+            return true;
         }
         
-
         Map<Long, WorkspaceFile> wsMap = getMapOfWorkspaceFiles(sb.toString());
 
         for (Parameter param : j.getParameters()) {
@@ -129,6 +129,10 @@ public class WorkspaceFilePathSetterImpl implements WorkspaceFilePathSetter {
         
         if (workspaceIds == null || workspaceIds.isEmpty()){
             return new HashMap<>();
+        }
+
+        if (_workspaceFileDAO == null){
+            throw new NullPointerException("WorkspaceFileDAO must be set via constructor");
         }
         
         List<WorkspaceFile> wsFiles = _workspaceFileDAO.getWorkspaceFilesById(workspaceIds, null);

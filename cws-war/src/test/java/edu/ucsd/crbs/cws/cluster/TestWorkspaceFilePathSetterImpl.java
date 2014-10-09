@@ -113,7 +113,7 @@ public class TestWorkspaceFilePathSetterImpl {
         Parameter p = new Parameter();
         p.setName("foo");
         p.setValue("123");
-        p.setIsWorkspaceId(false);
+        p.setIsWorkspaceId(true);
         params.add(p);
         t.setParameters(params);
         
@@ -141,13 +141,7 @@ public class TestWorkspaceFilePathSetterImpl {
         params.add(p);
         t.setParameters(params);
         
-        try {
-            setter.setPaths(t);
-            fail("Expected exception");
-        }
-        catch(NullPointerException npe){
-            assertTrue(npe.getMessage().startsWith("Parameter value is null"));
-        }
+        assertTrue(setter.setPaths(t) == true);
     }
     
     //test where getting map of workspace parameters throws exception
