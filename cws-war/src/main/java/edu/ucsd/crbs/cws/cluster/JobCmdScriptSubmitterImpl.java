@@ -38,6 +38,8 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStreamReader;
 import java.util.Date;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Submits Workflow Task Command Script to Panfish for processing
@@ -46,6 +48,10 @@ import java.util.Date;
  */
 public class JobCmdScriptSubmitterImpl implements JobCmdScriptSubmitter {
 
+    private static final Logger _log
+            = Logger.getLogger(JobCmdScriptSubmitterImpl.class.getName());
+    
+    
     private final String _panfishCast;
     private final String _queue;
     
@@ -78,6 +84,8 @@ public class JobCmdScriptSubmitterImpl implements JobCmdScriptSubmitter {
         pb.directory(new File(outputDir));
         pb.redirectErrorStream(true);
 
+        logCommandRun(pb);
+        
         Process p = pb.start();
 
         BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
@@ -88,6 +96,7 @@ public class JobCmdScriptSubmitterImpl implements JobCmdScriptSubmitter {
         boolean firstLine = true;
         String jobId = null;
         while (line != null) {
+            
             if (firstLine == true){
                 // @TODO replace this with a grouping call so its just a single replaceAll
                 jobId = line.replaceAll("^Your job ","").replaceAll(" .*","");
@@ -136,4 +145,16 @@ public class JobCmdScriptSubmitterImpl implements JobCmdScriptSubmitter {
         return digitTossedOwner.replaceAll("\\W|_", "X") + "_workflow-" + j.getId();
     }
 
+    /**
+     * Logs the command in the {@link ProcessBuilder} passed in
+     * @param pb ProcessBuilder to extract the command from
+     */
+    private void logCommandRun(ProcessBuilder pb){
+        StringBuilder sb = new StringBuilder();
+        for (String c: pb.command()){
+            sb.append(" ").append(c);
+        }
+        _log.log(Level.INFO,"Running command:{0}",sb.toString());
+    }
+    
 }
