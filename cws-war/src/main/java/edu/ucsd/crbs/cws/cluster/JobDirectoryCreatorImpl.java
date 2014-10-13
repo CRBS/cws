@@ -63,6 +63,10 @@ public class JobDirectoryCreatorImpl implements JobDirectoryCreator{
         
         File dirToCreate = new File(_jobPath.getJobOutputDirectory(j));
         
+        if (dirToCreate.isDirectory() == true){
+            return dirToCreate.getParentFile().getAbsolutePath();
+        }
+        
         if (dirToCreate.mkdirs() == false){
             throw new Exception("Unable to create directory: "+dirToCreate.getAbsolutePath());
         }
