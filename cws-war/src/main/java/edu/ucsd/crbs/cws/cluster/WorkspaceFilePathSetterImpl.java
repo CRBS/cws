@@ -39,6 +39,8 @@ import edu.ucsd.crbs.cws.workflow.WorkspaceFile;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Iterates through {@link Job#getParameters()} and updates their {@link Parameter#getValue()}
@@ -48,6 +50,10 @@ import java.util.Map;
  */
 public class WorkspaceFilePathSetterImpl implements WorkspaceFilePathSetter {
 
+    
+    private static final Logger _log
+            = Logger.getLogger(WorkspaceFilePathSetterImpl.class.getName());
+    
     WorkspaceFileDAO _workspaceFileDAO;
     
     
@@ -71,10 +77,12 @@ public class WorkspaceFilePathSetterImpl implements WorkspaceFilePathSetter {
     @Override
     public boolean setPaths(Job j) throws Exception {
         if (j == null) {
+            _log.log(Level.WARNING,"Job passed in is null");
             return false;
         }
         
         if (j.getParameters() == null || j.getParameters().isEmpty()){
+            _log.log(Level.INFO, "Job {0} has no parameters",j.getId());
             return true;
         }
         
@@ -95,6 +103,8 @@ public class WorkspaceFilePathSetterImpl implements WorkspaceFilePathSetter {
         }
         
         if (sb.length() == 0){
+            _log.log(Level.INFO,"Job {0} has no workspacefile parameters that require paths to be set",
+                    j.getId());
             return true;
         }
         
@@ -106,10 +116,14 @@ public class WorkspaceFilePathSetterImpl implements WorkspaceFilePathSetter {
             }
             Long wspId = new Long(param.getValue());
             if (!wsMap.containsKey(wspId)) {
+                _log.log(Level.INFO,"No workspacefile with id {0} found for job {1}",
+                        new Object[]{wspId,j.getId()});
                 return false;
             }
             WorkspaceFile wsf = wsMap.get(wspId);
             if (wsf.getPath() == null) {
+                _log.log(Level.INFO,"Path is null for workspacefile {0}, a parameter for job {1}",
+                        new Object[]{wspId,j.getId()});
                 return false;
             }
             param.setValue(wsf.getPath());
@@ -127,10 +141,6 @@ public class WorkspaceFilePathSetterImpl implements WorkspaceFilePathSetter {
      */
     private Map<Long, WorkspaceFile> getMapOfWorkspaceFiles(final String workspaceIds) throws Exception {
         
-        if (workspaceIds == null || workspaceIds.isEmpty()){
-            return new HashMap<>();
-        }
-
         if (_workspaceFileDAO == null){
             throw new NullPointerException("WorkspaceFileDAO must be set via constructor");
         }
