@@ -84,7 +84,14 @@ public class WorkspaceFileRestDAOImpl implements WorkspaceFileDAO {
         ClientConfig cc = new DefaultClientConfig();
         cc.getFeatures().put(JSONConfiguration.FEATURE_POJO_MAPPING, Boolean.TRUE);
         Client client = Client.create(cc);
-        client.addFilter(new HTTPBasicAuthFilter(user.getLogin(),user.getToken()));
+        
+        if (user != null){
+            client.addFilter(new HTTPBasicAuthFilter(user.getLogin(),user.getToken()));
+        }
+        else if (_user != null) {
+            client.addFilter(new HTTPBasicAuthFilter(_user.getLogin(),_user.getToken()));
+        }        
+        
         client.setFollowRedirects(true);
         WebResource resource = client.resource(_restURL).path(Constants.REST_PATH).path(Constants.WORKSPACEFILES_PATH);
         MultivaluedMap queryParams = _multivaluedMapFactory.getMultivaluedMap(user);
