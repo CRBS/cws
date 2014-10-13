@@ -30,7 +30,6 @@
  * THE CRBS Workflow Service WILL NOT INFRINGE ANY PATENT, TRADEMARK OR OTHER
  * RIGHTS. 
  */
-
 package edu.ucsd.crbs.cws.cluster;
 
 import edu.ucsd.crbs.cws.auth.User;
@@ -48,7 +47,7 @@ import java.util.logging.Logger;
  */
 public class JobSubmitter {
 
-    private static final Logger log
+    private static final Logger _log
             = Logger.getLogger(JobSubmitter.class.getName());
 
     JobDirectoryCreator _directoryCreator;
@@ -66,15 +65,13 @@ public class JobSubmitter {
      * @param workspaceFilePathSetter
      * @param outputWorkspaceFileCreator
      * @param jobPath
-     * @param workflowExecDir Directory under where workflow Tasks should be run
      * @param workflowsDir Directory where workflows are stored
      * @param keplerScript Full path to Kepler program
      * @param panfishCast
      * @param queue
      * @param user
-     * @param login
-     * @param token
      * @param url
+     * @param registerUpdateJar
      */
     public JobSubmitter(JobDAO jobDAO,
             WorkspaceFilePathSetter workspaceFilePathSetter,
@@ -87,10 +84,10 @@ public class JobSubmitter {
             final User user,
             final String url,
             final String registerUpdateJar) {
-       
+
         _directoryCreator = new JobDirectoryCreatorImpl(jobPath);
-        _cmdScriptCreator = new JobCmdScriptCreatorImpl(workflowsDir, keplerScript,registerUpdateJar+"--url "+url+" --login "+
-                user.getLogin()+" --token "+user.getToken());
+        _cmdScriptCreator = new JobCmdScriptCreatorImpl(workflowsDir, keplerScript, registerUpdateJar + "--url " + url + " --login "
+                + user.getLogin() + " --token " + user.getToken());
         _cmdScriptSubmitter = new JobCmdScriptSubmitterImpl(panfishCast, queue);
         _workflowSync = new SyncWorkflowFileToFileSystemImpl(workflowsDir, url, user.getLogin(), user.getToken());
         _workspacePathSetter = workspaceFilePathSetter;
@@ -100,50 +97,56 @@ public class JobSubmitter {
     }
 
     /**
-     * Submits job to local SGE cluster. This method creates the necessary
-     * files and directories. This method will then update the clusterJobId value in
+     * Submits job to local SGE cluster. This method creates the necessary files
+     * and directories. This method will then update the clusterJobId value in
      * the Job and set the status to correct state.
      *
      * @throws Exception If there was a problem creating or submitting the Job
      */
     public void submitJobs() throws Exception {
-        log.log(Level.INFO, "Looking for new jobs to submit...");
+        _log.log(Level.INFO, "Looking for new jobs to submit...");
 
         List<Job> jobs = _jobDAO.getJobs(null, null, true, false, false);
 
         if (jobs != null) {
-            log.log(Level.INFO, " found {0} jobs need to be submitted", jobs.size());
+            _log.log(Level.INFO, "Found {0} job(s) need to be submitted", jobs.size());
             for (Job j : jobs) {
 
                 try {
-                //check if workspace files are syncd.  If not update status
-                // to workspace sync and move on to the next Task
-                if (_workspacePathSetter.setPaths(j) == false) {
-                    if (j.getStatus().equals(Job.WORKSPACE_SYNC_STATUS)) {
-                        _jobDAO.update(j.getId(), Job.WORKSPACE_SYNC_STATUS, null, null, null,
-                                null, null, null, false,
-                                null);
-                        continue;
+                    
+                    //check if workspace files are syncd.  If not update status
+                    // to workspace sync and move on to the next Task
+                    if (_workspacePathSetter.setPaths(j) == false) {
+                        _log.log(Level.INFO,"Workspace files are NOT in place for job {0} skipping...",
+                                 j.getId());
+
+                        if (j.getStatus().equals(Job.WORKSPACE_SYNC_STATUS)) {
+                            _log.log(Level.INFO,"Updating status for job {0} to sync",
+                                     j.getId());
+    
+                            _jobDAO.update(j.getId(), Job.WORKSPACE_SYNC_STATUS, null, null, null,
+                                    null, null, null, false,
+                                    null);
+                            continue;
+                        }
                     }
-                }
 
-                log.log(Level.INFO, "\tSubmitting Job: ({0}) {1}",
-                        new Object[]{j.getId(), j.getName()});
+                    _log.log(Level.INFO, "\tSubmitting Job: ({0}) {1}",
+                            new Object[]{j.getId(), j.getName()});
 
-                submitJob(j);
+                    submitJob(j);
 
-                _jobDAO.update(j.getId(), Job.PENDING_STATUS, null, null, null,
-                        j.getSubmitDate().getTime(), null, null, true,
-                        j.getSchedulerJobId());
-                }
-                catch(Exception ex){
-                    log.log(Level.SEVERE,
+                    _jobDAO.update(j.getId(), Job.PENDING_STATUS, null, null, null,
+                            j.getSubmitDate().getTime(), null, null, true,
+                            j.getSchedulerJobId());
+                } catch (Exception ex) {
+                    _log.log(Level.SEVERE,
                             "Problems submitting job: {0} -- {1}.  Skipping...",
-                            new Object[]{j.getId(),ex.getMessage()});
+                            new Object[]{j.getId(), ex.getMessage()});
                 }
             }
         } else {
-            log.log(Level.INFO, " no jobs need to be submitted");
+            _log.log(Level.INFO, "No jobs need to be submitted");
         }
     }
 
@@ -151,8 +154,11 @@ public class JobSubmitter {
         _workflowSync.sync(j.getWorkflow());
         String jobDir = _directoryCreator.create(j);
         String cmdScript = _cmdScriptCreator.create(jobDir, j);
-        _cmdScriptSubmitter.submit(cmdScript, j);
+        
+        String submitOut = _cmdScriptSubmitter.submit(cmdScript, j);
+        _log.log(Level.INFO,"Output from submit command: {0}",submitOut);
+        
         WorkspaceFile wsf = _outputWorkspaceFileCreator.createAndRegisterJobOutputAsWorkspaceFile(j,
-                 null);
+                null);
     }
 }
