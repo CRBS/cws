@@ -82,9 +82,28 @@ public class JobRestDAOImpl implements JobDAO {
         _user = user;
     }
 
+    /**
+     * Gets Job via REST call
+     * @param jobId
+     * @return Job obtained from REST call
+     * @throws Exception 
+     */
     @Override
     public Job getJobById(String jobId) throws Exception {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        ClientConfig cc = new DefaultClientConfig();
+        cc.getFeatures().put(JSONConfiguration.FEATURE_POJO_MAPPING, Boolean.TRUE);
+        Client client = Client.create(cc);
+        client.addFilter(new HTTPBasicAuthFilter(_user.getLogin(),_user.getToken()));
+        client.setFollowRedirects(true);
+        WebResource resource = client.resource(_restURL).path(Constants.REST_PATH).path(Constants.JOBS_PATH).path(jobId);
+        
+        String json = resource.accept(MediaType.APPLICATION_JSON).get(String.class);
+    
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new ObjectifyJacksonModule());
+        return mapper.readValue(json, new TypeReference<Job>() {
+        });
+    
     }
 
     @Override
