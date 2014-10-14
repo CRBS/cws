@@ -86,7 +86,7 @@ public class JobSubmitter {
             final String registerUpdateJar) {
 
         _directoryCreator = new JobDirectoryCreatorImpl(jobPath);
-        _cmdScriptCreator = new JobCmdScriptCreatorImpl(workflowsDir, keplerScript, registerUpdateJar + "--url " + url + " --login "
+        _cmdScriptCreator = new JobCmdScriptCreatorImpl(workflowsDir, keplerScript, registerUpdateJar + " --url " + url + " --login "
                 + user.getLogin() + " --token " + user.getToken());
         _cmdScriptSubmitter = new JobCmdScriptSubmitterImpl(panfishCast, queue);
         _workflowSync = new SyncWorkflowFileToFileSystemImpl(workflowsDir, url, user.getLogin(), user.getToken());
