@@ -36,6 +36,7 @@ package edu.ucsd.crbs.cws.cluster;
 import edu.ucsd.crbs.cws.App;
 import edu.ucsd.crbs.cws.dao.JobDAO;
 import edu.ucsd.crbs.cws.workflow.Job;
+import java.io.File;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -109,6 +110,19 @@ public class JobStatusUpdater {
                         }
                         else if (returnedStatus.equals(Job.COMPLETED_STATUS) ||
                                  returnedStatus.equals(Job.ERROR_STATUS)){
+                            
+                            //check for WORKFLOW.FAILED.txt file and if it exists
+                            //set status to failed.
+                            File workflowFailedFile = new File(_jobPath.getJobOutputDirectory(j)+
+                                    File.separator+"WORKFLOW.FAILED.txt");
+                            if (workflowFailedFile.exists()){
+                                _log.log(Level.INFO,
+                                        "WORKFLOW.FAILED.txt found for job {0}"+
+                                        " setting status of job to error",
+                                        j.getId());
+                                j.setStatus(Job.ERROR_STATUS);
+                            }
+                                   
                             j.setFinishDate(new Date());
                             finishDate = j.getFinishDate().getTime();
                             _outputWorkspaceFileUtil.updateJobOutputWorkspaceFilePath(j, 
