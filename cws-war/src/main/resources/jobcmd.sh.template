@@ -36,6 +36,31 @@ echo "Arguments: @@JOB_ARGS@@" >> $jobLogFile 2>&1
 export PATH="${PATH}:/usr/java/latest/bin:/usr/java/default/bin"
 
 # 
+# EMAIL_ADDR="@@NOTIFY_EMAIL@@"
+
+#if [ "$EMAIL_ADDR" != "" ] ; then
+#  
+# 
+#  echo "Sending start email for @@JOB_NAME@@ to user $EMAIL_ADDR and bcc to @@BCC_EMAIL@@"
+#  OUTEMAIL="Dear @@USER@@,\\n\\n"
+#  OUTEMAIL="${OUTEMAIL}Your job: @@JOB_NAME@@\\n"
+#  OUTEMAIL="${OUTEMAIL}Id: @@JOB_ID@@\\n"
+#  OUTEMAIL="${OUTEMAIL}is now actively running on @@PROJECT@@ resources.  Please login to the @@PORTAL_NAME@@\\n"
+#  OUTEMAIL="${OUTEMAIL}(@@PORTAL_URL@@) to check status.\\n\\n"
+#  OUTEMAIL="${OUTEMAIL}Contact @@PROJECT@@ support at @@HELP_EMAIL@@ if you have any questions\\n"
+#  OUTEMAIL="${OUTEMAIL}regarding your job.\\n\\n"
+#  OUTEMAIL="${OUTEMAIL}Sincerely,\\n\\n"
+#  OUTEMAIL="${OUTEMAIL}The @@PROJECT@@ Team\\n"
+#  OUTEMAIL="${OUTEMAIL}@@HELP_EMAIL@@\\n"
+# 
+#  echo -e "${OUTEMAIL}" | /bin/mail -s "@@PROJECT@@ Workflow Notification Email - @@JOB_NAME@@ has started running" -b "@BCC_EMAIL@@" $EMAIL_ADDR -- -F CWS -f "@@HELP_EMAIL@@"
+#fi
+
+
+
+
+
+# 
 # Registers the output as WorkspaceFile, but sets path null
 #
 # @@JAVA@@ @@REGISTER_OUTPUT_TO_WORKSPACE@@
@@ -58,6 +83,25 @@ echo "exitcode: $jobExitCode"  >> $jobLogFile 2>&1
 # Updates the WorkspaceFile Path
 #
 # @@JAVA@@ @@UPDATE_WORKSPACE_PATH@@
+
+
+#if the email address was set earlier send the completed workflow message
+#if [ "$EMAIL_ADDR" != "" ] ; then
+#  echo "Sending done email for @@JOB_NAME@@ to user $EMAIL_ADDR and bcc to @@BCC_EMAIL@@"
+#  OUTEMAIL="Dear @@USER@@,\\n\\n"
+#  OUTEMAIL="${OUTEMAIL}Your job: @@JOB_NAME@@\\n"
+#  OUTEMAIL="${OUTEMAIL}Id: @@JOB_ID@@\\n"
+#  OUTEMAIL="${OUTEMAIL}has finished running.  Please login to the @@PORTAL_NAME@@\\n"
+#  OUTEMAIL="${OUTEMAIL}(@@PORTAL_URL@@) to check completion status.\\n\\n"
+#  OUTEMAIL="${OUTEMAIL}Contact @@PROJECT@@ support at @@HELP_EMAIL@@ if you have any questions\\n"
+#  OUTEMAIL="${OUTEMAIL}regarding your job.\\n\\n"
+#  OUTEMAIL="${OUTEMAIL}Sincerely,\\n\\n"
+#  OUTEMAIL="${OUTEMAIL}The @@PROJECT@@ Team\\n"
+#  OUTEMAIL="${OUTEMAIL}@@HELP_EMAIL@@\\n"
+
+#  echo -e "${OUTEMAIL}" | /bin/mail -s "@@PROJECT@@ Workflow Notification Email - @@JOB_NAME@@ has finished" -b "@@BCC_EMAIL@@" $EMAIL_ADDR -- -F CWS -f "@@HELP_EMAIL@@"
+#  sleep 10
+# fi
 
 
 
