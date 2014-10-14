@@ -116,6 +116,8 @@ public class App {
     
     public static final String JOB_ID_ARG = "jobid";
     
+    public static final String GET_JOB_ARG = "getjob";
+    
     public static final String MD5_ARG = "md5";
     
     public static final String SIZE_ARG = "size";
@@ -224,6 +226,7 @@ public class App {
                     accepts(TYPE_ARG,"Type of WorkspaceFile").withRequiredArg().ofType(String.class);
                     accepts(NAME_ARG,"Sets name for Workspace file when used with --"+UPLOAD_FILE_ARG+" and --"+REGISTER_FILE_ARG).withRequiredArg().ofType(String.class).describedAs("WorkspaceFile name");
                     accepts(REGISTER_JAR_ARG,"Path to Jar to register WorkspaceFiles").withRequiredArg().ofType(File.class).describedAs("Path to this jar");
+                    accepts(GET_JOB_ARG,"Gets job from service in JSON format, requires --"+URL_ARG).withRequiredArg().ofType(Long.class).describedAs("Job Id");
                     accepts(HELP_ARG).forHelp();
                 }
             };
@@ -249,7 +252,8 @@ public class App {
                      !optionSet.has(RESAVE_JOB_ARG) &&
                      !optionSet.has(RESAVE_WORKFLOW_ARG) &&
                      !optionSet.has(PREVIEW_WORKFLOW_ARG) &&
-                     !optionSet.has(GEN_OLD_KEPLER_XML_ARG)) {
+                     !optionSet.has(GEN_OLD_KEPLER_XML_ARG) &&
+                     !optionSet.has(GET_JOB_ARG)) {
                 System.out.println(PROGRAM_HELP + "\n");
                 parser.printHelpOn(System.out);
                 System.exit(0);
@@ -258,6 +262,12 @@ public class App {
             if (optionSet.has(EXAMPLE_JSON_ARG)) {
 
                 renderExampleWorkflowsAndTasksAsJson();
+                System.exit(0);
+            }
+            
+            if (optionSet.has(GET_JOB_ARG)){
+                failIfOptionSetMissingURLOrLoginOrToken(optionSet,"--"+GET_JOB_ARG+" flag");
+                getJobAsJson(optionSet);
                 System.exit(0);
             }
 
@@ -435,6 +445,11 @@ public class App {
                     System.exit(7);
                 }
                 
+                if (!optionSet.has(REGISTER_JAR_ARG)){
+                    System.err.println("-" + REGISTER_JAR_ARG + " is required with -" + SYNC_WITH_CLUSTER_ARG + " flag");
+                    System.exit(8);
+                }
+                
                 failIfOptionSetMissingLoginOrToken(optionSet,"--" + SYNC_WITH_CLUSTER_ARG + " flag");
 
                 File castFile = (File) optionSet.valueOf(CAST_ARG);
@@ -610,6 +625,27 @@ public class App {
         xmlFactory.setWorkflowXml(new BufferedInputStream(KeplerMomlFromKar.getInputStreamOfWorkflowMoml(workflowFile)));
 
         return xmlFactory.getWorkflow();
+    }
+    
+    public static void getJobAsJson(OptionSet optionSet) throws Exception {
+        JobRestDAOImpl jobDAO = new JobRestDAOImpl();
+        jobDAO.setRestURL((String)optionSet.valueOf(URL_ARG));
+        User u = getUserFromOptionSet(optionSet);       
+        jobDAO.setUser(u);
+        
+        Job j = jobDAO.getJobById(((Long)optionSet.valueOf(GET_JOB_ARG)).toString());
+        if (j != null){
+            ObjectMapper om = new ObjectMapper();
+            ObjectWriter ow = om.writerWithDefaultPrettyPrinter();
+            System.out.println(ow.writeValueAsString(j));
+        }
+        else {
+            System.err.println("Unable to retreive job with id: "+
+                    ((Long)optionSet.valueOf(GET_JOB_ARG)).toString());
+            System.exit(1);
+        }
+        return;
+        
     }
     
     public static void addNewWorkspaceFile(OptionSet optionSet,boolean uploadFile,final String theArg) throws Exception {
