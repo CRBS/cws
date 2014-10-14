@@ -33,7 +33,6 @@
 
 package edu.ucsd.crbs.cws.cluster;
 
-import edu.ucsd.crbs.cws.rest.Constants;
 import edu.ucsd.crbs.cws.workflow.Job;
 import java.io.File;
 
@@ -59,6 +58,9 @@ public class JobDirectoryCreatorImpl implements JobDirectoryCreator{
     public String create(Job j) throws Exception {
         if (j == null){
             throw new NullPointerException("Job cannot be null");
+        }
+        if (_jobPath == null){
+            throw new NullPointerException("JobPath cannot be null and must be set via constructor");
         }
         
         File dirToCreate = new File(_jobPath.getJobOutputDirectory(j));
