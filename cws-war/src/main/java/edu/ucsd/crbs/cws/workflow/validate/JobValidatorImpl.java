@@ -80,7 +80,7 @@ public class JobValidatorImpl implements JobValidator {
         // If the owner of the job is not set, use the user.getLoginToRunAs() 
         // If owner is set verify it matches the user.getLoginToRunAs() otherwise
         // its an error
-        if (job.getOwner() == null) {
+        if (job.getOwner() == null || job.getOwner().trim().isEmpty()) {
             job.setOwner(user.getLoginToRunJobAs());
         } else if (!job.getOwner().equals(user.getLoginToRunJobAs())) {
             job.setError("Error job owner " + job.getOwner()

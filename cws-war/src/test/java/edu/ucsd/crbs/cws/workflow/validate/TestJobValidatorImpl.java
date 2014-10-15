@@ -308,7 +308,52 @@ public class TestJobValidatorImpl {
        assertTrue(res.getError() == null);
        assertTrue(res.getOwner().equals("bob"));
    }
+   
+   @Test
+   public void testValidateWithOwnerSetToEmptyString() throws Exception{
+       JobValidatorImpl tvi = new JobValidatorImpl();
+       JobParametersChecker mockNullChecker = mock(JobParametersChecker.class);
+       JobParametersChecker mockDupChecker = mock(JobParametersChecker.class);
+       tvi._jobParamNullChecker = mockNullChecker;
+       tvi._jobParamDuplicateChecker = mockDupChecker;
+       
+       WorkflowDAO mockDAO = mock(WorkflowDAO.class);
+       Job t = new Job();
+       t.setOwner("");
+       
+       User u = new User();
+       u.setLogin("bob");
+       
+       when(mockDAO.getWorkflowForJob(t,u)).thenReturn(new Workflow());
+       tvi._workflowDAO = mockDAO;
+       Job res = tvi.validate(t, u);
+       assertTrue(res.getError() == null);
+       assertTrue(res.getOwner().equals("bob"));
+   }
 
+   @Test
+   public void testValidateWithOwnerSetToWhiteSpace() throws Exception{
+       JobValidatorImpl tvi = new JobValidatorImpl();
+       JobParametersChecker mockNullChecker = mock(JobParametersChecker.class);
+       JobParametersChecker mockDupChecker = mock(JobParametersChecker.class);
+       tvi._jobParamNullChecker = mockNullChecker;
+       tvi._jobParamDuplicateChecker = mockDupChecker;
+       
+       WorkflowDAO mockDAO = mock(WorkflowDAO.class);
+       Job t = new Job();
+       t.setOwner("  ");
+       
+       User u = new User();
+       u.setLogin("bob");
+       
+       when(mockDAO.getWorkflowForJob(t,u)).thenReturn(new Workflow());
+       tvi._workflowDAO = mockDAO;
+       Job res = tvi.validate(t, u);
+       assertTrue(res.getError() == null);
+       assertTrue(res.getOwner().equals("bob"));
+   }
+   
+   
    @Test
    public void testValidateWithOwnerThatDoesNotMatchUserLoginToRunAs() throws Exception{
        JobValidatorImpl tvi = new JobValidatorImpl();
