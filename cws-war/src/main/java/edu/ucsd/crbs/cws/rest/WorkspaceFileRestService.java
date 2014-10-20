@@ -98,19 +98,21 @@ public class WorkspaceFileRestService {
     public List<WorkspaceFile> getWorkspaceFiles(@QueryParam(Constants.OWNER_QUERY_PARAM) final String owner,
             @QueryParam(Constants.WSFID_PARAM) final String workspaceFileIdList,
             @QueryParam(Constants.SOURCE_JOB_ID_QUERY_PARAM)final Long sourceJobId,
+            @QueryParam(Constants.TYPE_QUERY_PARAM) final String type,
             @QueryParam(Constants.SYNCED_QUERY_PARAM) final Boolean synced,
             @QueryParam(Constants.USER_LOGIN_PARAM) final String userLogin,
             @QueryParam(Constants.USER_TOKEN_PARAM) final String userToken,
             @QueryParam(Constants.USER_LOGIN_TO_RUN_AS_PARAM) final String userLoginToRunAs,
             @Context HttpServletRequest request) {
         
-        return getWorkspaceFileList(owner,workspaceFileIdList,sourceJobId,synced,
+        return getWorkspaceFileList(owner,workspaceFileIdList,sourceJobId,type,synced,
                 userLogin,userToken,userLoginToRunAs,request);
     }
     
     private List<WorkspaceFile> getWorkspaceFileList(final String owner,
             final String workspaceFileIdList,
             final Long sourceJobId,
+            final String type,
             final Boolean synced,
             final String userLogin,
             final String userToken,
@@ -121,18 +123,38 @@ public class WorkspaceFileRestService {
             Event event = _eventBuilder.createEvent(request, user);
             _log.info(event.getStringOfLocationData());
 
+            
             if (user.isAuthorizedTo(Permission.LIST_ALL_WORKSPACEFILES)) {
                 if (sourceJobId != null){
                     return _workspaceFileDAO.getWorkspaceFilesBySourceJobId(sourceJobId);
                 }
                 if (workspaceFileIdList == null){
                     _log.log(Level.INFO,"calling getWorkspaceFiles");
-                    return _workspaceFileDAO.getWorkspaceFiles(owner,synced);
+                    String ownerToUse;
+                    if (owner != null){
+                        ownerToUse = owner;
+                    }
+                    else {
+                        ownerToUse = user.getLoginToRunJobAs();
+                    }
+                    return _workspaceFileDAO.getWorkspaceFiles(ownerToUse,type,synced);
                 }
                 _log.log(Level.INFO, "calling getWorkspaceFilesById: {0}", 
                         workspaceFileIdList);
 
                 return _workspaceFileDAO.getWorkspaceFilesById(workspaceFileIdList, user);
+            }
+            if (user.isAuthorizedTo(Permission.LIST_THEIR_WORKSPACEFILES)){
+                if (owner != null && !owner.equals(user.getLoginToRunJobAs())){
+                    throw new Exception(user.getLoginToRunJobAs()+" cannot list workspace files owned by "+owner);
+                }
+                
+                if (workspaceFileIdList == null){
+                    _log.log(Level.INFO,"calling getWorkspaceFiles");
+                    return _workspaceFileDAO.getWorkspaceFiles(user.getLoginToRunJobAs(),
+                            type,synced);
+                }
+                throw new Exception("Workspace files by id is NOT currently supported with only LIST_THEIR_WORKSPACEFILES permission");
             }
            throw new WebApplicationException(HttpServletResponse.SC_UNAUTHORIZED);
         }catch(WebApplicationException wae){
@@ -152,13 +174,14 @@ public class WorkspaceFileRestService {
             @QueryParam(Constants.WSFID_PARAM) final String workspaceFileIdList,
             @QueryParam(Constants.SOURCE_JOB_ID_QUERY_PARAM) final Long sourceJobId,
             @QueryParam(Constants.SYNCED_QUERY_PARAM) final Boolean synced,
+            @QueryParam(Constants.TYPE_QUERY_PARAM) final String type,
             @QueryParam(Constants.USER_LOGIN_PARAM) final String userLogin,
             @QueryParam(Constants.USER_TOKEN_PARAM) final String userToken,
             @QueryParam(Constants.USER_LOGIN_TO_RUN_AS_PARAM) final String userLoginToRunAs,
             @Context HttpServletRequest request) {
         
         List<WorkspaceFile> workspaceFileList = getWorkspaceFileList(owner,
-                workspaceFileIdList,sourceJobId,synced,
+                workspaceFileIdList,sourceJobId,type,synced,
                 userLogin,userToken,userLoginToRunAs,request);
         if (workspaceFileList == null || workspaceFileList.isEmpty()){
             return "";
@@ -305,6 +328,7 @@ public class WorkspaceFileRestService {
      * 
      * @param workspaceFileId
      * @param path
+     * @param size
      * @param userLogin
      * @param userToken
      * @param userLoginToRunAs
@@ -318,6 +342,7 @@ public class WorkspaceFileRestService {
     @Produces(MediaType.APPLICATION_JSON)
     public WorkspaceFile updateWorkspaceFile(@PathParam(Constants.WORKSPACEFILE_ID_PATH_PARAM)final Long workspaceFileId,
             @QueryParam(Constants.PATH_QUERY_PARAM) final String path,
+            @QueryParam(Constants.SIZE_QUERY_PARAM) final String size,
             @QueryParam(Constants.USER_LOGIN_PARAM) final String userLogin,
             @QueryParam(Constants.USER_TOKEN_PARAM) final String userToken,
             @QueryParam(Constants.USER_LOGIN_TO_RUN_AS_PARAM) final String userLoginToRunAs,
@@ -330,17 +355,17 @@ public class WorkspaceFileRestService {
             _log.info(event.getStringOfLocationData());
             
             if (user.isAuthorizedTo(Permission.UPDATE_ALL_WORKSPACEFILES)) {
+                if (resave != null && resave.equalsIgnoreCase("true")){
+                    return _workspaceFileDAO.resave(workspaceFileId);
+                }
+                
                 String adjustedPath = path;
                 if (path != null && path.equals("")){
                     adjustedPath = null;
                 }
                 
-                if (resave != null && resave.equalsIgnoreCase("true")){
-                    return _workspaceFileDAO.resave(workspaceFileId);
-                }
-                
-                WorkspaceFile resWorkspaceFile = _workspaceFileDAO.updatePath(workspaceFileId, 
-                        adjustedPath);
+                WorkspaceFile resWorkspaceFile = _workspaceFileDAO.updatePathAndSize(
+                        workspaceFileId,adjustedPath,size);
                 return resWorkspaceFile;
             }
             throw new WebApplicationException(HttpServletResponse.SC_UNAUTHORIZED);
