@@ -44,11 +44,13 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- *
+ * Provides methods to load and save WorkspaceFile objects via Objectify
+ * 
  * @author Christopher Churas <churas@ncmir.ucsd.edu>
  */
 public class WorkspaceFileObjectifyDAOImpl implements WorkspaceFileDAO {
@@ -84,13 +86,17 @@ public class WorkspaceFileObjectifyDAOImpl implements WorkspaceFileDAO {
     
     
     @Override
-    public List<WorkspaceFile> getWorkspaceFiles(final String owner,
+    public List<WorkspaceFile> getWorkspaceFiles(final String owner,final String type,
             final Boolean synced) throws Exception {
 
         Query<WorkspaceFile> q = ofy().load().type(WorkspaceFile.class);
 
         if (owner != null) {
             q = q.filter("_owner in ", Arrays.asList(owner.split(",")));
+        }
+        
+        if (type != null){
+            q = q.filter("_type in ",Arrays.asList(type.split(",")));
         }
 
         if (synced != null) {
@@ -193,7 +199,8 @@ public class WorkspaceFileObjectifyDAOImpl implements WorkspaceFileDAO {
     }
 
     @Override
-    public WorkspaceFile updatePath(final long workspaceFileId, final String path) throws Exception {
+    public WorkspaceFile updatePathAndSize(final long workspaceFileId, final String path,
+            final String size) throws Exception {
         WorkspaceFile resWsp;
         resWsp = ofy().transact(new Work<WorkspaceFile>() {
             @Override
@@ -202,19 +209,36 @@ public class WorkspaceFileObjectifyDAOImpl implements WorkspaceFileDAO {
                 if (wsp == null) {
                     return null;
                 }
-
-                if (wsp.getPath() == null && path == null) {
-                    return wsp;
+                Long newSize = null;
+                boolean update = false;
+                
+                if (wsp.getPath() == null && path != null) {
+                    wsp.setPath(path);
+                    update = true;
                 }
-
-                if (wsp.getPath() != null) {
-                    if (path != null && wsp.getPath().equals(path)) {
-                        return wsp;
+                else if (wsp.getPath() != null && path != null) {
+                    if (!wsp.getPath().equals(path)) {
+                        wsp.setPath(path);
+                        update = true;
+                    }
+                }
+                
+                if (wsp.getSize() == null && size != null){
+                    wsp.setSize(new Long(size));
+                    update = true;
+                }
+                else if (wsp.getSize() != null){
+                    newSize = new Long(size);
+                    if (newSize.longValue() != wsp.getSize().longValue()){
+                        wsp.setSize(newSize);
+                        update = true;
                     }
                 }
 
-                wsp.setPath(path);
-                Key<WorkspaceFile> wspKey = ofy().save().entity(wsp).now();
+                if (update == true){
+                    Key<WorkspaceFile> wspKey = ofy().save().entity(wsp).now();
+                    return wsp;
+                }
                 return wsp;
             }
         });
