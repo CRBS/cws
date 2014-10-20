@@ -63,7 +63,7 @@ export PATH="${PATH}:/usr/java/latest/bin:/usr/java/default/bin"
 # 
 # Registers the output as WorkspaceFile, but sets path null
 #
-# @@JAVA@@ @@REGISTER_OUTPUT_TO_WORKSPACE@@
+@@JAVA@@ @@REGISTER_OUTPUT_TO_WORKSPACE@@
 
 
 # TODO:  Need to run kepler in the background so that code can periodically
@@ -82,7 +82,7 @@ echo "exitcode: $jobExitCode"  >> $jobLogFile 2>&1
 # 
 # Updates the WorkspaceFile Path
 #
-# @@JAVA@@ @@UPDATE_WORKSPACE_PATH@@
+@@JAVA@@ @@UPDATE_WORKSPACE_PATH@@
 
 
 #if the email address was set earlier send the completed workflow message
