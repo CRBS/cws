@@ -62,12 +62,12 @@ public class Workflow {
     public static class Everything {}
     @Id private Long _id;
     @Index private String _name;
-    private int _version;
+    @Index private int _version;
     private String _description;
-    private Date _createDate;
+    @Index private Date _createDate;
     private String _releaseNotes;
-    private String _owner;
-    private String _author;
+    @Index private String _owner;
+    @Index private String _author;
     @Index private boolean _deleted;
     private List<WorkflowParameter> _parameters;
     private @Load(Workflow.Everything.class) Ref<Workflow> _parent;
