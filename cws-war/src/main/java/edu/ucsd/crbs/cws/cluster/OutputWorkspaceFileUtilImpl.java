@@ -104,7 +104,7 @@ public class OutputWorkspaceFileUtilImpl implements OutputWorkspaceFileUtil {
         for (WorkspaceFile wsf : wsfList){
             if (wsf.getDir() == true){
                 if (wsf.getPath() == null){
-                    return _workspaceFileDAO.updatePath(wsf.getId(), outputDirectory);
+                    return _workspaceFileDAO.updatePathAndSize(wsf.getId(), outputDirectory,null);
                 }
             }
         }
