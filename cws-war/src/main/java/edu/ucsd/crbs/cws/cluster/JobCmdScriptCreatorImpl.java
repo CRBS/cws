@@ -72,17 +72,40 @@ public class JobCmdScriptCreatorImpl implements JobCmdScriptCreator, StringRepla
     public static final String KEPLER_RUN_CMDLINE_ARGS = " -runwf -redirectgui ";
 
     /**
-     * Token in {@link KEPLER_SH_TOKEN} that will be replaced with path to Kepler script
+     * Token in {@link JOB_CMD_SH} that will be replaced with path to Kepler script
      */
     public static final String KEPLER_SH_TOKEN = "@@KEPLER_SH@@";
     
     /**
-     * Token in {@link JOB_ARGS_TOKEN that will be replaced with Kepler command
+     * Token in {@link JOB_CMD_SH} that will be replaced with Kepler command
      * line arguments needed to run the workflow
      */
     public static final String JOB_ARGS_TOKEN = "@@JOB_ARGS@@";
     
+    /**
+     * Token in {@link JOB_CMD_SH} that will be replaced with path to java
+     * binary
+     */
+    
     public static final String JAVA_TOKEN = "@@JAVA@@";
+    
+    /**
+     * Token in {@link JOB_CMD_SH} that will be replaced with the name of the
+     * job
+     */
+    public static final String JOB_NAME_TOKEN = "@@JOB_NAME@@";
+    
+    /**
+     * Token in {@link JOB_CMD_SH} that will be replaced with login of the user
+     * running the job
+     */
+    public static final String USER_TOKEN = "@@USER@@";
+    
+    /**
+     * Token in {@link JOB_CMD_SH} that will be replaced with id of Job
+     */
+    public static final String JOB_ID_TOKEN = "@@JOB_ID@@";
+    
     
     public static final String REGISTER_OUTPUT_TO_WORKSPACE_TOKEN = "@@REGISTER_OUTPUT_TO_WORKSPACE@@";
     
@@ -118,6 +141,14 @@ public class JobCmdScriptCreatorImpl implements JobCmdScriptCreator, StringRepla
 
     private String _registerUpdateJar;
     
+    private String _jobId;
+    
+    private String _user;
+    
+    private String _jobName;
+    
+    
+    
     
     
     /**
@@ -139,7 +170,10 @@ public class JobCmdScriptCreatorImpl implements JobCmdScriptCreator, StringRepla
                 replace(JOB_ARGS_TOKEN, _jobArgs).
                 replace(JAVA_TOKEN,"java").
                 replace(REGISTER_OUTPUT_TO_WORKSPACE_TOKEN,_registerOutputWorkspaceFile).
-                replace(UPDATE_WORKSPACE_PATH_TOKEN,_updateOutputWorkspaceFilePath);
+                replace(UPDATE_WORKSPACE_PATH_TOKEN,_updateOutputWorkspaceFilePath).
+                replace(JOB_NAME_TOKEN,_jobName).
+                replace(USER_TOKEN,_user).
+                replace(JOB_ID_TOKEN,_jobId);
     }
 
     public JobCmdScriptCreatorImpl(final String workflowsDir, final String keplerScript,
@@ -182,12 +216,35 @@ public class JobCmdScriptCreatorImpl implements JobCmdScriptCreator, StringRepla
         _jobArgs = generateJobArguments(j);
 
         
+        if (j.getOwner() != null){
+            _user = j.getOwner().replace("\""," ");
+        }
+        else {
+            _user = "Unknown";
+        }
+        
+        if (j.getId() != null){
+            _jobId = j.getId().toString();
+        }
+        else {
+            _jobId = "Unknown";
+        }
+        
+        if (j.getName() != null){
+            _jobName = j.getName().replace("\""," ");
+        }
+        else {
+            _jobName = "Unknown";
+        }
+        
+        
         _registerOutputWorkspaceFile = " -jar "+_registerUpdateJar+
                 " --registerfile \""+_workingDir+"\" --jobid "+j.getId()+
                 " --name \""+j.getName()+" [Job Output]\""+
-                " --type \""+j.getWorkflow().getName()+"("+j.getWorkflow().getVersion()+
-                ") Output\""+
-                " --description \"Output of Workflow Job ("+j.getId()+")\" >> "+
+                " --owner \""+j.getOwner()+"\""+
+                " --type \""+j.getWorkflow().getName()+" Output\""+
+                " --description \"Output of Workflow Job ("+j.getId()+
+                ") [Workflow Ver "+j.getWorkflow().getVersion()+" ]\" >> "+
                 jobDirectory+File.separator+REGISTER_WSF_OUTPUT+" 2>&1";
         
         _updateOutputWorkspaceFilePath = " -jar "+_registerUpdateJar+
