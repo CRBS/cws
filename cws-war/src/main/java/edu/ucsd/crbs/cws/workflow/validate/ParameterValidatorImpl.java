@@ -32,6 +32,7 @@
  */
 package edu.ucsd.crbs.cws.workflow.validate;
 
+import edu.ucsd.crbs.cws.rest.Constants;
 import edu.ucsd.crbs.cws.workflow.Parameter;
 import edu.ucsd.crbs.cws.workflow.WorkflowParameter;
 import java.util.regex.Pattern;
@@ -58,9 +59,17 @@ public class ParameterValidatorImpl implements ParameterValidator {
         }
 
         //just skip any parameters that lack a workflow parameter
-        if (param.getWorkflowParameter() == null) {
+        if (param.getWorkflowParameter() == null){ //&& !param.getName().equals(Constants.CWS_NOTIFYEMAIL)) {
             return null;
         }
+        
+        //@TODO Need to verify email is valid or set it to empty string
+        //if parameter is email notification parameter verify its a valid
+        //email address or empty string in which case no notification will be
+        //sent
+        //if (param.getName().equals(Constants.CWS_NOTIFYEMAIL)){
+        //    return validateEmailParameter(param);
+       // }
 
         if (param.getWorkflowParameter().getIsRequired() == true
                 && param.getValue() == null) {
@@ -85,6 +94,11 @@ public class ParameterValidatorImpl implements ParameterValidator {
         }
 
         return "Unknown validation type";
+    }
+    
+    private String validateEmailParameter(Parameter param){
+        
+        return null;
     }
 
     private String validateNumberParameter(Parameter param) {
