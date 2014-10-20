@@ -142,6 +142,10 @@ public class Constants {
     public static final String DOWNLOADURL_QUERY_PARAM = "downloadurl";
     
     
+    public static final String TYPE_QUERY_PARAM = "type";
+    public static final String SIZE_QUERY_PARAM = "size";
+    
+    
     public static final String SYNCED_QUERY_PARAM = "synced";
     
     public static final String PATH_QUERY_PARAM = "path";
@@ -182,6 +186,12 @@ public class Constants {
      * Special Canvas parameter that will be set to the output directory for the running job
      */
     public static final String CWS_OUTPUTDIR = "CWS_outputdir";
+    
+    /**
+     * Special Canvas parameter that will be set to the email address of the 
+     * user running the job
+     */
+    public static final String CWS_NOTIFYEMAIL = "CWS_notifyemail";
 
     public static final String DEFAULT_LINE_DELIMITER = "==";
 }
