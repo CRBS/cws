@@ -110,7 +110,7 @@ public class WorkspaceFileRestDAOImpl implements WorkspaceFileDAO {
     
     
     @Override
-    public List<WorkspaceFile> getWorkspaceFiles(String owner, Boolean synced) throws Exception {
+    public List<WorkspaceFile> getWorkspaceFiles(String owner, final String type,Boolean synced) throws Exception {
         ClientConfig cc = new DefaultClientConfig();
         cc.getFeatures().put(JSONConfiguration.FEATURE_POJO_MAPPING, Boolean.TRUE);
         Client client = Client.create(cc);
@@ -122,6 +122,9 @@ public class WorkspaceFileRestDAOImpl implements WorkspaceFileDAO {
 
         if (owner != null) {
             queryParams.add(Constants.OWNER_QUERY_PARAM, owner);
+        }
+        if (type != null){
+            queryParams.add(Constants.TYPE_QUERY_PARAM,type);
         }
 
         if (synced != null) {
@@ -172,7 +175,8 @@ public class WorkspaceFileRestDAOImpl implements WorkspaceFileDAO {
     }
 
     @Override
-    public WorkspaceFile updatePath(long workspaceFileId, String path) throws Exception {
+    public WorkspaceFile updatePathAndSize(long workspaceFileId, String path,
+            final String size) throws Exception {
         ClientConfig cc = new DefaultClientConfig();
         cc.getClasses().add(StringProvider.class);
         cc.getFeatures().put(JSONConfiguration.FEATURE_POJO_MAPPING, Boolean.TRUE);
@@ -185,6 +189,10 @@ public class WorkspaceFileRestDAOImpl implements WorkspaceFileDAO {
         
         MultivaluedMap queryParams = _multivaluedMapFactory.getMultivaluedMap(_user);
         queryParams.add(Constants.PATH_QUERY_PARAM, path);
+        
+        if (size != null){
+            queryParams.add(Constants.SIZE_QUERY_PARAM, size);
+        }
         
          String json = resource.queryParams(queryParams)
                 .accept(MediaType.APPLICATION_JSON)
