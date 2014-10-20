@@ -125,8 +125,6 @@ public class JobStatusUpdater {
                                    
                             j.setFinishDate(new Date());
                             finishDate = j.getFinishDate().getTime();
-                            _outputWorkspaceFileUtil.updateJobOutputWorkspaceFilePath(j, 
-                                    _jobPath.getJobOutputDirectory(j));
                         }
                         try {
                             _jobDAO.update(j.getId(), j.getStatus(), null, null, null,
