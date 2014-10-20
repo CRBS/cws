@@ -115,20 +115,20 @@ public class JobSubmitter {
                 try {
                     
                     //check if workspace files are syncd.  If not update status
-                    // to workspace sync and move on to the next Task
+                    // to workspace sync and move on to the next Job
                     if (_workspacePathSetter.setPaths(j) == false) {
                         _log.log(Level.INFO,"Workspace files are NOT in place for job {0} skipping...",
                                  j.getId());
 
-                        if (j.getStatus().equals(Job.WORKSPACE_SYNC_STATUS)) {
+                        if (!j.getStatus().equals(Job.WORKSPACE_SYNC_STATUS)) {
                             _log.log(Level.INFO,"Updating status for job {0} to sync",
                                      j.getId());
     
                             _jobDAO.update(j.getId(), Job.WORKSPACE_SYNC_STATUS, null, null, null,
                                     null, null, null, false,
                                     null);
-                            continue;
                         }
+                        continue;
                     }
 
                     _log.log(Level.INFO, "\tSubmitting Job: ({0}) {1}",
