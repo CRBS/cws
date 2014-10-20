@@ -111,7 +111,7 @@ public class MapOfJobStatusFactoryImpl implements MapOfJobStatusFactory {
         String delimStringOfJobIds = getCommaDelimitedStringOfJobIds(jobs);
         Map<String, String> jobStatusMap = new HashMap<>();
         
-        if (delimStringOfJobIds == null){
+        if (delimStringOfJobIds == null || delimStringOfJobIds.isEmpty()){
             _log.log(Level.INFO,"No jobs to examine");
             return jobStatusMap;
         }
@@ -171,7 +171,7 @@ public class MapOfJobStatusFactoryImpl implements MapOfJobStatusFactory {
                 sb.append(COMMA);
             }
             if (j.getSchedulerJobId() == null){
-                throw new Exception("Job cannot have a null job id");
+                continue;
             }
             sb.append(j.getSchedulerJobId());
             

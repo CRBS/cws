@@ -108,14 +108,9 @@ public class TestMapOfJobStatusFactoryImpl {
         MapOfJobStatusFactoryImpl mapFac = new MapOfJobStatusFactoryImpl(FALSE_BINARY);
         ArrayList<Job> jobList = new ArrayList<>();
         jobList.add(new Job());
-        
-        try {
-            Map<String,String> resMap = mapFac.getJobStatusMap(jobList);
-            fail("Expected exception");
-        }
-        catch(Exception ex){
-            assertTrue(ex.getMessage().startsWith("Job cannot have a null job id"));
-        }
+
+        Map<String, String> resMap = mapFac.getJobStatusMap(jobList);
+        assertTrue(resMap.size() == 0);
     }
     
     //test where panfishstat fails (non zero exit code)
