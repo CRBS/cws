@@ -335,7 +335,7 @@ public class App {
                 Long workspaceId = (Long)optionSet.valueOf(RESAVE_WORKSPACEFILE_ARG);
                 if (workspaceId == -1){
                     System.out.println("Resaving all workspace files");
-                    List<WorkspaceFile> wsfList = workspaceFileDAO.getWorkspaceFiles(null, null);
+                    List<WorkspaceFile> wsfList = workspaceFileDAO.getWorkspaceFiles(null,null, null);
                     if (wsfList != null){
                         System.out.println("Found "+wsfList.size()+
                                 " workspace files to resave");
@@ -408,10 +408,20 @@ public class App {
                     path = (String)optionSet.valueOf(PATH_ARG);
                 }
                 
+                String size = null;
+                if (optionSet.has(SIZE_ARG)){
+                    size = ((Long)optionSet.valueOf(SIZE_ARG)).toString();
+                }
+                
+                if (optionSet.has(MD5_ARG)){
+                    //wsp.setMd5((String)optionSet.valueOf(MD5_ARG));
+                }
+                
                 WorkspaceFileRestDAOImpl workspaceFileDAO = new WorkspaceFileRestDAOImpl();
                 workspaceFileDAO.setUser(u);
                 workspaceFileDAO.setRestURL((String)optionSet.valueOf(URL_ARG));
-                workspaceFileDAO.updatePath(Long.parseLong(workspaceId), path);
+                workspaceFileDAO.updatePathAndSize(Long.parseLong(workspaceId), path,size);
+               
                 System.exit(0);
             }
             
