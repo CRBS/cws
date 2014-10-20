@@ -158,7 +158,5 @@ public class JobSubmitter {
         String submitOut = _cmdScriptSubmitter.submit(cmdScript, j);
         _log.log(Level.INFO,"Output from submit command: {0}",submitOut);
         
-        WorkspaceFile wsf = _outputWorkspaceFileCreator.createAndRegisterJobOutputAsWorkspaceFile(j,
-                null);
     }
 }
