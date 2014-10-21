@@ -242,7 +242,7 @@ public class JobCmdScriptCreatorImpl implements JobCmdScriptCreator, StringRepla
                 " --registerfile \""+_workingDir+"\" --jobid "+j.getId()+
                 " --name \""+j.getName()+" [Job Output]\""+
                 " --owner \""+j.getOwner()+"\""+
-                " --type \""+j.getWorkflow().getName()+" Output\""+
+                " --type \""+j.getWorkflow().getName()+"\""+
                 " --description \"Output of Workflow Job ("+j.getId()+
                 ") [Workflow Ver "+j.getWorkflow().getVersion()+" ]\" >> "+
                 jobDirectory+File.separator+REGISTER_WSF_OUTPUT+" 2>&1";
