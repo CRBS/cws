@@ -33,6 +33,7 @@
 
 package edu.ucsd.crbs.cws.workflow.validate;
 
+import edu.ucsd.crbs.cws.rest.Constants;
 import edu.ucsd.crbs.cws.workflow.Parameter;
 import edu.ucsd.crbs.cws.workflow.WorkflowParameter;
 import org.junit.After;
@@ -80,19 +81,34 @@ public class TestParameterValidatorImpl {
     }
     
     @Test
-    public void testRequiredParameterWithNullValue(){
+    public void testParameterWithNullName(){
         ParameterValidator pvi = new ParameterValidatorImpl();
         Parameter p = new Parameter();
         WorkflowParameter wp = new WorkflowParameter();
         wp.setIsRequired(true);
         p.setWorkflowParameter(wp);
+        assertTrue(pvi.validate(p).startsWith("Parameter cannot have a null name"));
+    }
+    
+    @Test
+    public void testRequiredParameterWithNullValue(){
+        ParameterValidator pvi = new ParameterValidatorImpl();
+        Parameter p = new Parameter();
+        p.setName("foo");
+        WorkflowParameter wp = new WorkflowParameter();
+        wp.setIsRequired(true);
+        p.setWorkflowParameter(wp);
         assertTrue(pvi.validate(p).startsWith("Parameter value is null, but is set to required"));
     }
+    
+    
+    
 
     @Test
     public void testRequiredParameterWithNullValidationType(){
         ParameterValidator pvi = new ParameterValidatorImpl();
         Parameter p = new Parameter();
+        p.setName("foo");
         WorkflowParameter wp = new WorkflowParameter();
         wp.setIsRequired(false);
         p.setWorkflowParameter(wp);
@@ -103,6 +119,7 @@ public class TestParameterValidatorImpl {
     public void testValidationNullValueWithValidationTypeSet(){
         ParameterValidator pvi = new ParameterValidatorImpl();
         Parameter p = new Parameter();
+        p.setName("foo");
         WorkflowParameter wp = new WorkflowParameter();
         wp.setValidationType(WorkflowParameter.ValidationType.NUMBER);
         wp.setIsRequired(false);
@@ -114,6 +131,7 @@ public class TestParameterValidatorImpl {
     public void testNumberValidation(){
         ParameterValidator pvi = new ParameterValidatorImpl();
         Parameter p = new Parameter();
+        p.setName("foo");
         WorkflowParameter wp = new WorkflowParameter();
         wp.setValidationType(WorkflowParameter.ValidationType.NUMBER);
         wp.setIsRequired(false);
@@ -151,6 +169,7 @@ public class TestParameterValidatorImpl {
     public void testDigitValidation(){
         ParameterValidator pvi = new ParameterValidatorImpl();
         Parameter p = new Parameter();
+        p.setName("foo");
         WorkflowParameter wp = new WorkflowParameter();
         wp.setValidationType(WorkflowParameter.ValidationType.DIGITS);
         wp.setIsRequired(false);
@@ -193,6 +212,7 @@ public class TestParameterValidatorImpl {
     public void testStringValidation(){
         ParameterValidator pvi = new ParameterValidatorImpl();
         Parameter p = new Parameter();
+        p.setName("foo");
         WorkflowParameter wp = new WorkflowParameter();
         wp.setValidationType(WorkflowParameter.ValidationType.STRING);
         wp.setIsRequired(false);
@@ -225,5 +245,54 @@ public class TestParameterValidatorImpl {
         assertTrue(pvi.validate(p).startsWith("Parameter value length:"));
     }
     
+    @Test
+    public void testEmailValidation(){
+        ParameterValidator pvi = new ParameterValidatorImpl();
+        Parameter p = new Parameter();
+        p.setName("foo");
+        WorkflowParameter wp = new WorkflowParameter();
+        wp.setValidationType(WorkflowParameter.ValidationType.EMAIL);
+        wp.setIsRequired(false);
+        p.setWorkflowParameter(wp);
+        
+        //null value
+        p.setValue(null);
+        assertTrue(pvi.validate(p).startsWith("Value cannot be null"));
+        
+        //empty string
+        p.setValue("");
+        assertTrue(pvi.validate(p) == null);
+        
+        //string with white space
+        p.setValue(" ");
+        assertTrue(pvi.validate(p).startsWith("Invalid email address"));
+        
+        //invalid email
+        p.setValue("bob@xx");
+        assertTrue(pvi.validate(p).startsWith("Invalid email address"));
+
+        
+        //valid email        
+        p.setValue("joeshmoe@gmail.com");
+        assertTrue(pvi.validate(p) == null);
+        p.setValue("joeshmoe+@ucsd.edu");
+        assertTrue(pvi.validate(p) == null);
+        
+        //CWS_notifyemail parameter with null for validation type and invalid
+        //email
+        p.setName(Constants.CWS_NOTIFYEMAIL);
+        wp.setValidationType(null);
+        p.setValue("bob@xx");
+        assertTrue(pvi.validate(p).startsWith("Invalid email address"));
+
+        
+        //CWS_notifyemail parameter with null for validation type and valid
+        //email
+        p.setValue("joeshmoe@ncmir.ucsd.edu");
+        assertTrue(pvi.validate(p) == null);
+
+        
+    
+    }
     
 }

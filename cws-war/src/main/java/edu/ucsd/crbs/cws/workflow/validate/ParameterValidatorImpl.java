@@ -44,6 +44,8 @@ import java.util.regex.Pattern;
  */
 public class ParameterValidatorImpl implements ParameterValidator {
 
+    public static final String EMAIL_REGEX_PATTERN = "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,64}$";
+    
     /**
      * Validates <b>param</b> that have
      * {@link WorkflowParameter#getValidationType()} set
@@ -57,19 +59,23 @@ public class ParameterValidatorImpl implements ParameterValidator {
         if (param == null) {
             return "Cannot perform validation, Parameter cannot be null";
         }
-
+        
         //just skip any parameters that lack a workflow parameter
-        if (param.getWorkflowParameter() == null){ //&& !param.getName().equals(Constants.CWS_NOTIFYEMAIL)) {
+        if (param.getWorkflowParameter() == null){
             return null;
+        }
+        
+        if (param.getName() == null){
+            return "Parameter cannot have a null name";
         }
         
         //@TODO Need to verify email is valid or set it to empty string
         //if parameter is email notification parameter verify its a valid
         //email address or empty string in which case no notification will be
         //sent
-        //if (param.getName().equals(Constants.CWS_NOTIFYEMAIL)){
-        //    return validateEmailParameter(param);
-       // }
+        if (param.getName().equals(Constants.CWS_NOTIFYEMAIL)){
+            return validateEmailParameter(param);
+        }
 
         if (param.getWorkflowParameter().getIsRequired() == true
                 && param.getValue() == null) {
@@ -91,16 +97,40 @@ public class ParameterValidatorImpl implements ParameterValidator {
             return validateDigitsParameter(param);
         } else if (param.getWorkflowParameter().getValidationType().equalsIgnoreCase(WorkflowParameter.ValidationType.STRING)) {
             return validateStringParameter(param);
-        }
+        } else if (param.getWorkflowParameter().getValidationType().equalsIgnoreCase(WorkflowParameter.ValidationType.EMAIL)) {
+            return validateEmailParameter(param);
+        } 
 
         return "Unknown validation type";
     }
     
+    /**
+     * Verifies parameter is a valid email address using {@link #EMAIL_REGEX_PATTERN}
+     * as a regular expression to check.  If {@link Parameter#getValue() } is null
+     * or an empty string the check is omitted and <b>null</b> is returned.
+     * @param param
+     * @return null if valid otherwise String message if there is an error.
+     */
     private String validateEmailParameter(Parameter param){
+        
+        if (param.getValue() == null || param.getValue().equals("")){
+            return null;
+        }
+        
+        if (Pattern.matches(EMAIL_REGEX_PATTERN,
+                param.getValue()) == false) {
+            return "Invalid email address";
+        }
         
         return null;
     }
 
+    /**
+     * Verifies value of parameter is a valid Double with a valid range 
+     * as set by the {@link WorkflowParameter}
+     * @param param
+     * @return null if valid otherwise a String with message for invalid values
+     */
     private String validateNumberParameter(Parameter param) {
         double val;
         try {
@@ -111,6 +141,13 @@ public class ParameterValidatorImpl implements ParameterValidator {
 
         return isValueInRange(val, param);
     }
+
+    /**
+     * Verifies value of parameter is a valid Long with a valid range 
+     * as set by the {@link WorkflowParameter}
+     * @param param
+     * @return null if valid otherwise a String with message for invalid values
+     */
 
     private String validateDigitsParameter(Parameter param) {
         long val;
@@ -124,6 +161,13 @@ public class ParameterValidatorImpl implements ParameterValidator {
         return isValueInRange(val, param);
     }
 
+    /**
+     * Verifies value of parameter is a valid String which means it has a length
+     * equal or less then {@link WorkflowParameter#getMaxLength() } and matches
+     * any regular expression set in {@link WorkflowParameter}
+     * @param param
+     * @return null if valid otherwise a String with message for invalid values
+     */
     private String validateStringParameter(Parameter param) {
         if (param.getWorkflowParameter().getMaxLength() > 0) {
             if (param.getValue().length() > param.getWorkflowParameter().getMaxLength()) {
@@ -138,12 +182,20 @@ public class ParameterValidatorImpl implements ParameterValidator {
         }
 
         if (Pattern.matches(param.getWorkflowParameter().getValidationRegex(),
-                param.getValue()) == false) {
-            return "String does not match regex specified for this parameter";
+                param.getValue()) == true) {
+            return null;
         }
-        return null;
+        
+        return "String does not match regex specified for this parameter";
     }
 
+    /**
+     * Checks <b>value</b> against min and maximum values set in {@link WorkflowParameter}
+     * associated with <b>param</b> to verify the <b>value</b> is within range.
+     * @param value
+     * @param param
+     * @return null if <b>value</b> is valid otherwise a String upon error
+     */
     private String isValueInRange(double value, Parameter param) {
         if (param.getWorkflowParameter().getMinValue() == param.getWorkflowParameter().getMaxValue()
                 && param.getWorkflowParameter().getMaxValue() == 0) {
