@@ -125,6 +125,11 @@ public class WorkflowParameter {
          * Allows any ASCII characters
          */
         public static final String STRING = "string";
+        
+        /**
+         * Allows valid email address
+         */
+        public static final String EMAIL = "email";
     }
     
     
