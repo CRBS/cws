@@ -57,6 +57,7 @@ import edu.ucsd.crbs.cws.cluster.OutputWorkspaceFileUtil;
 import edu.ucsd.crbs.cws.cluster.OutputWorkspaceFileUtilImpl;
 import edu.ucsd.crbs.cws.cluster.WorkspaceFilePathSetterImpl;
 import edu.ucsd.crbs.cws.dao.WorkflowDAO;
+import edu.ucsd.crbs.cws.cluster.JobEmailNotificationData;
 import edu.ucsd.crbs.cws.dao.rest.JobRestDAOImpl;
 import edu.ucsd.crbs.cws.dao.rest.WorkflowRestDAOImpl;
 import edu.ucsd.crbs.cws.dao.rest.WorkspaceFileRestDAOImpl;
@@ -171,6 +172,18 @@ public class App {
     public static final String GEN_OLD_KEPLER_XML_ARG = "genoldkeplerxml";
     
     public static final String REGISTER_JAR_ARG = "registerjar";
+    
+    public static final String PROJECT_ARG = "project";
+    
+    public static final String PORTALNAME_ARG = "portalname";
+    
+    public static final String PORTAL_URL_ARG = "portalurl";
+    
+    public static final String HELP_EMAIL_ARG = "helpemail";
+    
+    public static final String BCC_EMAIL_ARG = "bccemail";
+    
+    
 
     //public static final String LOAD_TEST = "loadtest";
     public static final String PROGRAM_HELP = "\nCRBS Workflow Service Command Line Tools "
@@ -194,7 +207,8 @@ public class App {
                 {
                     accepts(UPLOAD_WF_ARG, "Add/Update Workflow").withRequiredArg().ofType(File.class).describedAs("Kepler .kar file");
                     //accepts(LOAD_TEST,"creates lots of workflows and jobs");
-                    accepts(SYNC_WITH_CLUSTER_ARG, "Submits & Synchronizes Workflow Jobs on local cluster with CRBS Workflow Webservice").withRequiredArg().ofType(String.class).describedAs("URL");
+                    accepts(SYNC_WITH_CLUSTER_ARG, "Submits & Synchronizes Workflow Jobs on local cluster with CRBS Workflow Webservice.  Requires --"+
+                            PROJECT_ARG+" --"+PORTALNAME_ARG+" --"+PORTAL_URL_ARG+" --"+HELP_EMAIL_ARG).withRequiredArg().ofType(String.class).describedAs("URL");
                     accepts(GEN_OLD_KEPLER_XML_ARG,"Generates version 1.x kepler xml for given workflow").withRequiredArg().ofType(String.class).describedAs("wfid or .kar file");
                     accepts(UPLOAD_FILE_ARG,"Registers and uploads Workspace file to REST service").withRequiredArg().ofType(File.class);
                     accepts(REGISTER_FILE_ARG,"Registers Workspace file to REST service (DOES NOT UPLOAD FILE TO REST SERVICE)").withRequiredArg().ofType(File.class);
@@ -227,6 +241,11 @@ public class App {
                     accepts(NAME_ARG,"Sets name for Workspace file when used with --"+UPLOAD_FILE_ARG+" and --"+REGISTER_FILE_ARG).withRequiredArg().ofType(String.class).describedAs("WorkspaceFile name");
                     accepts(REGISTER_JAR_ARG,"Path to Jar to register WorkspaceFiles").withRequiredArg().ofType(File.class).describedAs("Path to this jar");
                     accepts(GET_JOB_ARG,"Gets job from service in JSON format, requires --"+URL_ARG).withRequiredArg().ofType(Long.class).describedAs("Job Id");
+                    accepts(PROJECT_ARG,"Project name ie CRBS.  Used with --"+SYNC_WITH_CLUSTER_ARG).withRequiredArg().ofType(String.class);
+                    accepts(PORTALNAME_ARG,"Portal name ie SLASH portal Used with --"+SYNC_WITH_CLUSTER_ARG).withRequiredArg().ofType(String.class);
+                    accepts(PORTAL_URL_ARG,"Portal url ie http://slashsegmentation.com Used with --"+SYNC_WITH_CLUSTER_ARG).withRequiredArg().ofType(String.class);
+                    accepts(HELP_EMAIL_ARG,"Help and reply to email address Used with --"+SYNC_WITH_CLUSTER_ARG).withRequiredArg().ofType(String.class);
+                    accepts(BCC_EMAIL_ARG,"Blind Carbon copy email address Used with --"+SYNC_WITH_CLUSTER_ARG).withRequiredArg().ofType(String.class);    
                     accepts(HELP_ARG).forHelp();
                 }
             };
@@ -479,7 +498,7 @@ public class App {
                     File registerJarFile = (File)optionSet.valueOf(REGISTER_JAR_ARG);
                     registerJar = registerJarFile.getAbsolutePath();
                 }
-                
+                JobEmailNotificationData emailNotifyData = getJobEmailNotificationData(optionSet);
                 
                 User u = getUserFromOptionSet(optionSet);
                 
@@ -507,7 +526,8 @@ public class App {
                         keplerScript.getAbsolutePath(),
                         castPath, queue,u,
                         url,
-                        registerJar);
+                        registerJar,
+                emailNotifyData);
 
                 submitter.submitJobs();
                 
@@ -655,6 +675,38 @@ public class App {
             System.exit(1);
         }
         return;
+        
+    }
+    
+    public static JobEmailNotificationData getJobEmailNotificationData(OptionSet optionSet) throws Exception {
+        
+        JobEmailNotificationData emailNotifyData = new JobEmailNotificationData();
+        
+        if (!optionSet.has(PROJECT_ARG)){
+            throw new Exception("-"+PROJECT_ARG+" is required");
+        }
+
+        if (!optionSet.has(PORTALNAME_ARG)){
+            throw new Exception("-"+PORTALNAME_ARG+" is required");
+        }
+
+        if (!optionSet.has(PORTAL_URL_ARG)){
+            throw new Exception("-"+PORTAL_URL_ARG+" is required");
+        }
+        if (!optionSet.has(HELP_EMAIL_ARG)){
+            throw new Exception("-"+HELP_EMAIL_ARG+" is required");
+        }
+        
+        emailNotifyData.setProject((String)optionSet.valueOf(PROJECT_ARG));
+        emailNotifyData.setPortalName((String)optionSet.valueOf(PORTALNAME_ARG));
+        emailNotifyData.setPortalURL((String)optionSet.valueOf(PORTAL_URL_ARG));
+        emailNotifyData.setHelpEmail((String)optionSet.valueOf(HELP_EMAIL_ARG));
+        
+        if (optionSet.has(BCC_EMAIL_ARG)){
+            emailNotifyData.setBccEmail((String)optionSet.valueOf(BCC_EMAIL_ARG));
+        }
+        return emailNotifyData;
+        
         
     }
     
