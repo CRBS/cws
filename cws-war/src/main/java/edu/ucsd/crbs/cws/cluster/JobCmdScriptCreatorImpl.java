@@ -106,6 +106,26 @@ public class JobCmdScriptCreatorImpl implements JobCmdScriptCreator, StringRepla
      */
     public static final String JOB_ID_TOKEN = "@@JOB_ID@@";
     
+    /**
+     * Token in {@link JOB_CMD_SH} that will be replaced with email address associated
+     * with user
+     */
+    public static final String NOTIFY_EMAIL_TOKEN = "@@NOTIFY_EMAIL@@";
+    
+    /**
+     * Token in {@link JOB_CMD_SH} that will be replaced with blind carbon copy email
+     * address
+     */
+    public static final String BCC_EMAIL_TOKEN = "@@BCC_EMAIL@@";
+    
+    public static final String PORTAL_URL_TOKEN = "@@PORTAL_URL@@";
+    
+    public static final String PORTAL_NAME_TOKEN = "@@PORTAL_NAME@@";
+    
+    public static final String PROJECT_TOKEN = "@@PROJECT@@";
+    
+    public static final String HELP_EMAIL_TOKEN = "@@HELP_EMAIL@@";
+
     
     public static final String REGISTER_OUTPUT_TO_WORKSPACE_TOKEN = "@@REGISTER_OUTPUT_TO_WORKSPACE@@";
     
@@ -147,6 +167,9 @@ public class JobCmdScriptCreatorImpl implements JobCmdScriptCreator, StringRepla
     
     private String _jobName;
     
+    private String _userEmail;
+    
+    private JobEmailNotificationData _emailNotifyData;
     
     
     
@@ -173,11 +196,22 @@ public class JobCmdScriptCreatorImpl implements JobCmdScriptCreator, StringRepla
                 replace(UPDATE_WORKSPACE_PATH_TOKEN,_updateOutputWorkspaceFilePath).
                 replace(JOB_NAME_TOKEN,_jobName).
                 replace(USER_TOKEN,_user).
+                replace(NOTIFY_EMAIL_TOKEN,_userEmail).
+                replace(PROJECT_TOKEN,_emailNotifyData.getProject()).
+                replace(PORTAL_NAME_TOKEN,_emailNotifyData.getPortalName()).
+                replace(PORTAL_URL_TOKEN,_emailNotifyData.getPortalURL()).
+                replace(HELP_EMAIL_TOKEN,_emailNotifyData.getHelpEmail()).
+                replace(BCC_EMAIL_TOKEN,_emailNotifyData.getBccEmail()).
                 replace(JOB_ID_TOKEN,_jobId);
+                
     }
 
     public JobCmdScriptCreatorImpl(final String workflowsDir, final String keplerScript,
-            final String registerUpdateJar) {
+            final String registerUpdateJar,
+            JobEmailNotificationData emailNotifyData) {
+       
+        _emailNotifyData = emailNotifyData;
+        
         _workflowsDir = workflowsDir;
         _keplerScript = keplerScript;
         _registerUpdateJar = registerUpdateJar;
@@ -237,6 +271,7 @@ public class JobCmdScriptCreatorImpl implements JobCmdScriptCreator, StringRepla
             _jobName = "Unknown";
         }
         
+        setUserEmail(j);
         
         _registerOutputWorkspaceFile = " -jar "+_registerUpdateJar+
                 " --registerfile \""+_workingDir+"\" --jobid "+j.getId()+
@@ -263,6 +298,21 @@ public class JobCmdScriptCreatorImpl implements JobCmdScriptCreator, StringRepla
         return jobCmd;
     }
 
+    private void setUserEmail(Job j) throws Exception {
+        
+        _userEmail = "";
+        if (j.getParameters() == null){
+            return;
+        }
+        for (Parameter param : j.getParameters()){
+            if (param.getName().equals(Constants.CWS_NOTIFYEMAIL)){
+                if (param.getValue() != null && !param.getValue().trim().equals("")){
+                    this._userEmail = param.getValue();
+                }
+            }
+        }
+    }
+    
     /**
      * Iterates through Parameters of Job and generates a String of flags and values
      * @param jobDirectory Base Directory path of Task
