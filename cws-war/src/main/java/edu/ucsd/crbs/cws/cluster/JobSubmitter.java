@@ -72,6 +72,7 @@ public class JobSubmitter {
      * @param user
      * @param url
      * @param registerUpdateJar
+     * @param emailNotifyData
      */
     public JobSubmitter(JobDAO jobDAO,
             WorkspaceFilePathSetter workspaceFilePathSetter,
@@ -83,11 +84,14 @@ public class JobSubmitter {
             final String queue,
             final User user,
             final String url,
-            final String registerUpdateJar) {
+            final String registerUpdateJar,
+            JobEmailNotificationData emailNotifyData) {
 
         _directoryCreator = new JobDirectoryCreatorImpl(jobPath);
-        _cmdScriptCreator = new JobCmdScriptCreatorImpl(workflowsDir, keplerScript, registerUpdateJar + " --url " + url + " --login "
-                + user.getLogin() + " --token " + user.getToken());
+        _cmdScriptCreator = new JobCmdScriptCreatorImpl(workflowsDir, 
+                keplerScript, registerUpdateJar + " --url " + url + " --login "
+                + user.getLogin() + " --token " + user.getToken(),
+        emailNotifyData);
         _cmdScriptSubmitter = new JobCmdScriptSubmitterImpl(panfishCast, queue);
         _workflowSync = new SyncWorkflowFileToFileSystemImpl(workflowsDir, url, user.getLogin(), user.getToken());
         _workspacePathSetter = workspaceFilePathSetter;
