@@ -108,10 +108,21 @@ if [ "$EMAIL_ADDR" != "" ] ; then
     echo ""
   fi
 
+  declare finishedMessage="finished"
+
   OUTEMAIL="Dear @@USER@@,\\n\\n"
   OUTEMAIL="${OUTEMAIL}Your job: @@JOB_NAME@@\\n"
   OUTEMAIL="${OUTEMAIL}Id: @@JOB_ID@@\\n"
-  OUTEMAIL="${OUTEMAIL}has finished running.  Please login to the @@PORTAL_NAME@@\\n"
+
+  if [ -s "WORKFLOW.FAILED.txt" ] ; then
+    declare errorDetails=`egrep "^simple.error.message=" WORKFLOW.FAILED.txt | sed "s/^.*=//" | sed "s/\"/ /g"`
+    finishedMessage="failed"
+    OUTEMAIL="${OUTEMAIL}has failed.\\n  Error from WORKFLOW.FAILED.txt: $errorDetails\\n"
+  else 
+    OUTEMAIL="${OUTEMAIL}has finished running.\\n"
+  fi
+
+  OUTEMAIL="${OUTEMAIL}Please login to the @@PORTAL_NAME@@\\n"
   OUTEMAIL="${OUTEMAIL}(@@PORTAL_URL@@) to check completion status.\\n\\n"
   OUTEMAIL="${OUTEMAIL}Contact @@PROJECT@@ support at @@HELP_EMAIL@@ if you have any questions\\n"
   OUTEMAIL="${OUTEMAIL}regarding your job.\\n\\n"
@@ -119,7 +130,7 @@ if [ "$EMAIL_ADDR" != "" ] ; then
   OUTEMAIL="${OUTEMAIL}The @@PROJECT@@ Team\\n"
   OUTEMAIL="${OUTEMAIL}@@HELP_EMAIL@@\\n"
 
-  echo -e "${OUTEMAIL}" | /bin/mail -s "@@PROJECT@@ Workflow Notification Email - @@JOB_NAME@@ has finished" -r "@@HELP_EMAIL@@" $BCC_EMAIL_FLAG $EMAIL_ADDR
+  echo -e "${OUTEMAIL}" | /bin/mail -s "@@PROJECT@@ Workflow Notification Email - @@JOB_NAME@@ has $finishedMessage" -r "@@HELP_EMAIL@@" $BCC_EMAIL_FLAG $EMAIL_ADDR
   sleep 10
 fi
 
