@@ -154,7 +154,7 @@ public class TestURLFetcherImpl {
         URLFetcherImpl fetcher = new URLFetcherImpl();
         WorkflowParameter wp = new WorkflowParameter();
         wp.setType(WorkflowParameter.Type.DROP_DOWN);
-        wp.setValue("https://www.ncmir.ucsd.edu/doesnotexisteverevervever");
+        wp.setValue("https://www.google.com/doesnotexisteverevervever");
         wp.setNameValueDelimiter("==");
         User user = new User();
         user.setLogin("bob");
