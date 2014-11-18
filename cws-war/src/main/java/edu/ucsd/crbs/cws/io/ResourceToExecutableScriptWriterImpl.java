@@ -42,7 +42,7 @@ import org.apache.commons.io.IOUtils;
  * 
  * @author Christopher Churas <churas@ncmir.ucsd.edu>
  */
-public class ResourceToExecutableScriptWriterImpl {
+public class ResourceToExecutableScriptWriterImpl implements ResourceToExecutableScriptWriter {
     
    
     /**
@@ -56,6 +56,7 @@ public class ResourceToExecutableScriptWriterImpl {
      * @throws Exception if there is an io error
      * @throws IllegalArgumentException if either <b>resourcePath</b> or <b>destinationScript</b> are null
      */
+    @Override
     public void writeResourceToScript(final String resourcePath,final String destinationScript,StringReplacer replacer) throws Exception {
          if (resourcePath == null){
             throw new IllegalArgumentException("resourcePath method parameter cannot be null");
