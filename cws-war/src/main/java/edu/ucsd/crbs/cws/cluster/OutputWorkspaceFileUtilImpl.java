@@ -46,7 +46,7 @@ import java.util.List;
  */
 public class OutputWorkspaceFileUtilImpl implements OutputWorkspaceFileUtil {
     
-    public static final String OUTPUT = " Output";
+    public static final String OUTPUT = " [Job Output]";
     private WorkspaceFileDAO _workspaceFileDAO;
    
     /**
@@ -71,18 +71,38 @@ public class OutputWorkspaceFileUtilImpl implements OutputWorkspaceFileUtil {
             throw new IllegalArgumentException("Job cannot be null");
         }
         
+        if (j.getName() == null){
+            throw new Exception("Job name cannot be null");
+        }
+        
+        if (j.getWorkflow() == null){
+            throw new Exception("Workflow for job cannot be null");
+        }
+        
+        if (j.getWorkflow().getName() == null){
+            throw new Exception("Workflow name for job cannot be null");
+        }
+        
+        if (j.getOwner() == null){
+            throw new Exception("Owner of job cannot be null");
+        }
+        
         WorkspaceFile wsp = new WorkspaceFile();
         wsp.setName(j.getName()+OUTPUT);
         wsp.setDir(true);
-        wsp.setDescription("Workflow Job Output");
+        wsp.setDescription("Output of Workflow Job ("+j.getId()+
+                ") [ Workflow Ver "+j.getWorkflow().getVersion()+" ]");
         wsp.setOwner(j.getOwner());
         wsp.setSourceJobId(j.getId());
+        wsp.setType(j.getWorkflow().getName());
+        
         
         if (outputDirectory != null){
             wsp.setPath(outputDirectory);
         }
         
-        return _workspaceFileDAO.insert(wsp, false);
+        _workspaceFileDAO.insert(wsp, false);
+        return wsp;
     }
     
     /**
