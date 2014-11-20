@@ -113,6 +113,9 @@ public class WorkflowFromAnnotatedVersionTwoFourMomlXmlFactory {
     public static final String MAXVALUE_KEY = "maxvalue";
     public static final String MINVALUE_KEY = "minvalue";
     public static final String ROWS_KEY = "rows";
+    public static final String ALLOWED_WORKSPACEFILE_TYPES = "allowedworkspacefiletypes";
+    public static final String ALLOW_FAILED_WORKSPACEFILE = "allowfailedworkspacefile";
+    
 
     public static final Logger log = Logger.getLogger(WorkflowFromVersionOneMomlXmlFactory.class.getName());
 
@@ -352,6 +355,9 @@ public class WorkflowFromAnnotatedVersionTwoFourMomlXmlFactory {
             wp.setMaxValue(Double.parseDouble(props.getProperty(MAXVALUE_KEY,"0")));
             wp.setMinValue(Double.parseDouble(props.getProperty(MINVALUE_KEY,"0")));
             wp.setRows(Long.parseLong(props.getProperty(ROWS_KEY, "0")));
+            
+            wp.setAllowFailedWorkspaceFile(Boolean.valueOf(props.getProperty(ALLOW_FAILED_WORKSPACEFILE,"false")));
+            wp.setAllowedWorkspaceFileTypes(props.getProperty(ALLOWED_WORKSPACEFILE_TYPES));
             
             params.add(wp);
         }

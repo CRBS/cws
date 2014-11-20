@@ -114,7 +114,7 @@ public class TestWorkflowFromAnnotatedVersionTwoFourMomlXmlFactory {
         assertTrue(w.getDescription().contains("This text is the description for the workflow."));
         assertTrue(w.getReleaseNotes().contains("-- Some new feature"));
         assertTrue(w.getAuthor().contains("Chuck Norris"));
-        assertTrue(w.getParameters().size() == 10);
+        assertTrue(w.getParameters().size() == 12);
 
         //put parameters into a hash to make it easier to test
         HashMap<String,WorkflowParameter> paramHash = new HashMap<>();
@@ -146,6 +146,8 @@ public class TestWorkflowFromAnnotatedVersionTwoFourMomlXmlFactory {
         assertTrue(wp.getRows() == 0L);
         assertTrue(wp.getValueMap() == null);
         assertTrue(wp.getSelected().equals("name3"));
+        assertTrue(wp.getAllowFailedWorkspaceFile() == false);
+        assertTrue(wp.getAllowedWorkspaceFileTypes() == null);
         
         //example file parameter
         wp = paramHash.get("examplefile");
@@ -168,7 +170,56 @@ public class TestWorkflowFromAnnotatedVersionTwoFourMomlXmlFactory {
         assertTrue(wp.getRows() == 0L);
         assertTrue(wp.getValueMap() == null);
         assertTrue(wp.getSelected() == null);
-
+        assertTrue(wp.getAllowFailedWorkspaceFile() == false);
+        assertTrue(wp.getAllowedWorkspaceFileTypes() == null);
+        
+        //example file2 parameter
+        wp = paramHash.get("examplefile2");
+        assertTrue(wp != null);
+        assertTrue(wp.getDisplayName().equals("Example File Allows Failed Workflow"));
+        assertTrue(wp.getNameValueDelimiter() == null);
+        assertTrue(wp.getHelp().startsWith("This parameter takes a file"));
+        assertTrue(wp.getIsAdvanced() == false);
+        assertTrue(wp.getIsRequired() == true);
+        assertTrue(wp.getType().equals(WorkflowParameter.Type.FILE));
+        assertTrue(wp.getValidationHelp().startsWith("Must be"));
+        assertTrue(wp.getValidationRegex() == null);
+        assertTrue(wp.getValidationType() == null);
+        assertTrue(wp.getValue().equals("/somepath"));
+        assertTrue(wp.getColumns() == 0L);
+        assertTrue(wp.getMaxFileSize() == 20000000L);
+        assertTrue(wp.getMaxLength() == 0L);
+        assertTrue(wp.getMaxValue() == 0L);
+        assertTrue(wp.getMinValue() == 0L);
+        assertTrue(wp.getRows() == 0L);
+        assertTrue(wp.getValueMap() == null);
+        assertTrue(wp.getSelected() == null);
+        assertTrue(wp.getAllowFailedWorkspaceFile() == true);
+        assertTrue(wp.getAllowedWorkspaceFileTypes().equals("CHM,CHM Test"));
+        
+        //example file3 parameter
+        wp = paramHash.get("examplefile3");
+        assertTrue(wp != null);
+        assertTrue(wp.getDisplayName().equals("Example File No Failed Workflow"));
+        assertTrue(wp.getNameValueDelimiter() == null);
+        assertTrue(wp.getHelp().startsWith("This parameter takes a file"));
+        assertTrue(wp.getIsAdvanced() == false);
+        assertTrue(wp.getIsRequired() == true);
+        assertTrue(wp.getType().equals(WorkflowParameter.Type.FILE));
+        assertTrue(wp.getValidationHelp().startsWith("Must be"));
+        assertTrue(wp.getValidationRegex() == null);
+        assertTrue(wp.getValidationType() == null);
+        assertTrue(wp.getValue().equals("/somepath"));
+        assertTrue(wp.getColumns() == 0L);
+        assertTrue(wp.getMaxFileSize() == 20000000L);
+        assertTrue(wp.getMaxLength() == 0L);
+        assertTrue(wp.getMaxValue() == 0L);
+        assertTrue(wp.getMinValue() == 0L);
+        assertTrue(wp.getRows() == 0L);
+        assertTrue(wp.getValueMap() == null);
+        assertTrue(wp.getSelected() == null);
+        assertTrue(wp.getAllowFailedWorkspaceFile() == false);
+        assertTrue(wp.getAllowedWorkspaceFileTypes().equals("banana"));
         
         //example string parameter
         wp = paramHash.get("exampletext");
