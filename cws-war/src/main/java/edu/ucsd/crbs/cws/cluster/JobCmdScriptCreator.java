@@ -49,5 +49,5 @@ public interface JobCmdScriptCreator {
      * @return
      * @throws Exception 
      */
-    public String create(final String jobDirectory,Job j) throws Exception;
+    public String create(final String jobDirectory,Job j,Long workspaceFileId) throws Exception;
 }
