@@ -33,14 +33,18 @@
 
 package edu.ucsd.crbs.cws.rest;
 
-import edu.ucsd.crbs.cws.auth.User;
 import edu.ucsd.crbs.cws.auth.Authenticator;
 import edu.ucsd.crbs.cws.auth.AuthenticatorImpl;
 import edu.ucsd.crbs.cws.auth.Permission;
+import edu.ucsd.crbs.cws.auth.User;
+import edu.ucsd.crbs.cws.cluster.OutputWorkspaceFileUtil;
+import edu.ucsd.crbs.cws.cluster.OutputWorkspaceFileUtilImpl;
 import edu.ucsd.crbs.cws.dao.EventDAO;
 import edu.ucsd.crbs.cws.dao.JobDAO;
+import edu.ucsd.crbs.cws.dao.WorkspaceFileDAO;
 import edu.ucsd.crbs.cws.dao.objectify.EventObjectifyDAOImpl;
 import edu.ucsd.crbs.cws.dao.objectify.JobObjectifyDAOImpl;
+import edu.ucsd.crbs.cws.dao.objectify.WorkspaceFileObjectifyDAOImpl;
 import edu.ucsd.crbs.cws.log.Event;
 import edu.ucsd.crbs.cws.log.EventBuilder;
 import edu.ucsd.crbs.cws.log.EventBuilderImpl;
@@ -85,6 +89,10 @@ public class JobRestService {
     static EventBuilder _eventBuilder = new EventBuilderImpl();
     
     static JobValidator _validator = new JobValidatorImpl();
+    
+    static WorkspaceFileDAO _workspaceFileDAO = new WorkspaceFileObjectifyDAOImpl();
+    
+    static OutputWorkspaceFileUtil _workspaceFileUtil = new OutputWorkspaceFileUtilImpl(_workspaceFileDAO);
 
     /**
      * HTTP GET call that gets a list of all jobs. The list can be filtered
@@ -231,6 +239,9 @@ public class JobRestService {
      * @param finishDate
      * @param submittedToScheduler
      * @param schedulerJobId
+     * @param deleted
+     * @param error
+     * @param detailedError
      * @param userLogin
      * @param userToken
      * @param resave
@@ -252,6 +263,9 @@ public class JobRestService {
             @QueryParam(Constants.FINISHDATE_QUERY_PARAM) final Long finishDate,
             @QueryParam(Constants.SUBMITTED_TO_SCHED_QUERY_PARAM) final Boolean submittedToScheduler,
             @QueryParam(Constants.SCHEDULER_JOB_ID_QUERY_PARAM) final String schedulerJobId,
+            @QueryParam(Constants.DELETED_QUERY_PARAM) final Boolean deleted,
+            @QueryParam(Constants.ERROR_QUERY_PARAM) final String error,
+            @QueryParam(Constants.DETAILED_ERROR_QUERY_PARAM) final String detailedError,
             @QueryParam(Constants.USER_LOGIN_PARAM) final String userLogin,
             @QueryParam(Constants.USER_TOKEN_PARAM) final String userToken,
             @QueryParam(Constants.USER_LOGIN_TO_RUN_AS_PARAM) final String userLoginToRunAs,
@@ -275,7 +289,7 @@ public class JobRestService {
                 }
                 return _jobDAO.update(jobId, status, estCpu, estRunTime, estDisk,
                         submitDate, startDate, finishDate, submittedToScheduler,
-                        schedulerJobId);
+                        schedulerJobId,deleted,error,detailedError);
             }
             if (user.isAuthorizedTo(Permission.UPDATE_THEIR_JOBS)){
                 Job job = _jobDAO.getJobByIdAndUser(jobId.toString(),user.getLoginToRunJobAs());
@@ -287,7 +301,7 @@ public class JobRestService {
                 }
                 return _jobDAO.update(jobId, status, estCpu, estRunTime, estDisk,
                         submitDate, startDate, finishDate, submittedToScheduler,
-                        schedulerJobId);
+                        schedulerJobId,deleted,error,detailedError);
             }
 
             throw new WebApplicationException(HttpServletResponse.SC_UNAUTHORIZED);
@@ -349,6 +363,9 @@ public class JobRestService {
                 Job job = _jobDAO.insert(j,true);
                 
                 _eventDAO.neverComplainInsert(_eventBuilder.setAsCreateJobEvent(event, job));
+                
+                //register workspace file for output of job.
+                _workspaceFileUtil.createAndRegisterJobOutputAsWorkspaceFile(job,null);
                 
                 return job;
             }
