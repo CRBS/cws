@@ -140,6 +140,12 @@ public class Constants {
     public static final String SUBMITTED_TO_SCHED_QUERY_PARAM = "submittedtosched";
     public static final String SCHEDULER_JOB_ID_QUERY_PARAM = "schedulerjobid";
     public static final String DOWNLOADURL_QUERY_PARAM = "downloadurl";
+
+    public static final String DELETED_QUERY_PARAM = "deleted";
+    
+    public static final String ERROR_QUERY_PARAM = "error";
+     
+    public static final String DETAILED_ERROR_QUERY_PARAM = "detailederror";
     
     
     public static final String TYPE_QUERY_PARAM = "type";
@@ -153,6 +159,12 @@ public class Constants {
     public static final String ADD_UPLOAD_URL_PARAM = "adduploadurl";
     
     public static final String SOURCE_JOB_ID_QUERY_PARAM = "sourcejobid";
+    
+    /**
+     * Tells REST service whether this workspace file is from a failed
+     * job.  true for yes false for no
+     */
+    public static final String WS_FAILED_QUERY_PARAM = "isfailed";
     
     /**
      * Tells REST services to load and resave given object.  This is needed
@@ -194,4 +206,10 @@ public class Constants {
     public static final String CWS_NOTIFYEMAIL = "CWS_notifyemail";
 
     public static final String DEFAULT_LINE_DELIMITER = "==";
+    
+    public static final String WORKFLOW_FAILED_FILE = "WORKFLOW.FAILED.txt";
+    
+    public static final String SIMPLE_ERROR_MESSAGE_KEY = "simple.error.message";
+    public static final String DETAILED_ERROR_MESSAGE_KEY = "detailed.error.message";
+
 }
