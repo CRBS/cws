@@ -86,6 +86,8 @@ public class WorkspaceFileRestService {
      * @param owner
      * @param workspaceFileIdList
      * @param sourceJobId
+     * @param type
+     * @param isFailed
      * @param synced
      * @param userLogin
      * @param userToken
@@ -99,13 +101,14 @@ public class WorkspaceFileRestService {
             @QueryParam(Constants.WSFID_PARAM) final String workspaceFileIdList,
             @QueryParam(Constants.SOURCE_JOB_ID_QUERY_PARAM)final Long sourceJobId,
             @QueryParam(Constants.TYPE_QUERY_PARAM) final String type,
+            @QueryParam(Constants.WS_FAILED_QUERY_PARAM)final Boolean isFailed,
             @QueryParam(Constants.SYNCED_QUERY_PARAM) final Boolean synced,
             @QueryParam(Constants.USER_LOGIN_PARAM) final String userLogin,
             @QueryParam(Constants.USER_TOKEN_PARAM) final String userToken,
             @QueryParam(Constants.USER_LOGIN_TO_RUN_AS_PARAM) final String userLoginToRunAs,
             @Context HttpServletRequest request) {
         
-        return getWorkspaceFileList(owner,workspaceFileIdList,sourceJobId,type,synced,
+        return getWorkspaceFileList(owner,workspaceFileIdList,sourceJobId,type,isFailed,synced,
                 userLogin,userToken,userLoginToRunAs,request);
     }
     
@@ -113,6 +116,7 @@ public class WorkspaceFileRestService {
             final String workspaceFileIdList,
             final Long sourceJobId,
             final String type,
+            final Boolean isFailed,
             final Boolean synced,
             final String userLogin,
             final String userToken,
@@ -137,7 +141,7 @@ public class WorkspaceFileRestService {
                     else {
                         ownerToUse = user.getLoginToRunJobAs();
                     }
-                    return _workspaceFileDAO.getWorkspaceFiles(ownerToUse,type,synced);
+                    return _workspaceFileDAO.getWorkspaceFiles(ownerToUse,type,isFailed,synced);
                 }
                 _log.log(Level.INFO, "calling getWorkspaceFilesById: {0}", 
                         workspaceFileIdList);
@@ -152,7 +156,7 @@ public class WorkspaceFileRestService {
                 if (workspaceFileIdList == null){
                     _log.log(Level.INFO,"calling getWorkspaceFiles");
                     return _workspaceFileDAO.getWorkspaceFiles(user.getLoginToRunJobAs(),
-                            type,synced);
+                            type,isFailed,synced);
                 }
                 throw new Exception("Workspace files by id is NOT currently supported with only LIST_THEIR_WORKSPACEFILES permission");
             }
@@ -175,13 +179,14 @@ public class WorkspaceFileRestService {
             @QueryParam(Constants.SOURCE_JOB_ID_QUERY_PARAM) final Long sourceJobId,
             @QueryParam(Constants.SYNCED_QUERY_PARAM) final Boolean synced,
             @QueryParam(Constants.TYPE_QUERY_PARAM) final String type,
+            @QueryParam(Constants.WS_FAILED_QUERY_PARAM)final Boolean isFailed,
             @QueryParam(Constants.USER_LOGIN_PARAM) final String userLogin,
             @QueryParam(Constants.USER_TOKEN_PARAM) final String userToken,
             @QueryParam(Constants.USER_LOGIN_TO_RUN_AS_PARAM) final String userLoginToRunAs,
             @Context HttpServletRequest request) {
         
         List<WorkspaceFile> workspaceFileList = getWorkspaceFileList(owner,
-                workspaceFileIdList,sourceJobId,type,synced,
+                workspaceFileIdList,sourceJobId,type,isFailed,synced,
                 userLogin,userToken,userLoginToRunAs,request);
         if (workspaceFileList == null || workspaceFileList.isEmpty()){
             return "";
@@ -343,6 +348,7 @@ public class WorkspaceFileRestService {
     public WorkspaceFile updateWorkspaceFile(@PathParam(Constants.WORKSPACEFILE_ID_PATH_PARAM)final Long workspaceFileId,
             @QueryParam(Constants.PATH_QUERY_PARAM) final String path,
             @QueryParam(Constants.SIZE_QUERY_PARAM) final String size,
+            @QueryParam(Constants.WS_FAILED_QUERY_PARAM) final Boolean isFailed,
             @QueryParam(Constants.USER_LOGIN_PARAM) final String userLogin,
             @QueryParam(Constants.USER_TOKEN_PARAM) final String userToken,
             @QueryParam(Constants.USER_LOGIN_TO_RUN_AS_PARAM) final String userLoginToRunAs,
@@ -364,8 +370,8 @@ public class WorkspaceFileRestService {
                     adjustedPath = null;
                 }
                 
-                WorkspaceFile resWorkspaceFile = _workspaceFileDAO.updatePathAndSize(
-                        workspaceFileId,adjustedPath,size);
+                WorkspaceFile resWorkspaceFile = _workspaceFileDAO.updatePathSizeAndFailStatus(
+                        workspaceFileId,adjustedPath,size,isFailed);
                 return resWorkspaceFile;
             }
             throw new WebApplicationException(HttpServletResponse.SC_UNAUTHORIZED);
