@@ -82,7 +82,20 @@ public class TestWorkspaceFilePathSetterImpl {
     @Test
     public void testSetPathsWithNullJob() throws Exception {
         WorkspaceFilePathSetterImpl setter = new WorkspaceFilePathSetterImpl(null);
-        assertTrue(setter.setPaths(null) == false);
+        WorkspaceFilePathSetterStatus status = setter.setPaths(null);
+        assertTrue(status.getReason().equals("Job passed in is null"));
+        assertTrue(status.getSuggestedJobStatus().equals(Job.ERROR_STATUS));
+        assertFalse(status.isSuccessful());
+    }
+    
+    //test null job id
+    @Test
+    public void testSetPathsWithNullJobId() throws Exception {
+        WorkspaceFilePathSetterImpl setter = new WorkspaceFilePathSetterImpl(null);
+        WorkspaceFilePathSetterStatus status = setter.setPaths(new Job());
+        assertTrue(status.getReason().equals("Job id is null"));
+        assertTrue(status.getSuggestedJobStatus().equals(Job.ERROR_STATUS));
+        assertFalse(status.isSuccessful());
     }
     
     //test where no parameters is null
@@ -90,7 +103,11 @@ public class TestWorkspaceFilePathSetterImpl {
     public void testSetPathsWithNullParameters() throws Exception {
         WorkspaceFilePathSetterImpl setter = new WorkspaceFilePathSetterImpl(null);
         Job t = new Job();
-        assertTrue(setter.setPaths(t) == true);
+        t.setId(new Long(1));
+        WorkspaceFilePathSetterStatus status = setter.setPaths(t);
+        assertTrue(status.isSuccessful());
+        assertTrue(status.getReason().equals("Job 1 has no parameters"));
+        assertTrue(status.getSuggestedJobStatus().equals(Job.IN_QUEUE_STATUS));
     }
     
     //test where no parameters
@@ -98,8 +115,13 @@ public class TestWorkspaceFilePathSetterImpl {
     public void testSetPathsWithNoParameters() throws Exception {
         WorkspaceFilePathSetterImpl setter = new WorkspaceFilePathSetterImpl(null);
         Job t = new Job();
+        t.setId(new Long(1));
         t.setParameters(new ArrayList<Parameter>());
-        assertTrue(setter.setPaths(t) == true);
+        WorkspaceFilePathSetterStatus status = setter.setPaths(t);
+        assertTrue(status.isSuccessful());
+        assertTrue(status.getReason().equals("Job 1 has no parameters"));
+        assertTrue(status.getSuggestedJobStatus().equals(Job.IN_QUEUE_STATUS));
+        
     }
     
     //test where workspaceFileDAO is null
@@ -140,8 +162,10 @@ public class TestWorkspaceFilePathSetterImpl {
         p.setIsWorkspaceId(true);
         params.add(p);
         t.setParameters(params);
-        
-        assertTrue(setter.setPaths(t) == true);
+        WorkspaceFilePathSetterStatus status = setter.setPaths(t);
+        assertTrue(status.isSuccessful());
+        assertTrue(status.getReason().equals("Job 1 has no WorkspaceFile parameters that require paths to be set"));
+        assertTrue(status.getSuggestedJobStatus().equals(Job.IN_QUEUE_STATUS));
     }
     
     //test where getting map of workspace parameters throws exception
@@ -200,8 +224,11 @@ public class TestWorkspaceFilePathSetterImpl {
         p.setIsWorkspaceId(false);
         params.add(p);
         t.setParameters(params);
+        WorkspaceFilePathSetterStatus status = setter.setPaths(t);
+        assertTrue(status.isSuccessful());
         
-        assertTrue(setter.setPaths(t) == true);
+        assertTrue(status.getReason().equals("Job 1 has no WorkspaceFile parameters that require paths to be set"));
+        assertTrue(status.getSuggestedJobStatus().equals(Job.IN_QUEUE_STATUS));
     }
     
     //test with workspacefile parameters, but value is not a Long
@@ -251,10 +278,13 @@ public class TestWorkspaceFilePathSetterImpl {
         params.add(p);
         
         t.setParameters(params);
-        assertTrue(setter.setPaths(t) == true);
+        WorkspaceFilePathSetterStatus status = setter.setPaths(t);
+        assertTrue(status.isSuccessful());
         
         //verify path was adjusted
         assertTrue(p.getValue().equals("path"));
+        assertTrue(status.getReason() == null);
+        assertTrue(status.getSuggestedJobStatus().equals(Job.IN_QUEUE_STATUS));
         
     }
     
@@ -288,7 +318,93 @@ public class TestWorkspaceFilePathSetterImpl {
         params.add(p);
         
         t.setParameters(params);
-        assertTrue(setter.setPaths(t) == false);
+        WorkspaceFilePathSetterStatus status = setter.setPaths(t);
+
+        assertFalse(status.isSuccessful());
+        assertTrue(status.getReason(),status.getReason().equals("Path is null for WorkspaceFile 456, a parameter for job 1"));
+        assertTrue(status.getSuggestedJobStatus().equals(Job.WORKSPACE_SYNC_STATUS));
+        verify(workspaceDAO).getWorkspaceFilesById("123,456", null);
+    }
+    
+    //test with workspacefile parameters, but one or more dont exist in map
+     @Test
+    public void testSetPathsWhereWorkspaceFileFailed() throws Exception {
+        WorkspaceFileDAO workspaceDAO = mock(WorkspaceFileDAO.class);
+        ArrayList<WorkspaceFile> wspFileList = new ArrayList<>();
+        WorkspaceFile wsf = new WorkspaceFile();
+        wsf.setId(new Long(123));
+        wsf.setPath("path");
+        wsf.setFailed(Boolean.FALSE);
+        wspFileList.add(wsf);
+        wsf = new WorkspaceFile();
+        wsf.setId(new Long(456));
+        wsf.setPath("path2");
+        wsf.setFailed(Boolean.TRUE);
+        wspFileList.add(wsf);
+        when(workspaceDAO.getWorkspaceFilesById("123,456", null)).thenReturn(wspFileList);
+        WorkspaceFilePathSetterImpl setter = new WorkspaceFilePathSetterImpl(workspaceDAO);
+                
+        Job t = new Job();
+        t.setId(new Long(1));
+        ArrayList<Parameter> params = new ArrayList<>();
+        Parameter p = new Parameter();
+        p.setName("foo");
+        p.setValue("123");
+        p.setIsWorkspaceId(true);
+        params.add(p);
+        p = new Parameter();
+        p.setName("foo2");
+        p.setValue("456");
+        p.setIsWorkspaceId(true);
+        params.add(p);
+        
+        t.setParameters(params);
+        WorkspaceFilePathSetterStatus status = setter.setPaths(t);
+
+        assertFalse(status.isSuccessful());
+        assertTrue(status.getReason(),status.getReason().equals("WorkspaceFile 456 failed, a parameter for job 1"));
+        assertTrue(status.getSuggestedJobStatus().equals(Job.ERROR_STATUS));
+        verify(workspaceDAO).getWorkspaceFilesById("123,456", null);
+    }
+    
+    //test with workspacefile parameters, but one or more dont exist in map
+     @Test
+    public void testSetPathsWhereWorkspaceFileFailedAndPathIsNull() throws Exception {
+        WorkspaceFileDAO workspaceDAO = mock(WorkspaceFileDAO.class);
+        ArrayList<WorkspaceFile> wspFileList = new ArrayList<>();
+        WorkspaceFile wsf = new WorkspaceFile();
+        wsf.setId(new Long(123));
+        wsf.setPath("path");
+        wsf.setFailed(Boolean.FALSE);
+        wspFileList.add(wsf);
+        wsf = new WorkspaceFile();
+        wsf.setId(new Long(456));
+        wsf.setPath(null);
+        wsf.setFailed(Boolean.TRUE);
+        wspFileList.add(wsf);
+        when(workspaceDAO.getWorkspaceFilesById("123,456", null)).thenReturn(wspFileList);
+        WorkspaceFilePathSetterImpl setter = new WorkspaceFilePathSetterImpl(workspaceDAO);
+                
+        Job t = new Job();
+        t.setId(new Long(1));
+        ArrayList<Parameter> params = new ArrayList<>();
+        Parameter p = new Parameter();
+        p.setName("foo");
+        p.setValue("123");
+        p.setIsWorkspaceId(true);
+        params.add(p);
+        p = new Parameter();
+        p.setName("foo2");
+        p.setValue("456");
+        p.setIsWorkspaceId(true);
+        params.add(p);
+        
+        t.setParameters(params);
+        WorkspaceFilePathSetterStatus status = setter.setPaths(t);
+
+        assertFalse(status.isSuccessful());
+        assertTrue(status.getReason(),status.getReason().equals("Path is null for WorkspaceFile 456, a parameter for job 1 and WorkSpaceFile is set to failed status"));
+        assertTrue(status.getSuggestedJobStatus().equals(Job.ERROR_STATUS));
         verify(workspaceDAO).getWorkspaceFilesById("123,456", null);
     }
     
@@ -301,9 +417,7 @@ public class TestWorkspaceFilePathSetterImpl {
         wsf.setId(new Long(123));
         wsf.setPath("path");
         wspFileList.add(wsf);
-        wsf = new WorkspaceFile();
-        wsf.setId(new Long(456));
-        wspFileList.add(wsf);
+       
         when(workspaceDAO.getWorkspaceFilesById("123,456", null)).thenReturn(wspFileList);
         
         WorkspaceFilePathSetterImpl setter = new WorkspaceFilePathSetterImpl(workspaceDAO);
@@ -323,7 +437,11 @@ public class TestWorkspaceFilePathSetterImpl {
         params.add(p);
         
         t.setParameters(params);
-        assertTrue(setter.setPaths(t) == false);
+        WorkspaceFilePathSetterStatus status = setter.setPaths(t);
+
+        assertFalse(status.isSuccessful());
+        assertTrue(status.getReason(),status.getReason().equals("No WorkspaceFile with id 456 found for job 1"));
+        assertTrue(status.getSuggestedJobStatus().equals(Job.ERROR_STATUS));
         verify(workspaceDAO).getWorkspaceFilesById("123,456", null);
     }
 }
