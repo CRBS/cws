@@ -48,33 +48,35 @@ import static edu.ucsd.crbs.cws.App.RUN_AS_ARG;
 import static edu.ucsd.crbs.cws.App.TOKEN_ARG;
 import edu.ucsd.crbs.cws.auth.Permission;
 import edu.ucsd.crbs.cws.auth.User;
+import edu.ucsd.crbs.cws.cluster.JobEmailNotificationData;
 import edu.ucsd.crbs.cws.cluster.JobPath;
 import edu.ucsd.crbs.cws.cluster.JobPathImpl;
-import edu.ucsd.crbs.cws.cluster.MapOfJobStatusFactoryImpl;
 import edu.ucsd.crbs.cws.cluster.JobStatusUpdater;
 import edu.ucsd.crbs.cws.cluster.JobSubmitter;
+import edu.ucsd.crbs.cws.cluster.MapOfJobStatusFactoryImpl;
 import edu.ucsd.crbs.cws.cluster.OutputWorkspaceFileUtil;
 import edu.ucsd.crbs.cws.cluster.OutputWorkspaceFileUtilImpl;
 import edu.ucsd.crbs.cws.cluster.WorkspaceFilePathSetterImpl;
 import edu.ucsd.crbs.cws.dao.WorkflowDAO;
-import edu.ucsd.crbs.cws.cluster.JobEmailNotificationData;
 import edu.ucsd.crbs.cws.dao.rest.JobRestDAOImpl;
 import edu.ucsd.crbs.cws.dao.rest.WorkflowRestDAOImpl;
 import edu.ucsd.crbs.cws.dao.rest.WorkspaceFileRestDAOImpl;
 import edu.ucsd.crbs.cws.io.KeplerMomlFromKar;
+import edu.ucsd.crbs.cws.io.WorkflowFailedParser;
+import edu.ucsd.crbs.cws.io.WorkflowFailedParserImpl;
 import edu.ucsd.crbs.cws.jerseyclient.MultivaluedMapFactory;
 import edu.ucsd.crbs.cws.jerseyclient.MultivaluedMapFactoryImpl;
 import edu.ucsd.crbs.cws.log.Event;
 import edu.ucsd.crbs.cws.rest.Constants;
 import edu.ucsd.crbs.cws.util.RunCommandLineProcess;
 import edu.ucsd.crbs.cws.util.RunCommandLineProcessImpl;
-import edu.ucsd.crbs.cws.workflow.Parameter;
 import edu.ucsd.crbs.cws.workflow.Job;
+import edu.ucsd.crbs.cws.workflow.Parameter;
 import edu.ucsd.crbs.cws.workflow.VersionOneWorkflowXmlWriter;
 import edu.ucsd.crbs.cws.workflow.Workflow;
+import edu.ucsd.crbs.cws.workflow.WorkflowFromAnnotatedVersionTwoFourMomlXmlFactory;
 import edu.ucsd.crbs.cws.workflow.WorkflowParameter;
 import edu.ucsd.crbs.cws.workflow.WorkspaceFile;
-import edu.ucsd.crbs.cws.workflow.WorkflowFromAnnotatedVersionTwoFourMomlXmlFactory;
 import java.io.BufferedInputStream;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -183,6 +185,8 @@ public class App {
     
     public static final String BCC_EMAIL_ARG = "bccemail";
     
+    public static final String WORKSPACE_FILE_FAILED_ARG="workspacefilefailed";
+    
     
 
     //public static final String LOAD_TEST = "loadtest";
@@ -246,6 +250,7 @@ public class App {
                     accepts(PORTAL_URL_ARG,"Portal url ie http://slashsegmentation.com Used with --"+SYNC_WITH_CLUSTER_ARG).withRequiredArg().ofType(String.class);
                     accepts(HELP_EMAIL_ARG,"Help and reply to email address Used with --"+SYNC_WITH_CLUSTER_ARG).withRequiredArg().ofType(String.class);
                     accepts(BCC_EMAIL_ARG,"Blind Carbon copy email address Used with --"+SYNC_WITH_CLUSTER_ARG).withRequiredArg().ofType(String.class);    
+                    accepts(WORKSPACE_FILE_FAILED_ARG,"Denotes whether workspacefile failed (true) or not (false).  Used with --"+UPDATE_PATH_ARG).withRequiredArg().ofType(Boolean.class).describedAs("false = success and true = failed");
                     accepts(HELP_ARG).forHelp();
                 }
             };
@@ -354,7 +359,7 @@ public class App {
                 Long workspaceId = (Long)optionSet.valueOf(RESAVE_WORKSPACEFILE_ARG);
                 if (workspaceId == -1){
                     System.out.println("Resaving all workspace files");
-                    List<WorkspaceFile> wsfList = workspaceFileDAO.getWorkspaceFiles(null,null, null);
+                    List<WorkspaceFile> wsfList = workspaceFileDAO.getWorkspaceFiles(null,null,null, null);
                     if (wsfList != null){
                         System.out.println("Found "+wsfList.size()+
                                 " workspace files to resave");
@@ -435,11 +440,16 @@ public class App {
                 if (optionSet.has(MD5_ARG)){
                     //wsp.setMd5((String)optionSet.valueOf(MD5_ARG));
                 }
+                Boolean isFailed = null;
+                
+                if (optionSet.has(WORKSPACE_FILE_FAILED_ARG)){
+                    isFailed = (Boolean)optionSet.valueOf(WORKSPACE_FILE_FAILED_ARG);
+                }
                 
                 WorkspaceFileRestDAOImpl workspaceFileDAO = new WorkspaceFileRestDAOImpl();
                 workspaceFileDAO.setUser(u);
                 workspaceFileDAO.setRestURL((String)optionSet.valueOf(URL_ARG));
-                workspaceFileDAO.updatePathAndSize(Long.parseLong(workspaceId), path,size);
+                workspaceFileDAO.updatePathSizeAndFailStatus(Long.parseLong(workspaceId), path,size,isFailed);
                
                 System.exit(0);
             }
@@ -516,11 +526,10 @@ public class App {
                 JobPath jobPath = new JobPathImpl(wfExecDir.getAbsolutePath());
                 WorkspaceFilePathSetterImpl pathSetter = new WorkspaceFilePathSetterImpl(workspaceFileDAO);
                 
-                OutputWorkspaceFileUtil  workspaceFileUtil = new OutputWorkspaceFileUtilImpl(workspaceFileDAO);
                 // Submit jobs to scheduler
                 JobSubmitter submitter = new JobSubmitter(jobDAO,
+                        workspaceFileDAO,
                         pathSetter,
-                        workspaceFileUtil,
                         jobPath,
                         wfDir.getAbsolutePath(),
                         keplerScript.getAbsolutePath(),
@@ -533,7 +542,10 @@ public class App {
                 
                 // Update job status for all jobs in system
                 MapOfJobStatusFactoryImpl jobStatusFactory = new MapOfJobStatusFactoryImpl(statPath);
-                JobStatusUpdater updater = new JobStatusUpdater(jobDAO, jobStatusFactory,workspaceFileUtil,jobPath);
+                
+                WorkflowFailedParser workflowFailedParser = new WorkflowFailedParserImpl();
+                JobStatusUpdater updater = new JobStatusUpdater(jobDAO, 
+                        jobStatusFactory,workflowFailedParser,jobPath);
                 updater.updateJobs();
 
                 System.exit(0);
@@ -747,6 +759,10 @@ public class App {
         
         if (optionSet.has(SIZE_ARG)){
             wsp.setSize((Long)optionSet.valueOf(SIZE_ARG));
+        }
+        
+        if (optionSet.has(WORKSPACE_FILE_FAILED_ARG)){
+             wsp.setFailed((Boolean)optionSet.valueOf(WORKSPACE_FILE_FAILED_ARG));
         }
 
         ObjectMapper om = new ObjectMapper();
