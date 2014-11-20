@@ -1,7 +1,7 @@
 
 
-#declare baseURL="http://localhost:8080"
-declare baseURL="https://crbsworkflow.appspot.com"
+declare baseURL="http://localhost:8080"
+#declare baseURL="https://crbsworkflow.appspot.com"
 declare user="chris"
 declare token="dc5902078cfa40b980229662c2e0c226"
 declare usertoken="userlogin=${user}&usertoken=${token}"
@@ -17,7 +17,7 @@ echo ""
 echo ""
 echo "Add new task be sure to replace XXXX with workflow id"
 # This adds a new task,  Be sure to set the workflow id (in XXXX) below!!!
-echo "curl -X POST -H \"Content-Type: application/json\" -d '{\"id\":null,\"name\":\"blah\",\"owner\":\"smith\",\"parameters\" : [ {\"name\" : \"CWS_outputdir\",\"value\" : \"well\"  },{\"name\" : \"CWS_user\",\"value\" : \"uh\"  },{\"name\" : \"CWS_jobname\",\"value\" : \"tasky\"  },{\"name\" :\"exampletext\",\"value\" : \"blah\"  }, {\"name\":\"examplecheckbox\",\"value\":\"false\"},{\"name\":\"examplefile\",\"value\":\"/path\"}],\"workflow\":{\"id\":XXXX}}' \"${baseURL}/rest/jobs?${usertoken}\""
+echo "curl -u ${user}:${token} -X POST -H \"Content-Type: application/json\" -d '{\"id\":null,\"name\":\"blah\",\"owner\":\"smith\",\"parameters\" : [ {\"name\" : \"CWS_outputdir\",\"value\" : \"well\"  },{\"name\" : \"CWS_user\",\"value\" : \"uh\"  },{\"name\" : \"CWS_jobname\",\"value\" : \"tasky\"  },{\"name\" :\"exampletext\",\"value\" : \"blah\"  }, {\"name\":\"examplecheckbox\",\"value\":\"false\"},{\"name\":\"examplefile\",\"value\":\"/path\"}],\"workflow\":{\"id\":XXXX}}' \"${baseURL}/rest/jobs?runasuser=smith\""
 
 echo ""
 echo ""
