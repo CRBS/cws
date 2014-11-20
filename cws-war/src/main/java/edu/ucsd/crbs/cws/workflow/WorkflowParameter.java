@@ -153,6 +153,8 @@ public class WorkflowParameter {
     private String _regex;
     private long _maxFileSize;
     private String _selected;
+    private String _allowedWorkspaceFileTypes;
+    private boolean _allowFailedWorkspaceFile = false;
 
     public WorkflowParameter(){
         
@@ -497,6 +499,22 @@ public class WorkflowParameter {
 
     public void setSelected(String selected) {
         _selected = selected;
+    }
+    
+    public String getAllowedWorkspaceFileTypes() {
+        return _allowedWorkspaceFileTypes;
+    }
+
+    public void setAllowedWorkspaceFileTypes(String allowedWorkspaceFileTypes) {
+        _allowedWorkspaceFileTypes = allowedWorkspaceFileTypes;
+    }
+
+    public boolean getAllowFailedWorkspaceFile() {
+        return _allowFailedWorkspaceFile;
+    }
+
+    public void setAllowFailedWorkspaceFile(boolean allowFailed) {
+        _allowFailedWorkspaceFile = allowFailed;
     }
 }
     
