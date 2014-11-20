@@ -104,32 +104,4 @@ public class OutputWorkspaceFileUtilImpl implements OutputWorkspaceFileUtil {
         _workspaceFileDAO.insert(wsp, false);
         return wsp;
     }
-    
-    /**
-     * Updates the path for the {@link WorkspaceFile} associated with the {@link Job} <b>j</b>
-     * passed in
-     * @param j {@link Job} that is used to search for {@link WorkspaceFile} objects by examining {@link WorkspaceFile#getSourceJobId()} that match
-     * @param outputDirectory Value to set in {@link WorkspaceFile#setPath(java.lang.String)}
-     * @return
-     * @throws Exception 
-     */
-    @Override
-    public WorkspaceFile updateJobOutputWorkspaceFilePath(Job j,final String outputDirectory) throws Exception {
-        
-        List<WorkspaceFile> wsfList = _workspaceFileDAO.getWorkspaceFilesBySourceJobId(j.getId());
-        if (wsfList == null){
-            return null;
-        }
-        
-        for (WorkspaceFile wsf : wsfList){
-            if (wsf.getDir() == true){
-                if (wsf.getPath() == null){
-                    return _workspaceFileDAO.updatePathAndSize(wsf.getId(), outputDirectory,null);
-                }
-            }
-        }
-        return null;
-    }
-
-
 }
