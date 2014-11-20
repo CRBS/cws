@@ -34,6 +34,7 @@ package edu.ucsd.crbs.cws.cluster;
 
 import edu.ucsd.crbs.cws.auth.User;
 import edu.ucsd.crbs.cws.dao.JobDAO;
+import edu.ucsd.crbs.cws.dao.WorkspaceFileDAO;
 import edu.ucsd.crbs.cws.workflow.Job;
 import edu.ucsd.crbs.cws.workflow.WorkspaceFile;
 import java.util.List;
@@ -47,6 +48,8 @@ import java.util.logging.Logger;
  */
 public class JobSubmitter {
 
+    
+    public static final String WORKSPACE_ERROR_MSG = "Job unable to start due to failure of WorkspaceFile used as input";
     private static final Logger _log
             = Logger.getLogger(JobSubmitter.class.getName());
 
@@ -55,15 +58,15 @@ public class JobSubmitter {
     JobCmdScriptSubmitter _cmdScriptSubmitter;
     SyncWorkflowFileToFileSystem _workflowSync;
     WorkspaceFilePathSetter _workspacePathSetter;
-    OutputWorkspaceFileUtil _outputWorkspaceFileCreator;
+    private WorkspaceFileDAO _workspaceFileDAO;
     private JobDAO _jobDAO;
 
     /**
      * Constructor
      *
      * @param jobDAO
+     * @param workspaceFileDAO
      * @param workspaceFilePathSetter
-     * @param outputWorkspaceFileCreator
      * @param jobPath
      * @param workflowsDir Directory where workflows are stored
      * @param keplerScript Full path to Kepler program
@@ -75,8 +78,8 @@ public class JobSubmitter {
      * @param emailNotifyData
      */
     public JobSubmitter(JobDAO jobDAO,
+            WorkspaceFileDAO workspaceFileDAO,
             WorkspaceFilePathSetter workspaceFilePathSetter,
-            OutputWorkspaceFileUtil outputWorkspaceFileCreator,
             JobPath jobPath,
             final String workflowsDir,
             final String keplerScript,
@@ -95,9 +98,9 @@ public class JobSubmitter {
         _cmdScriptSubmitter = new JobCmdScriptSubmitterImpl(panfishCast, queue);
         _workflowSync = new SyncWorkflowFileToFileSystemImpl(workflowsDir, url, user.getLogin(), user.getToken());
         _workspacePathSetter = workspaceFilePathSetter;
-        _outputWorkspaceFileCreator = outputWorkspaceFileCreator;
-
         _jobDAO = jobDAO;
+        _workspaceFileDAO = workspaceFileDAO;
+        
     }
 
     /**
@@ -111,7 +114,9 @@ public class JobSubmitter {
         _log.log(Level.INFO, "Looking for new jobs to submit...");
 
         List<Job> jobs = _jobDAO.getJobs(null, null, true, false, false);
-
+        WorkspaceFilePathSetterStatus status = null;
+        String error = null;
+        String detailedError = null;
         if (jobs != null) {
             _log.log(Level.INFO, "Found {0} job(s) need to be submitted", jobs.size());
             for (Job j : jobs) {
@@ -120,18 +125,31 @@ public class JobSubmitter {
                     
                     //check if workspace files are syncd.  If not update status
                     // to workspace sync and move on to the next Job
-                    if (_workspacePathSetter.setPaths(j) == false) {
-                        _log.log(Level.INFO,"Workspace files are NOT in place for job {0} skipping...",
-                                 j.getId());
-
-                        if (!j.getStatus().equals(Job.WORKSPACE_SYNC_STATUS)) {
-                            _log.log(Level.INFO,"Updating status for job {0} to sync",
-                                     j.getId());
-    
-                            _jobDAO.update(j.getId(), Job.WORKSPACE_SYNC_STATUS, null, null, null,
+                    status = _workspacePathSetter.setPaths(j);
+                    if (status.isSuccessful() == false) {
+                        
+                        if (!j.getStatus().equals(status.getSuggestedJobStatus())) {
+                            _log.log(Level.INFO,"\tUpdating status for job {0} to {1}",
+                                     new Object[]{j.getId(),status.getSuggestedJobStatus()});
+                            
+                            
+                            error = null;
+                            detailedError = null;
+                            //if new status is error we need to set isFailed to true for the
+                            //workspace file associated with this job
+                            if (status.getSuggestedJobStatus().equals(Job.ERROR_STATUS)){
+                                Long wsfId = this.getJobsWorkspaceId(j);
+                                _workspaceFileDAO.updatePathSizeAndFailStatus(wsfId, null, null, Boolean.TRUE);
+                                error = WORKSPACE_ERROR_MSG;
+                                detailedError = status.getReason();
+                            }
+                            
+                            _jobDAO.update(j.getId(), status.getSuggestedJobStatus(), null, null, null,
                                     null, null, null, false,
-                                    null);
+                                    null,null,error,detailedError);
                         }
+                        _log.log(Level.INFO,"\tSkipping submission of Job ({1}) {2} : {3}",
+                                new Object[]{j.getId(),j.getName(),status.getReason()});
                         continue;
                     }
 
@@ -142,25 +160,41 @@ public class JobSubmitter {
 
                     _jobDAO.update(j.getId(), Job.PENDING_STATUS, null, null, null,
                             j.getSubmitDate().getTime(), null, null, true,
-                            j.getSchedulerJobId());
+                            j.getSchedulerJobId(),null,null,null);
                 } catch (Exception ex) {
                     _log.log(Level.SEVERE,
-                            "Problems submitting job: {0} -- {1}.  Skipping...",
-                            new Object[]{j.getId(), ex.getMessage()});
+                            "\tProblems submitting job: ({0}) {1} -- {2}.  Skipping...",
+                            new Object[]{j.getId(),j.getName(), ex.getMessage()});
                 }
             }
         } else {
             _log.log(Level.INFO, "No jobs need to be submitted");
         }
     }
-
+    
     private void submitJob(Job j) throws Exception {
         _workflowSync.sync(j.getWorkflow());
         String jobDir = _directoryCreator.create(j);
-        String cmdScript = _cmdScriptCreator.create(jobDir, j);
+        
+        String cmdScript = _cmdScriptCreator.create(jobDir, j,
+                getJobsWorkspaceId(j));
         
         String submitOut = _cmdScriptSubmitter.submit(cmdScript, j);
-        _log.log(Level.INFO,"Output from submit command: {0}",submitOut);
+        _log.log(Level.INFO,"\tOutput from submit command: {0}",submitOut);
         
     }
+    
+    private Long getJobsWorkspaceId(Job j) throws Exception {
+        List<WorkspaceFile> wsfList = _workspaceFileDAO.getWorkspaceFilesBySourceJobId(j.getId());
+        if (wsfList == null){
+            throw new Exception("No WorkspaceFile for job "+j.getId()+" "+j.getName());
+        }
+        
+        if (wsfList.size() != 1){
+            throw new Exception("\tExpected 1 WorkspaceFile for job"+j.getId()+" "+
+                    j.getName()+", but got: "+wsfList.size());
+        }
+        return wsfList.get(0).getId();
+    }
+    
 }
