@@ -52,9 +52,9 @@ public interface WorkspaceFilePathSetter {
      * {@link Parameter#getValue()}. 
      * 
      * @param j Job to update 
-     * @return true if all files were successfully updated, otherwise false.
+     * @return WorkspaceFilePathSetterStatus
      * @throws Exception 
      */
-    public boolean setPaths(Job j) throws Exception;
+    public WorkspaceFilePathSetterStatus setPaths(Job j) throws Exception;
     
 }
