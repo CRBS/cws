@@ -77,18 +77,20 @@ public class TestParameterWithError {
         assertTrue(pwe.getName() == null);
         assertTrue(pwe.getValue() == null);
         
-        pwe = new ParameterWithError(new Parameter(),"error");
-        assertTrue(pwe.getError().equals("error"));
+        pwe = new ParameterWithError(new Parameter(),"error : For input \"\"");
+        assertTrue(pwe.getError().equals("error : For input \"\""));
         assertTrue(pwe.getName() == null);
         assertTrue(pwe.getValue() == null);
+        assertTrue(pwe.asString(),pwe.asString().equals("name=null,value=null,error=error : For input ''"));
         
         Parameter p = new Parameter();
         p.setName("name");
-        p.setValue("value");
+        p.setValue("value\"");
         pwe = new ParameterWithError(p,"error");
         assertTrue(pwe.getError().equals("error"));
         assertTrue(pwe.getName().equals("name"));
-        assertTrue(pwe.getValue().equals("value"));
+        assertTrue(pwe.getValue().equals("value\""));
+         assertTrue(pwe.asString(),pwe.asString().equals("name=name,value=value',error=error"));
     }
     
     @Test

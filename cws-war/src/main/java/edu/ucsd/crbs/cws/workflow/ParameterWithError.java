@@ -95,12 +95,12 @@ public class ParameterWithError extends Parameter  {
         
         StringBuilder sb = new StringBuilder();
         
-        sb.append(summary).append(",error=");
+        sb.append(summary.replaceAll("\"","'")).append(",error=");
         if (_error == null){
             sb.append("null");
         }
         else {
-            sb.append(_error);
+            sb.append(_error.replaceAll("\"","'"));
         }
         return sb.toString();
     }
