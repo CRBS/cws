@@ -62,7 +62,7 @@ public class WorkflowFailedParserImpl implements WorkflowFailedParser {
      * {@value Constants#DETAILED_ERROR_MESSAGE_KEY}<p/>
      * 
      * @param path Path to directory containing {@link Constants#WORKFLOW_FAILED_FILE} file or path to a file
-     * @throws Exception 
+     * @throws Exception if there is an error reading the file or if <b>path</b> passed in is null
      */
     @Override
     public void setPath(String path) throws Exception {
@@ -70,6 +70,10 @@ public class WorkflowFailedParserImpl implements WorkflowFailedParser {
         _exists = false;
         _error = null;
         _detailedError = null;
+        
+        if (path == null){
+            throw new Exception("Path is null");
+        }
         
         File checkPath = new File(path);
         File fileCheck = checkPath;
