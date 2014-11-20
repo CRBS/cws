@@ -59,6 +59,7 @@ public class TestJob {
         assertTrue(t.getDownloadURL() == null);
         assertTrue(t.getError() == null);
         assertTrue(t.getParametersWithErrors() == null);
+        assertTrue(t.getDetailedError() == null);
         
         t.setId(new Long(5));
         t.setName("name");
@@ -81,6 +82,7 @@ public class TestJob {
         t.setDownloadURL("download");
         t.setError("error");
         t.setParametersWithErrors(new ArrayList<ParameterWithError>());
+        t.setDetailedError("detailed");
         
         assertTrue(t.getId().longValue() == 5);
         assertTrue(t.getName().equals("name"));
@@ -98,6 +100,7 @@ public class TestJob {
         assertTrue(t.getDownloadURL().equals("download"));
         assertTrue(t.getError().equals("error"));
         assertTrue(t.getParametersWithErrors().isEmpty() == true);
+        assertTrue(t.getDetailedError().equals("detailed"));
                 
     }
 

@@ -121,7 +121,8 @@ public class Job  {
     @Index private boolean _deleted;
     private String _downloadURL;
     private List<Parameter> _parameters;
-    @Ignore private String _error;
+    private String _error;
+    private String _detailedError;
     @Ignore private List<ParameterWithError> _parametersWithErrors;
 
     /**
@@ -315,6 +316,14 @@ public class Job  {
         _deleted = deleted;
     }
 
+    public String getDetailedError() {
+        return _detailedError;
+    }
+
+    public void setDetailedError(String detailedError) {
+        _detailedError = detailedError;
+    }
+    
     /**
      * Adds a {@link ParameterWithError} to error list.  If list is null a new one is created
      * @param param Parameter to add
@@ -348,5 +357,6 @@ public class Job  {
         }
         return sb.toString();
     }
+    
     
 }
