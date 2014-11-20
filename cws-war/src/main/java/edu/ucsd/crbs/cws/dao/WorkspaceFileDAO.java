@@ -50,7 +50,7 @@ public interface WorkspaceFileDAO {
      * @return
      * @throws Exception 
      */
-    public List<WorkspaceFile> getWorkspaceFiles(final String owner,final String type,
+    public List<WorkspaceFile> getWorkspaceFiles(final String owner,final String type,final Boolean isFailed,
             final Boolean synced) throws Exception;
     
     /**
@@ -92,7 +92,7 @@ public interface WorkspaceFileDAO {
      * @return
      * @throws Exception 
      */
-    public WorkspaceFile updatePathAndSize(long workspaceFileId,final String path,final String size) throws Exception;
+    public WorkspaceFile updatePathSizeAndFailStatus(long workspaceFileId,final String path,final String size,final Boolean isFailed) throws Exception;
 
     /**
      * Updates data store with <b>wsp</b> {@link WorkspaceFile}  The {@link WorkspaceFile#getId()} must

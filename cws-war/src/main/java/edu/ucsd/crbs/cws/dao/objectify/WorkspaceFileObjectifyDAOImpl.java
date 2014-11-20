@@ -87,7 +87,7 @@ public class WorkspaceFileObjectifyDAOImpl implements WorkspaceFileDAO {
     
     @Override
     public List<WorkspaceFile> getWorkspaceFiles(final String owner,final String type,
-            final Boolean synced) throws Exception {
+            final Boolean isFailed,final Boolean synced) throws Exception {
 
         Query<WorkspaceFile> q = ofy().load().type(WorkspaceFile.class);
 
@@ -97,6 +97,10 @@ public class WorkspaceFileObjectifyDAOImpl implements WorkspaceFileDAO {
         
         if (type != null){
             q = q.filter("_type in ",Arrays.asList(type.split(",")));
+        }
+        
+        if (isFailed != null){
+            q = q.filter("_failed ==",isFailed.booleanValue());
         }
 
         if (synced != null) {
@@ -199,8 +203,8 @@ public class WorkspaceFileObjectifyDAOImpl implements WorkspaceFileDAO {
     }
 
     @Override
-    public WorkspaceFile updatePathAndSize(final long workspaceFileId, final String path,
-            final String size) throws Exception {
+    public WorkspaceFile updatePathSizeAndFailStatus(final long workspaceFileId, final String path,
+            final String size,final Boolean isFailed) throws Exception {
         WorkspaceFile resWsp;
         resWsp = ofy().transact(new Work<WorkspaceFile>() {
             @Override
@@ -234,7 +238,12 @@ public class WorkspaceFileObjectifyDAOImpl implements WorkspaceFileDAO {
                         update = true;
                     }
                 }
-
+                
+                if (isFailed != null && wsp.isFailed() != isFailed){
+                    wsp.setFailed(isFailed);
+                    update = true;
+                }
+                
                 if (update == true){
                     Key<WorkspaceFile> wspKey = ofy().save().entity(wsp).now();
                     return wsp;
