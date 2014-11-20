@@ -101,7 +101,8 @@ public interface JobDAO {
      */
     public Job update(long jobId,final String status,Long estCpu,Long estRunTime,
             Long estDisk,Long submitDate,Long startDate,Long finishDate,
-            Boolean submittedToScheduler,final String schedulerJobId) throws Exception;
+            Boolean submittedToScheduler,final String schedulerJobId,
+            final Boolean deleted,final String error,final String detailedError) throws Exception;
     
     
     /**

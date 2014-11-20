@@ -157,7 +157,11 @@ public class JobRestDAOImpl implements JobDAO {
     public Job update(long jobId, final String status, Long estCpu, Long estRunTime,
             Long estDisk, Long submitDate, Long startDate, Long finishDate,
             Boolean submittedToScheduler,
-            final String schedulerJobId) throws Exception {
+            final String schedulerJobId,
+            final Boolean deleted,
+            final String error,
+            final String detailedError) throws Exception {
+        
         ClientConfig cc = new DefaultClientConfig();
         cc.getClasses().add(StringProvider.class);
         Client client = Client.create(cc);
@@ -195,6 +199,18 @@ public class JobRestDAOImpl implements JobDAO {
 
         if (schedulerJobId != null) {
             queryParams.add(Constants.SCHEDULER_JOB_ID_QUERY_PARAM, schedulerJobId);
+        }
+        
+        if (deleted != null){
+            queryParams.add(Constants.DELETED_QUERY_PARAM, deleted.toString());
+        }
+        
+        if (error != null){
+            queryParams.add(Constants.ERROR_QUERY_PARAM,error);
+        }
+        
+        if (detailedError != null){
+            queryParams.add(Constants.DETAILED_ERROR_QUERY_PARAM,detailedError);
         }
 
         String json = resource.queryParams(queryParams)

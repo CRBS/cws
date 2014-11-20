@@ -210,7 +210,10 @@ public class JobObjectifyDAOImpl implements JobDAO {
             final Long estRunTime, final Long estDisk, final Long submitDate,
             final Long startDate, final Long finishDate,
             final Boolean submittedToScheduler,
-            final String schedulerJobId) throws Exception {
+            final String schedulerJobId,
+            final Boolean deleted,
+            final String error,
+            final String detailedError) throws Exception {
 
         Job resJob;
         resJob = ofy().transact(new Work<Job>() {
@@ -250,6 +253,18 @@ public class JobObjectifyDAOImpl implements JobDAO {
                 }
                 if (finishDate != null) {
                     job.setFinishDate(new Date(finishDate));
+                    jobNeedsToBeSaved = true;
+                }
+                if (deleted != null){
+                    job.setDeleted(deleted.booleanValue());
+                    jobNeedsToBeSaved = true;
+                }
+                if (error != null){
+                    job.setError(error);
+                    jobNeedsToBeSaved = true;
+                }
+                if (detailedError != null){
+                    job.setDetailedError(detailedError);
                     jobNeedsToBeSaved = true;
                 }
 
