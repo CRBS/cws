@@ -33,11 +33,14 @@
 
 package edu.ucsd.crbs.cws.cluster;
 
+import edu.ucsd.crbs.cws.io.StringEscaper;
+import edu.ucsd.crbs.cws.io.KeplerHtmlStringEscaper;
+import edu.ucsd.crbs.cws.io.ResourceToExecutableScriptWriter;
 import edu.ucsd.crbs.cws.io.ResourceToExecutableScriptWriterImpl;
 import edu.ucsd.crbs.cws.io.StringReplacer;
 import edu.ucsd.crbs.cws.rest.Constants;
-import edu.ucsd.crbs.cws.workflow.Parameter;
 import edu.ucsd.crbs.cws.workflow.Job;
+import edu.ucsd.crbs.cws.workflow.Parameter;
 import java.io.File;
 import java.util.LinkedHashMap;
 
@@ -155,8 +158,6 @@ public class JobCmdScriptCreatorImpl implements JobCmdScriptCreator, StringRepla
      */
     private String _workingDir;
     
-    private String _registerOutputWorkspaceFile;
-    
     private String _updateOutputWorkspaceFilePath;
 
     private String _registerUpdateJar;
@@ -171,16 +172,12 @@ public class JobCmdScriptCreatorImpl implements JobCmdScriptCreator, StringRepla
     
     private JobEmailNotificationData _emailNotifyData;
     
-    
-    
-    
-    /**
-     * Contains a mapping of ASCII characters to HTML escape codes.  This
-     * is needed to replace certain characters with special characters when
-     * passing arguments to Kepler script
-     */
-    private final LinkedHashMap<String, String> m_EscapeMap;
+    private ResourceToExecutableScriptWriter _resToFile;
 
+    private StringEscaper _stringEscaper;
+
+    private String _java;
+    
     /**
      * Replaces occurrences of @@JOB_ARGS@@ @@KEPLER_SH@@ with correct values
      *
@@ -191,8 +188,7 @@ public class JobCmdScriptCreatorImpl implements JobCmdScriptCreator, StringRepla
     public String replace(String line) {
         return line.replace(KEPLER_SH_TOKEN, _keplerScript).
                 replace(JOB_ARGS_TOKEN, _jobArgs).
-                replace(JAVA_TOKEN,"java").
-                replace(REGISTER_OUTPUT_TO_WORKSPACE_TOKEN,_registerOutputWorkspaceFile).
+                replace(JAVA_TOKEN,_java).
                 replace(UPDATE_WORKSPACE_PATH_TOKEN,_updateOutputWorkspaceFilePath).
                 replace(JOB_NAME_TOKEN,_jobName).
                 replace(USER_TOKEN,_user).
@@ -215,22 +211,22 @@ public class JobCmdScriptCreatorImpl implements JobCmdScriptCreator, StringRepla
         _workflowsDir = workflowsDir;
         _keplerScript = keplerScript;
         _registerUpdateJar = registerUpdateJar;
-        m_EscapeMap = new LinkedHashMap<>();
-        m_EscapeMap.put("&", "&#38;");
-        m_EscapeMap.put(" ", "&#32;");
-        m_EscapeMap.put("[!]", "&#33;");
-        m_EscapeMap.put("\"", "&#34;");
-        m_EscapeMap.put("%", "&#37;");
-
-        m_EscapeMap.put("'", "&#39;");
-        m_EscapeMap.put("[(]", "&#40;");
-        m_EscapeMap.put("[)]", "&#41;");
-        m_EscapeMap.put("[*]", "&#42;");
-        //m_EscapeMap.put("/","&#47;");
-
-        m_EscapeMap.put("<", "&#60;");
-        m_EscapeMap.put("=", "&#61;");
-        m_EscapeMap.put(">", "&#62;");
+        
+        _resToFile = new ResourceToExecutableScriptWriterImpl();
+        _stringEscaper = new KeplerHtmlStringEscaper();
+        _java = "java";
+    }
+    
+    public void setJavaBinaryPath(final String path){
+        _java = path;
+    }
+    
+    public void setResourceToExecutableScriptWriter(ResourceToExecutableScriptWriter scriptWriter){
+        _resToFile = scriptWriter;
+    }
+    
+    public void setStringEscaper(StringEscaper stringEscaper){
+        _stringEscaper = stringEscaper;
     }
 
     /**
@@ -239,14 +235,31 @@ public class JobCmdScriptCreatorImpl implements JobCmdScriptCreator, StringRepla
      * @param jobDirectory Should be set to base directory of Workflow JOb and 
      * there should exist a {@link Constants.OUTPUS_DIR_NAME} within this directory
      * @param j Job to run
-     * @return Full path to {@link JOB_CMD_SH} script that can be used to run the JOb
+     * @param workspaceFileId
+     * @return Full path to {@link JOB_CMD_SH} script that can be used to run the Job
      * @throws Exception If there is an error, duh
      */
     @Override
-    public String create(final String jobDirectory, Job j) throws Exception {
+    public String create(final String jobDirectory, Job j,Long workspaceFileId) throws Exception {
+        
+        if (jobDirectory == null){
+            throw new Exception("Job Directory cannot be null");
+        }
+        
+        if (j == null){
+            throw new Exception("Job cannot be null");
+        }
         
         _workingDir = jobDirectory + File.separator + Constants.OUTPUTS_DIR_NAME;
 
+        if (j.getWorkflow() == null){
+            throw new Exception("Workflow cannot be null");
+        }
+        
+        if (j.getWorkflow().getId() == null){
+            throw new Exception("Workflow id cannot be null");
+        }
+        
         _jobArgs = generateJobArguments(j);
 
         
@@ -273,26 +286,16 @@ public class JobCmdScriptCreatorImpl implements JobCmdScriptCreator, StringRepla
         
         setUserEmail(j);
         
-        _registerOutputWorkspaceFile = " -jar "+_registerUpdateJar+
-                " --registerfile \""+_workingDir+"\" --jobid "+j.getId()+
-                " --name \""+j.getName()+" [Job Output]\""+
-                " --owner \""+j.getOwner()+"\""+
-                " --type \""+j.getWorkflow().getName()+"\""+
-                " --description \"Output of Workflow Job ("+j.getId()+
-                ") [Workflow Ver "+j.getWorkflow().getVersion()+" ]\" >> "+
-                jobDirectory+File.separator+REGISTER_WSF_OUTPUT+" 2>&1";
-        
         _updateOutputWorkspaceFilePath = " -jar "+_registerUpdateJar+
-                " --updatepath \"`cat "+jobDirectory+File.separator+REGISTER_WSF_OUTPUT+" | sed \"s/^Workspace.*: //\"`\""+
+                " --updatepath \""+workspaceFileId.toString()+"\""+
                 " --path \""+_workingDir+"\""+
-                " --size `du "+_workingDir+" -bs | sed \"s/\\W*\\/.*//\"` >> "+
-                jobDirectory+File.separator+UPDATE_WSF_OUTPUT+" 2>&1";
-        
-        ResourceToExecutableScriptWriterImpl resToFile = new ResourceToExecutableScriptWriterImpl();
+                " --size `du "+_workingDir+
+                " -bs | sed \"s/\\W*\\/.*//\"` $workspaceStatusFlag >> "+
+                jobDirectory+File.separator+UPDATE_WSF_OUTPUT+" 2>&1";        
 
         String jobCmd = _workingDir + File.separator + JOB_CMD_SH;
 
-        resToFile.writeResourceToScript(JOB_CMD_SH_TEMPLATE,
+        _resToFile.writeResourceToScript(JOB_CMD_SH_TEMPLATE,
                 jobCmd, this);
 
         return jobCmd;
@@ -328,24 +331,27 @@ public class JobCmdScriptCreatorImpl implements JobCmdScriptCreator, StringRepla
         sb.append(KEPLER_RUN_CMDLINE_ARGS).append(_workingDir);
 
         String value;
-        //append all command line arguments
-        for (Parameter param : j.getParameters()) {
+        
+        if (j.getParameters() != null) {
+            //append all command line arguments
+            for (Parameter param : j.getParameters()) {
 
-            //need to deal with special parameters!!!
-            if (param.getName().equals(Constants.CWS_OUTPUTDIR)) {
-                value = _workingDir;
-            } else if (param.getName().equals(Constants.CWS_JOBNAME)) {
-                value = j.getName();
-            } else if (param.getName().equals(Constants.CWS_USER)) {
-                value = j.getOwner();
-            } else if (param.getName().equals(Constants.CWS_JOBID)){
-                value = j.getId().toString();
-            } else {
-                value = param.getValue();
+                //need to deal with special parameters!!!
+                if (param.getName().equals(Constants.CWS_OUTPUTDIR)) {
+                    value = _workingDir;
+                } else if (param.getName().equals(Constants.CWS_JOBNAME)) {
+                    value = j.getName();
+                } else if (param.getName().equals(Constants.CWS_USER)) {
+                    value = j.getOwner();
+                } else if (param.getName().equals(Constants.CWS_JOBID)) {
+                    value = j.getId().toString();
+                } else {
+                    value = param.getValue();
+                }
+
+                sb.append(SPACE).append(HYPHEN).append(param.getName()).append(SPACE);
+                sb.append("\"").append(_stringEscaper.escapeString(value)).append("\"");
             }
-
-            sb.append(SPACE).append(HYPHEN).append(param.getName()).append(SPACE);
-            sb.append("\"").append(escapeString(value)).append("\"");
         }
 
         //add path to workflow
@@ -354,23 +360,5 @@ public class JobCmdScriptCreatorImpl implements JobCmdScriptCreator, StringRepla
         sb.append(j.getWorkflow().getId()).append(WORKFLOW_SUFFIX);
 
         return sb.toString();
-    }
-
-    /**
-     * Replaces special characters with html codes otherwise the parameters dont
-     * get passed properly
-     * @param val source String
-     */
-    private String escapeString(final String val) {
-        if (val == null) {
-            return null;
-        }
-
-        String tmpVal = val;
-
-        for (String k : m_EscapeMap.keySet()) {
-            tmpVal = tmpVal.replaceAll(k, m_EscapeMap.get(k));
-        }
-        return tmpVal;
     }
 }
