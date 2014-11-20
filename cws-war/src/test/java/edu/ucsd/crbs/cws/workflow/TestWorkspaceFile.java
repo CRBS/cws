@@ -88,6 +88,7 @@ public class TestWorkspaceFile {
         assertTrue(wsp.getSourceJobId() == null);
         assertTrue(wsp.getBlobKey() == null);
         assertTrue(wsp.getUploadURL() == null);
+        assertTrue(wsp.isFailed() == false);
         
         wsp.setId(new Long(1));
         wsp.setName("name");
@@ -104,6 +105,7 @@ public class TestWorkspaceFile {
         wsp.setSourceJobId(new Long(3));
         wsp.setBlobKey("blobkey");
         wsp.setUploadURL("uploadurl");
+        wsp.setFailed(true);
         
         assertTrue(wsp.getId() == 1);
         assertTrue(wsp.getName().equals("name"));
@@ -119,6 +121,7 @@ public class TestWorkspaceFile {
         assertTrue(wsp.getSourceJobId() == 3);
         assertTrue(wsp.getBlobKey().equals("blobkey"));
         assertTrue(wsp.getUploadURL().equals("uploadurl"));
+        assertTrue(wsp.isFailed() == true);
         
     }
 

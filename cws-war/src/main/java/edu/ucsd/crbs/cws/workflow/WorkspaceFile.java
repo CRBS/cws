@@ -60,6 +60,7 @@ public class WorkspaceFile {
     @Index private String _path;
     @Index private Long _sourceJobId;
     @Index private String _blobKey;
+    @Index private boolean _failed = false;
     @Ignore private String _uploadURL;
     
     public Long getId() {
@@ -172,5 +173,13 @@ public class WorkspaceFile {
 
     public void setUploadURL(String _uploadURL) {
         this._uploadURL = _uploadURL;
+    }
+    
+    public boolean isFailed() {
+        return _failed;
+    }
+
+    public void setFailed(boolean failed) {
+        _failed = failed;
     }
 }
