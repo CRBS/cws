@@ -35,6 +35,8 @@ package edu.ucsd.crbs.cws.cluster;
 
 import edu.ucsd.crbs.cws.App;
 import edu.ucsd.crbs.cws.dao.JobDAO;
+import edu.ucsd.crbs.cws.io.WorkflowFailedParser;
+import edu.ucsd.crbs.cws.rest.Constants;
 import edu.ucsd.crbs.cws.workflow.Job;
 import java.io.File;
 import java.util.Date;
@@ -55,23 +57,24 @@ public class JobStatusUpdater {
 
     JobDAO _jobDAO;
     MapOfJobStatusFactory _jobStatusFactory;
-    private OutputWorkspaceFileUtil _outputWorkspaceFileUtil;
     private JobPath _jobPath;
+    WorkflowFailedParser _workflowFailedParser;
 
     /**
      * Constructor
      *
      * @param jobDAO Used to get Task objects and update Task objects
      * @param jobStatusFactory class to obtain status of Tasks from
-     * @param outputWorkspaceFileUtil
+     * @param workflowFailedParser
+     * @param jobPath
      */
     public JobStatusUpdater(JobDAO jobDAO,MapOfJobStatusFactory jobStatusFactory,
-            OutputWorkspaceFileUtil outputWorkspaceFileUtil,
+            WorkflowFailedParser workflowFailedParser,
             JobPath jobPath) {
         _jobDAO = jobDAO;
         _jobStatusFactory = jobStatusFactory;
-        _outputWorkspaceFileUtil = outputWorkspaceFileUtil;
         _jobPath = jobPath;
+        _workflowFailedParser = workflowFailedParser;
     }
 
     /**
@@ -82,6 +85,8 @@ public class JobStatusUpdater {
      */
     public void updateJobs() throws Exception {
 
+        String error;
+        String detailedError;
         _log.log(Level.INFO, "Updating status for uncompleted jobs...");
         List<Job> jobs = _jobDAO.getJobs(null, App.NOT_COMPLETED_STATUSES, false, false, false);
         if (jobs != null && jobs.isEmpty() == false) {
@@ -102,7 +107,8 @@ public class JobStatusUpdater {
                         
                         Long startDate = null;
                         Long finishDate = null;
-                        
+                        error = null;
+                        detailedError = null;
                         if (returnedStatus.equals(Job.RUNNING_STATUS)){
                             j.setStartDate(new Date());
                             startDate = j.getStartDate().getTime();
@@ -113,13 +119,14 @@ public class JobStatusUpdater {
                             
                             //check for WORKFLOW.FAILED.txt file and if it exists
                             //set status to failed.
-                            File workflowFailedFile = new File(_jobPath.getJobOutputDirectory(j)+
-                                    File.separator+"WORKFLOW.FAILED.txt");
-                            if (workflowFailedFile.exists()){
+                            _workflowFailedParser.setPath(_jobPath.getJobOutputDirectory(j));
+                            if (_workflowFailedParser.exists()){
                                 _log.log(Level.INFO,
-                                        "WORKFLOW.FAILED.txt found for job {0}"+
+                                        "{0} found for job {1}"+
                                         " setting status of job to error",
-                                        j.getId());
+                                        new Object[]{Constants.WORKFLOW_FAILED_FILE,j.getId()});
+                                error = _workflowFailedParser.getError();
+                                detailedError = _workflowFailedParser.getDetailedError();
                                 j.setStatus(Job.ERROR_STATUS);
                             }
                                    
@@ -128,7 +135,7 @@ public class JobStatusUpdater {
                         }
                         try {
                             _jobDAO.update(j.getId(), j.getStatus(), null, null, null,
-                                    null, startDate, finishDate, true, null);
+                                    null, startDate, finishDate, true, null,null,error,detailedError);
                         }
                         catch(Exception ex){
                            _log.log(Level.SEVERE,
