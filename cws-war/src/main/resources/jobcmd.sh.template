@@ -1,6 +1,8 @@
 #!/bin/bash
 # This script invokes kepler
 
+declare workflowFailedTxt="WORKFLOW.FAILED.txt"
+
 #
 # function called when USR2 signal is caught
 #
@@ -12,10 +14,10 @@ on_usr2() {
  done
  echo "endtime: $endTime" >> $jobLogFile 2>&1
  echo "exitcode: 100"  >> $jobLogFile 2>&1
- if [ -s "WORKFLOW.FAILED.txt" ] ; then
-   echo " Job received USR2 signal which in SGE" >> WORKFLOW.FAILED.txt
+ if [ -s "$workflowFailedTxt" ] ; then
+   echo -n " Job received USR2 signal which in SGE meant it is about to be killed" >> $workflowFailedTxt
  else
-   echo -e "simple.error.message=Job killed by scheduler\\ndetailed.error.message=Job received USR2 signal which in SGE means the job will be killed\\n" > WORKFLOW.FAILED.txt
+   echo -e "simple.error.message=Job killed by scheduler\\ndetailed.error.message=Job received USR2 signal which is the signal to exit\\n" > $workflowFailedTxt
  fi
  exit 100
 }
@@ -70,32 +72,36 @@ if [ "$EMAIL_ADDR" != "" ] ; then
   echo -e "${OUTEMAIL}" | /bin/mail -s "@@PROJECT@@ Workflow Notification Email - @@JOB_NAME@@ has started running" -r "@@HELP_EMAIL@@" $BCC_EMAIL_FLAG $EMAIL_ADDR
 fi
 
+# TODO:  Need to switch from wait to a polling loop so script
+#        can check for updates to workflow.status file
 
+@@KEPLER_SH@@ @@JOB_ARGS@@ &
 
-
-
-# 
-# Registers the output as WorkspaceFile, but sets path null
-#
-@@JAVA@@ @@REGISTER_OUTPUT_TO_WORKSPACE@@
-
-
-# TODO:  Need to run kepler in the background so that code can periodically
-#        check for a workflow.status file and if found and different the code
-#        can call the REST service with updates.
-#        Also code can also listen for kill requests?
-
-@@KEPLER_SH@@ @@JOB_ARGS@@ 
+wait $!
 
 declare jobExitCode=$?
+
+if [ "$jobExitCode" == "0" ] ; then
+  if [ -s "$workflowFailedTxt" ] ; then
+    jobExitCode="101"
+  fi
+fi
+
 declare endTime=`date +%s 2>&1`
 
 echo "endtime: $endTime" >> $jobLogFile 2>&1
 echo "exitcode: $jobExitCode"  >> $jobLogFile 2>&1
 
 # 
-# Updates the WorkspaceFile Path
+# Updates the WorkspaceFile Path and whether the workspace file failed
 #
+
+declare workspaceStatusFlag="--workspacefilefailed false"
+
+if [ -s "$workflowFailedTxt" ] ; then
+  workspaceStatusFlag="--workspacefilefailed true"
+fi
+
 @@JAVA@@ @@UPDATE_WORKSPACE_PATH@@
 
 
@@ -114,10 +120,11 @@ if [ "$EMAIL_ADDR" != "" ] ; then
   OUTEMAIL="${OUTEMAIL}Your job: @@JOB_NAME@@\\n"
   OUTEMAIL="${OUTEMAIL}Id: @@JOB_ID@@\\n"
 
-  if [ -s "WORKFLOW.FAILED.txt" ] ; then
-    declare errorDetails=`egrep "^simple.error.message=" WORKFLOW.FAILED.txt | sed "s/^.*=//" | sed "s/\"/ /g"`
+  if [ -s "$workflowFailedTxt" ] ; then
+    declare simpleError=`egrep "^simple.error.message=" $workflowFailedTxt | sed "s/^.*=//" | sed "s/\"/ /g"`
+    declare detailedError=`egrep "^simple.error.message=" $workflowFailedTxt | sed "s/^.*=//" | sed "s/\"/ /g"`
     finishedMessage="failed"
-    OUTEMAIL="${OUTEMAIL}has failed.\\n  Error from WORKFLOW.FAILED.txt: $errorDetails\\n"
+    OUTEMAIL="${OUTEMAIL}has failed.\\n  Error from ${workflowFailedTxt}: $simpleError\\n\\n$detailedError\\n"
   else 
     OUTEMAIL="${OUTEMAIL}has finished running.\\n"
   fi
