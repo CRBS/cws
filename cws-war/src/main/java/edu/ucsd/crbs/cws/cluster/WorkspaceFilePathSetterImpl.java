@@ -75,15 +75,32 @@ public class WorkspaceFilePathSetterImpl implements WorkspaceFilePathSetter {
      * @throws NumberFormatException if a Parameter value cannot be converted to a workspace id which is a Long
      */
     @Override
-    public boolean setPaths(Job j) throws Exception {
+    public WorkspaceFilePathSetterStatus setPaths(Job j) throws Exception {
+        
+        WorkspaceFilePathSetterStatus status = new WorkspaceFilePathSetterStatus();
+        
         if (j == null) {
-            _log.log(Level.WARNING,"Job passed in is null");
-            return false;
+            status.setReason("Job passed in is null");
+            status.setSuccessful(false);
+            status.setSuggestedJobStatus(Job.ERROR_STATUS);
+            _log.log(Level.WARNING,status.getReason());
+            return status;
+        }
+        
+        if (j.getId() == null){
+            status.setReason("Job id is null");
+            status.setSuccessful(false);
+            status.setSuggestedJobStatus(Job.ERROR_STATUS);
+            _log.log(Level.WARNING,status.getReason());
+            return status;
         }
         
         if (j.getParameters() == null || j.getParameters().isEmpty()){
-            _log.log(Level.INFO, "Job {0} has no parameters",j.getId());
-            return true;
+            status.setReason("Job "+j.getId()+" has no parameters");
+            status.setSuccessful(true);
+            status.setSuggestedJobStatus(Job.IN_QUEUE_STATUS);
+            _log.log(Level.INFO, status.getReason());
+            return status;
         }
         
         StringBuilder sb = new StringBuilder();
@@ -103,9 +120,12 @@ public class WorkspaceFilePathSetterImpl implements WorkspaceFilePathSetter {
         }
         
         if (sb.length() == 0){
-            _log.log(Level.INFO,"Job {0} has no workspacefile parameters that require paths to be set",
-                    j.getId());
-            return true;
+            status.setReason("Job "+j.getId()+
+                    " has no WorkspaceFile parameters that require paths to be set");
+            status.setSuccessful(true);
+            status.setSuggestedJobStatus(Job.IN_QUEUE_STATUS);
+            _log.log(Level.INFO,status.getReason());
+            return status;
         }
         
         Map<Long, WorkspaceFile> wsMap = getMapOfWorkspaceFiles(sb.toString());
@@ -116,20 +136,46 @@ public class WorkspaceFilePathSetterImpl implements WorkspaceFilePathSetter {
             }
             Long wspId = new Long(param.getValue());
             if (!wsMap.containsKey(wspId)) {
-                _log.log(Level.INFO,"No workspacefile with id {0} found for job {1}",
-                        new Object[]{wspId,j.getId()});
-                return false;
+                status.setReason("No WorkspaceFile with id "+wspId+" found for job "+j.getId());
+                status.setSuccessful(false);
+                status.setSuggestedJobStatus(Job.ERROR_STATUS);
+                _log.log(Level.INFO,status.getReason());
+                return status;
             }
             WorkspaceFile wsf = wsMap.get(wspId);
             if (wsf.getPath() == null) {
-                _log.log(Level.INFO,"Path is null for workspacefile {0}, a parameter for job {1}",
-                        new Object[]{wspId,j.getId()});
-                return false;
+                if (wsf.isFailed() == true){
+                    status.setReason("Path is null for WorkspaceFile "+wspId+
+                            ", a parameter for job "+j.getId()+
+                            " and WorkSpaceFile is set to failed status");
+                    status.setSuccessful(false);
+                    status.setSuggestedJobStatus(Job.ERROR_STATUS);
+                    _log.log(Level.INFO,status.getReason());
+                    return status;
+                }
+                status.setReason("Path is null for WorkspaceFile "+wspId+
+                        ", a parameter for job "+j.getId());
+                status.setSuccessful(false);
+                status.setSuggestedJobStatus(Job.WORKSPACE_SYNC_STATUS);
+                _log.log(Level.INFO,status.getReason());
+                return status;
+            }
+            if (wsf.isFailed() == true){
+                status.setReason("WorkspaceFile "+wspId+
+                        " failed, a parameter for job "+j.getId());
+                status.setSuccessful(false);
+                status.setSuggestedJobStatus(Job.ERROR_STATUS);
+                _log.log(Level.INFO,status.getReason());
+                return status;
             }
             param.setValue(wsf.getPath());
         }
 
-        return true;
+        
+        status.setSuccessful(true);
+        status.setSuggestedJobStatus(Job.IN_QUEUE_STATUS);
+        
+        return status;
     }
 
     /**
