@@ -15,9 +15,9 @@ echo "Add a file to workspace"
 echo "java -jar cws-war/target/cws-war-1.0-SNAPSHOT-jar-with-dependencies.jar --uploadfile cws-war/src/test/resources/example.kar --url ${baseURL} --login ${user} --token ${token}"
 echo ""
 echo ""
-echo "Add new task be sure to replace XXXX with workflow id"
+echo "Add new job be sure to replace XXXX with workflow id"
 # This adds a new task,  Be sure to set the workflow id (in XXXX) below!!!
-echo "curl -u ${user}:${token} -X POST -H \"Content-Type: application/json\" -d '{\"id\":null,\"name\":\"blah\",\"owner\":\"smith\",\"parameters\" : [ {\"name\" : \"CWS_outputdir\",\"value\" : \"well\"  },{\"name\" : \"CWS_user\",\"value\" : \"uh\"  },{\"name\" : \"CWS_jobname\",\"value\" : \"tasky\"  },{\"name\" :\"exampletext\",\"value\" : \"blah\"  }, {\"name\":\"examplecheckbox\",\"value\":\"false\"},{\"name\":\"examplefile\",\"value\":\"/path\"}],\"workflow\":{\"id\":XXXX}}' \"${baseURL}/rest/jobs?runasuser=smith\""
+echo "curl -u ${user}:${token} -X POST -H \"Content-Type: application/json\" -d '{\"id\":null,\"name\":\"blah\",\"owner\":\"smith\",\"parameters\" : [ {\"name\" : \"CWS_outputdir\",\"value\" : \"well\"  },{\"name\" : \"CWS_user\",\"value\" : \"uh\"  },{\"name\" : \"CWS_jobname\",\"value\" : \"tasky\"  },{\"name\" :\"exampletext\",\"value\" : \"blah\"  }, {\"name\":\"examplecheckbox\",\"value\":\"false\"},{\"name\":\"examplefile\",\"value\":\"/path\"},{\"name\":\"examplefile2\",\"value\":\"/path2\"},{\"name\":\"examplefile3\",\"value\":\"/path3\"}],\"workflow\":{\"id\":XXXX}}' \"${baseURL}/rest/jobs?runasuser=smith\""
 
 echo ""
 echo ""
