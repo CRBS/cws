@@ -52,13 +52,5 @@ public interface OutputWorkspaceFileUtil {
      * @throws Exception 
      */
     public WorkspaceFile createAndRegisterJobOutputAsWorkspaceFile(Job j,final String outputDirectory) throws Exception;
-
-    /**
-     * Updates the path of the output {@link WorkspaceFile} linked to the {@link Job} <b>j</b>
-     * @param j
-     * @param outputDirectory
-     * @return
-     * @throws Exception 
-     */
-    public WorkspaceFile updateJobOutputWorkspaceFilePath(Job j,final String outputDirectory) throws Exception;
+    
 }
