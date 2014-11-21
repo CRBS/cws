@@ -84,6 +84,7 @@ public class TestJobCmdScriptCreatorImpl {
 
     @Before
     public void setUp() {
+        Job.REFS_ENABLED = false;
     }
 
     @After
@@ -218,9 +219,23 @@ public class TestJobCmdScriptCreatorImpl {
         
         JobEmailNotificationData emailNotifyData = createJobEmailNotificationData();
         
-        JobCmdScriptCreatorImpl scriptCreator = new JobCmdScriptCreatorImpl("/workflowsdir","/bin/false","register.jar",
+        File checkForFalse = new File("/bin/false");
+        if (checkForFalse.exists() == false){
+            checkForFalse = new File("/usr/bin/false");
+            assumeTrue(checkForFalse.exists());
+        }
+        
+        JobCmdScriptCreatorImpl scriptCreator = new JobCmdScriptCreatorImpl("/workflowsdir",
+                checkForFalse.getAbsolutePath(),"register.jar",
         emailNotifyData);
-        scriptCreator.setJavaBinaryPath("/bin/true");
+        
+        File checkForTrue = new File("/bin/true");
+        if (checkForTrue.exists() == false){
+            checkForTrue = new File("/usr/bin/true");
+            assumeTrue(checkForTrue.exists());
+        }
+        
+        scriptCreator.setJavaBinaryPath(checkForTrue.getAbsolutePath());
         
         Job j = new Job();
         Workflow w = new Workflow();
@@ -266,8 +281,13 @@ public class TestJobCmdScriptCreatorImpl {
         assertTrue(outputsDir.mkdirs());
         
         JobEmailNotificationData emailNotifyData = createJobEmailNotificationData();
-        
-        JobCmdScriptCreatorImpl scriptCreator = new JobCmdScriptCreatorImpl("/workflowsdir","/bin/true","register.jar",
+        File checkForTrue = new File("/bin/true");
+        if (checkForTrue.exists() == false){
+            checkForTrue = new File("/usr/bin/true");
+            assumeTrue(checkForTrue.exists());
+        }
+        JobCmdScriptCreatorImpl scriptCreator = new JobCmdScriptCreatorImpl("/workflowsdir",
+                checkForTrue.getAbsolutePath(),"register.jar",
         emailNotifyData);
         scriptCreator.setJavaBinaryPath("/bin/echo");
         

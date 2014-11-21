@@ -129,7 +129,7 @@ public class TestOutputWorkspaceFileUtilImpl {
             fail("Expected exception");
         }
         catch(Exception ex){
-            assertTrue(ex.getMessage().startsWith("Workflow name for job cannot be null"));
+            assertTrue(ex.getMessage(),ex.getMessage().startsWith("Workflow name for job cannot be null"));
         }
    }
 
@@ -148,7 +148,7 @@ public class TestOutputWorkspaceFileUtilImpl {
             fail("Expected exception");
         }
         catch(Exception ex){
-            assertTrue(ex.getMessage().startsWith("Owner of job cannot be null"));
+            assertTrue(ex.getMessage(),ex.getMessage().startsWith("Owner of job cannot be null"));
         }
    }
 
@@ -163,6 +163,7 @@ public class TestOutputWorkspaceFileUtilImpl {
         OutputWorkspaceFileUtilImpl workspaceUtil = new OutputWorkspaceFileUtilImpl(workspaceDAO);
 
         Job job = new Job();
+        Job.REFS_ENABLED = false;
         job.setName("name");
         job.setOwner("bob");
         job.setId(new Long(1));
