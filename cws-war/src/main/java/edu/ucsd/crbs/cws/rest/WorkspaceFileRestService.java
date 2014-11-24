@@ -134,14 +134,8 @@ public class WorkspaceFileRestService {
                 }
                 if (workspaceFileIdList == null){
                     _log.log(Level.INFO,"calling getWorkspaceFiles");
-                    String ownerToUse;
-                    if (owner != null){
-                        ownerToUse = owner;
-                    }
-                    else {
-                        ownerToUse = user.getLoginToRunJobAs();
-                    }
-                    return _workspaceFileDAO.getWorkspaceFiles(ownerToUse,type,isFailed,synced);
+                    
+                    return _workspaceFileDAO.getWorkspaceFiles(owner,type,isFailed,synced);
                 }
                 _log.log(Level.INFO, "calling getWorkspaceFilesById: {0}", 
                         workspaceFileIdList);
