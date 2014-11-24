@@ -236,9 +236,9 @@ public class App {
                     accepts(JOB_ID_ARG,"Sets source job id for Workspace file when used with --"+UPLOAD_FILE_ARG+" and --"+REGISTER_FILE_ARG).withRequiredArg().ofType(Long.class).describedAs("Job Id");
                     accepts(MD5_ARG,"Sets md5 for Workspace file when used with --"+UPLOAD_FILE_ARG+" and --"+REGISTER_FILE_ARG).withRequiredArg().ofType(String.class).describedAs("MD5 message digest");
                     accepts(SIZE_ARG,"Sets size in bytes for Workspace file when used with --"+UPLOAD_FILE_ARG+" and --"+REGISTER_FILE_ARG).withRequiredArg().ofType(Long.class).describedAs("Size of file/dir in bytes");
-                    accepts(RESAVE_WORKSPACEFILE_ARG,"Resaves Workspace file").withRequiredArg().ofType(Long.class).describedAs("WorkspaceFile Id");
-                    accepts(RESAVE_JOB_ARG,"Resaves Job").withRequiredArg().ofType(Long.class).describedAs("Job Id");
-                    accepts(RESAVE_WORKFLOW_ARG,"Resaves Workflow").withRequiredArg().ofType(Long.class).describedAs("Workflow Id");
+                    accepts(RESAVE_WORKSPACEFILE_ARG,"Resaves Workspace file").withRequiredArg().ofType(Long.class).describedAs("WorkspaceFile Id or -1 to resave all");
+                    accepts(RESAVE_JOB_ARG,"Resaves Job").withRequiredArg().ofType(Long.class).describedAs("Job Id or -1 to resave all");
+                    accepts(RESAVE_WORKFLOW_ARG,"Resaves Workflow").withRequiredArg().ofType(Long.class).describedAs("Workflow Id or -1 to resave all");
                     accepts(PREVIEW_WORKFLOW_ARG,"Preview Workflow on Web, requires --"+URL_ARG+" currently it should be: http://imafish.dynamic.ucsd.edu/cws/makepreview").withRequiredArg().ofType(File.class).describedAs("Kepler .kar file");
                     accepts(DESCRIPTION_ARG,"Description for WorkspaceFile").withRequiredArg().ofType(String.class);
                     accepts(TYPE_ARG,"Type of WorkspaceFile").withRequiredArg().ofType(String.class);
