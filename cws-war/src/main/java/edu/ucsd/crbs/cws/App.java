@@ -364,6 +364,7 @@ public class App {
                         System.out.println("Found "+wsfList.size()+
                                 " workspace files to resave");
                         for (WorkspaceFile wsf : wsfList){
+                            System.out.println("WorkspaceFile Id: "+wsf.getId());
                             workspaceFileDAO.resave(wsf.getId());
                         }
                     }
