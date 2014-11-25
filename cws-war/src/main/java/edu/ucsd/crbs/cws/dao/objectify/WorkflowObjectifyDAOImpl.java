@@ -119,7 +119,7 @@ public class WorkflowObjectifyDAOImpl implements WorkflowDAO {
           }
           w.setId(null);
           w.setParentWorkflow(parentWf);
-          int newVersion = w.getVersion()+1;
+          int newVersion = parentWf.getVersion()+1;
           w.setVersion(newVersion);
       }
       
