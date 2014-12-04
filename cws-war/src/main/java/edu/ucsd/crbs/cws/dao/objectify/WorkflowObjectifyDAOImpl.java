@@ -35,6 +35,7 @@ package edu.ucsd.crbs.cws.dao.objectify;
 
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Work;
+import com.googlecode.objectify.cmd.Query;
 import edu.ucsd.crbs.cws.auth.User;
 import edu.ucsd.crbs.cws.dao.WorkflowDAO;
 import static edu.ucsd.crbs.cws.dao.objectify.OfyService.ofy;
@@ -132,20 +133,31 @@ public class WorkflowObjectifyDAOImpl implements WorkflowDAO {
      * Obtains all Workflows from data store, optionally removing the WorkflowParameters
      * if omitWorkflowParams is set to true
      * @param omitWorkflowParams If set to true then WorkflowParameters is set to null
+     * @param showDeleted
      * @return List of Workflow objects or empty list or null
      */
     @Override
-    public List<Workflow> getAllWorkflows(boolean omitWorkflowParams) {
-          /* @TODO figure out way to make objectify optionally retreive workflow parameters instead of removing them here */
-         List<Workflow> workflows = ofy().load().type(Workflow.class).list();
-         if (omitWorkflowParams == false){
-             return workflows;
-         }
-         
-         for (Workflow w : workflows){
-             w.setParameters(null);
-         }
-         return workflows;
+    public List<Workflow> getAllWorkflows(boolean omitWorkflowParams,
+            final Boolean showDeleted) {
+        /* @TODO figure out way to make objectify optionally retreive workflow parameters instead of removing them here */
+        Query<Workflow> q = ofy().load().type(Workflow.class);
+
+        if (showDeleted != null) {
+            q = q.filter("_deleted", showDeleted);
+        } else {
+            q = q.filter("_deleted", false);
+        }
+
+        List<Workflow> workflows = q.list();
+
+        if (omitWorkflowParams == false) {
+            return workflows;
+        }
+
+        for (Workflow w : workflows) {
+            w.setParameters(null);
+        }
+        return workflows;
     }
 
     /**
