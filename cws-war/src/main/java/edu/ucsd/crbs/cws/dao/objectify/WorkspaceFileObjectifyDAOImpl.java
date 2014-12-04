@@ -87,7 +87,7 @@ public class WorkspaceFileObjectifyDAOImpl implements WorkspaceFileDAO {
     
     @Override
     public List<WorkspaceFile> getWorkspaceFiles(final String owner,final String type,
-            final Boolean isFailed,final Boolean synced) throws Exception {
+            final Boolean isFailed,final Boolean synced,final Boolean showDeleted) throws Exception {
 
         Query<WorkspaceFile> q = ofy().load().type(WorkspaceFile.class);
 
@@ -100,7 +100,14 @@ public class WorkspaceFileObjectifyDAOImpl implements WorkspaceFileDAO {
         }
         
         if (isFailed != null){
-            q = q.filter("_failed ==",isFailed.booleanValue());
+            q = q.filter("_failed ==",isFailed);
+        }
+        
+        if (showDeleted != null){
+            q = q.filter("_deleted ==",showDeleted);
+        }
+        else {
+            q = q.filter("_deleted ==",false);
         }
 
         if (synced != null) {
@@ -231,7 +238,7 @@ public class WorkspaceFileObjectifyDAOImpl implements WorkspaceFileDAO {
                     wsp.setSize(new Long(size));
                     update = true;
                 }
-                else if (wsp.getSize() != null){
+                else if (wsp.getSize() != null && size != null){
                     newSize = new Long(size);
                     if (newSize.longValue() != wsp.getSize().longValue()){
                         wsp.setSize(newSize);
