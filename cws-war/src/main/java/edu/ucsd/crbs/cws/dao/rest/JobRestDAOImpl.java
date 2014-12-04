@@ -112,7 +112,9 @@ public class JobRestDAOImpl implements JobDAO {
     }
     
     @Override
-    public List<Job> getJobs(String owner, String status, Boolean notSubmittedToScheduler, boolean noParams, boolean noWorkflowParams) throws Exception {
+    public List<Job> getJobs(String owner, String status,
+            Boolean notSubmittedToScheduler, boolean noParams, 
+            boolean noWorkflowParams,final Boolean showDeleted) throws Exception {
         ClientConfig cc = new DefaultClientConfig();
         cc.getFeatures().put(JSONConfiguration.FEATURE_POJO_MAPPING, Boolean.TRUE);
         Client client = Client.create(cc);
@@ -139,6 +141,9 @@ public class JobRestDAOImpl implements JobDAO {
 
         if (noWorkflowParams == true) {
             queryParams.add(Constants.NOWORKFLOWPARAMS_QUERY_PARAM, Boolean.TRUE.toString());
+        }
+        if (showDeleted != null){
+            queryParams.add(Constants.SHOW_DELETED_QUERY_PARAM,showDeleted.toString());
         }
 
         String json = resource.queryParams(queryParams).accept(MediaType.APPLICATION_JSON).get(String.class);
