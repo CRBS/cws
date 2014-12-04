@@ -73,7 +73,7 @@ public interface JobDAO {
      * @throws Exception 
      */
     public List<Job> getJobs(final String owner,final String status, final Boolean notSubmittedToScheduler,
-            boolean noParams,boolean noWorkflowParams) throws Exception;
+            boolean noParams,boolean noWorkflowParams,final Boolean showDeleted) throws Exception;
 
     /**
      * Inserts a new {@link Job} into data store skipping Workflow Check
