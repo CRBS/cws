@@ -38,13 +38,14 @@ import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Index;
 
 /**
- * Links an input {@link WorkspaceFile} with a {@link Task}
+ * Links an input {@link WorkspaceFile} with a {@link Job}
  * @author Christopher Churas <churas@ncmir.ucsd.edu>
  */
 @Entity
-public class JobWorkspaceFile {
+public class InputWorkspaceFileLink {
 
     @Id private Long _id;
+    private String _parameterName;
     @Index private Long _jobId;
     @Index private Long _workspaceFileId;
     @Index private boolean _deleted;
@@ -80,5 +81,14 @@ public class JobWorkspaceFile {
     public void setDeleted(boolean _deleted) {
         this._deleted = _deleted;
     }
+    
+    public String getParameterName() {
+        return _parameterName;
+    }
+
+    public void setParameterName(String parameterName) {
+        _parameterName = parameterName;
+    }
+
     
 }
