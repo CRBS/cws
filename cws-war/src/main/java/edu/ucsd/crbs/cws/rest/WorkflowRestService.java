@@ -34,38 +34,39 @@
 package edu.ucsd.crbs.cws.rest;
 
 import com.google.appengine.api.appidentity.AppIdentityServiceFactory;
-import com.google.appengine.api.blobstore.UploadOptions.Builder;
 import com.google.appengine.api.blobstore.BlobstoreService;
 import com.google.appengine.api.blobstore.BlobstoreServiceFactory;
-import edu.ucsd.crbs.cws.auth.User;
+import com.google.appengine.api.blobstore.UploadOptions.Builder;
 import edu.ucsd.crbs.cws.auth.Authenticator;
 import edu.ucsd.crbs.cws.auth.AuthenticatorImpl;
 import edu.ucsd.crbs.cws.auth.Permission;
+import edu.ucsd.crbs.cws.auth.User;
 import edu.ucsd.crbs.cws.dao.EventDAO;
 import edu.ucsd.crbs.cws.dao.WorkflowDAO;
 import edu.ucsd.crbs.cws.dao.objectify.EventObjectifyDAOImpl;
-import edu.ucsd.crbs.cws.workflow.Workflow;
-import java.util.List;
-import java.util.logging.Logger;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
 import edu.ucsd.crbs.cws.dao.objectify.WorkflowObjectifyDAOImpl;
 import edu.ucsd.crbs.cws.log.Event;
 import edu.ucsd.crbs.cws.log.EventBuilder;
 import edu.ucsd.crbs.cws.log.EventBuilderImpl;
 import edu.ucsd.crbs.cws.servlet.ServletUtil;
+import edu.ucsd.crbs.cws.workflow.Workflow;
 import edu.ucsd.crbs.cws.workflow.WorkflowParameter;
+import java.util.List;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
 
 /**
  * REST Service that allows caller to create, modify, and retrieve Workflow
@@ -105,7 +106,9 @@ public class WorkflowRestService {
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public List<Workflow> getWorkflows(@QueryParam(Constants.USER_LOGIN_PARAM) final String userLogin,
+    public List<Workflow> getWorkflows(
+            @QueryParam(Constants.SHOW_DELETED_QUERY_PARAM)final Boolean showDeleted,
+            @QueryParam(Constants.USER_LOGIN_PARAM) final String userLogin,
             @QueryParam(Constants.USER_TOKEN_PARAM) final String userToken,
             @QueryParam(Constants.USER_LOGIN_TO_RUN_AS_PARAM) final String userLoginToRunAs,
             @Context HttpServletRequest request) {
@@ -116,7 +119,7 @@ public class WorkflowRestService {
             _log.info(event.getStringOfLocationData());
             
             if (user.isAuthorizedTo(Permission.LIST_ALL_WORKFLOWS)) {
-                return _workflowDAO.getAllWorkflows(true);
+                return _workflowDAO.getAllWorkflows(true,showDeleted);
             }
             throw new WebApplicationException(HttpServletResponse.SC_UNAUTHORIZED);
         }
@@ -260,5 +263,55 @@ public class WorkflowRestService {
              _log.log(Level.SEVERE,"Caught Exception",ex);
             throw new WebApplicationException(ex);
         }
+    }
+    
+    @DELETE
+    @Path(Constants.WORKFLOW_ID_REST_PATH)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public void deleteWorkflow(@PathParam(Constants.WORKFLOW_ID_PATH_PARAM)final Long workflowId,
+            @QueryParam(Constants.PERMANENTLY_DELETE_PARAM)final Boolean permanentlyDelete,
+            @QueryParam(Constants.USER_LOGIN_PARAM) final String userLogin,
+            @QueryParam(Constants.USER_TOKEN_PARAM) final String userToken,
+            @QueryParam(Constants.USER_LOGIN_TO_RUN_AS_PARAM) final String userLoginToRunAs,
+            @Context HttpServletRequest request) {
+        try {
+            User user = _authenticator.authenticate(request);
+            Event event = _eventBuilder.createEvent(request, user);
+            _log.info(event.getStringOfLocationData());
+            if (!user.isAuthorizedTo(Permission.DELETE_ALL_WORKFLOWS)){
+                if (!user.isAuthorizedTo(Permission.DELETE_THEIR_WORKFLOWS)){
+                    throw new WebApplicationException(HttpServletResponse.SC_UNAUTHORIZED);
+                }
+                else {
+                    Workflow w = _workflowDAO.getWorkflowById(workflowId.toString(),user);
+                    if (w == null){
+                        throw new Exception("Workflow ("+workflowId+") not found");
+                    }
+                    if (w.getOwner() == null){
+                        throw new Exception("Workflow ("+workflowId+") does not have owner");
+                    }
+                    if (!user.getLoginToRunJobAs().equals(w.getOwner())){
+                        throw new Exception(user.getLoginToRunJobAs()+
+                                " does not have permission to delete Workflow ("
+                                +workflowId+")");
+                    }
+                }
+            }
+            // delete workflow
+            //DeleteWorkflowReport dwr = _workflowDAO.delete(workflowId,permanentlyDelete);
+            //if (dwr.isSuccessful()){
+            //  event.logWorkflowDelete...
+            //}
+            //return dwr;
+        }catch(WebApplicationException wae){
+            _log.log(Level.SEVERE,"Caught WebApplicationException",wae);
+            throw wae;
+        } catch(Exception ex){
+             _log.log(Level.SEVERE,"Caught Exception",ex);
+            throw new WebApplicationException(ex);
+        }
+        
+        
     }
 }
