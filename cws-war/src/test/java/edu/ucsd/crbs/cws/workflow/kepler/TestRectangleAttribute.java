@@ -317,7 +317,6 @@ public class TestRectangleAttribute {
         ta.setYCoordinate(200);
         ta.setText(null);
         assertTrue(ra.addTextAttributeIfIntersecting(ta) == true);
-        System.out.println("XXXXXXXXXX"+ra.getTextFromTextAttributes()+"XXXXXXXX");
         assertTrue(ra.getTextFromTextAttributes().equals("type=foo\nhello=1\n"));
         
         ta = new TextAttribute();
