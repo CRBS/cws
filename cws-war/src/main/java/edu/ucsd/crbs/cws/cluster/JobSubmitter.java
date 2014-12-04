@@ -113,7 +113,7 @@ public class JobSubmitter {
     public void submitJobs() throws Exception {
         _log.log(Level.INFO, "Looking for new jobs to submit...");
 
-        List<Job> jobs = _jobDAO.getJobs(null, null, true, false, false);
+        List<Job> jobs = _jobDAO.getJobs(null, null, true, false, false,null);
         WorkspaceFilePathSetterStatus status = null;
         String error = null;
         String detailedError = null;

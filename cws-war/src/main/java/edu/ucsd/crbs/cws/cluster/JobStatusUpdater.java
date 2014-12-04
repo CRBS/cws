@@ -88,7 +88,7 @@ public class JobStatusUpdater {
         String error;
         String detailedError;
         _log.log(Level.INFO, "Updating status for uncompleted jobs...");
-        List<Job> jobs = _jobDAO.getJobs(null, App.NOT_COMPLETED_STATUSES, false, false, false);
+        List<Job> jobs = _jobDAO.getJobs(null, App.NOT_COMPLETED_STATUSES, false, false, false,null);
         if (jobs != null && jobs.isEmpty() == false) {
 
             _log.log(Level.INFO, " found {0} jobs to possibly update", jobs.size());
