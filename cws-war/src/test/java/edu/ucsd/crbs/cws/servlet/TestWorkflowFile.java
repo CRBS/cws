@@ -39,6 +39,8 @@ import edu.ucsd.crbs.cws.auth.Authenticator;
 import edu.ucsd.crbs.cws.auth.Permission;
 import edu.ucsd.crbs.cws.auth.User;
 import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -70,6 +72,7 @@ public class TestWorkflowFile {
 
     @BeforeClass
     public static void setUpClass() {
+        Logger.getLogger(WorkflowFile.class.getName()).setLevel(Level.OFF);
     }
 
     @AfterClass

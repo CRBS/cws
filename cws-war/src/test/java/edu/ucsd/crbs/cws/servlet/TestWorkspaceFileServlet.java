@@ -40,6 +40,8 @@ import edu.ucsd.crbs.cws.auth.Permission;
 import edu.ucsd.crbs.cws.auth.User;
 import edu.ucsd.crbs.cws.rest.Constants;
 import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.junit.After;
@@ -71,6 +73,7 @@ public class TestWorkspaceFileServlet {
     
     @BeforeClass
     public static void setUpClass() {
+        Logger.getLogger(WorkspaceFileServlet.class.getName()).setLevel(Level.OFF);
     }
     
     @AfterClass
