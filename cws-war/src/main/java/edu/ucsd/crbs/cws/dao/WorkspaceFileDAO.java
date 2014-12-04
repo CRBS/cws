@@ -51,7 +51,7 @@ public interface WorkspaceFileDAO {
      * @throws Exception 
      */
     public List<WorkspaceFile> getWorkspaceFiles(final String owner,final String type,final Boolean isFailed,
-            final Boolean synced) throws Exception;
+            final Boolean synced,final Boolean showDeleted) throws Exception;
     
     /**
      * Gets {@link WorkspaceFile} by id
