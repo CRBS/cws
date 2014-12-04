@@ -36,13 +36,17 @@ package edu.ucsd.crbs.cws.dao.objectify;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Work;
 import com.googlecode.objectify.cmd.Query;
+import edu.ucsd.crbs.cws.dao.InputWorkspaceFileLinkDAO;
 import edu.ucsd.crbs.cws.dao.JobDAO;
 import static edu.ucsd.crbs.cws.dao.objectify.OfyService.ofy;
+import edu.ucsd.crbs.cws.workflow.InputWorkspaceFileLink;
 import edu.ucsd.crbs.cws.workflow.Job;
+import edu.ucsd.crbs.cws.workflow.Parameter;
 import edu.ucsd.crbs.cws.workflow.Workflow;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.logging.Logger;
 
 /**
  * Implements TaskDAO interface which provides means to load and save Task
@@ -52,8 +56,16 @@ import java.util.List;
  */
 public class JobObjectifyDAOImpl implements JobDAO {
 
+    private static final Logger _log
+            = Logger.getLogger(JobObjectifyDAOImpl.class.getName());
     private static final String COMMA = ",";
 
+    private InputWorkspaceFileLinkDAO _inputWorkspaceFileLinkDAO;
+    
+    
+    public JobObjectifyDAOImpl(InputWorkspaceFileLinkDAO inputWorkspaceFileLinkDAO){
+        _inputWorkspaceFileLinkDAO = inputWorkspaceFileLinkDAO;
+    }
     
     /**
      * In a transaction this method loads a {@link Job} with matching <b>jobId</b>
@@ -130,7 +142,9 @@ public class JobObjectifyDAOImpl implements JobDAO {
     
 
     @Override
-    public List<Job> getJobs(String owner, String status, Boolean notSubmittedToScheduler, boolean noParams, boolean noWorkflowParams) throws Exception {
+    public List<Job> getJobs(String owner, String status,
+           Boolean notSubmittedToScheduler, boolean noParams, 
+           boolean noWorkflowParams,final Boolean showDeleted) throws Exception {
         Query<Job> q = ofy().load().type(Job.class);
 
         if (status != null) {
@@ -143,6 +157,13 @@ public class JobObjectifyDAOImpl implements JobDAO {
             q = q.filter("_hasJobBeenSubmittedToScheduler", false);
         }
 
+        if (showDeleted != null){
+            q = q.filter("_deleted",showDeleted);
+        }
+        else {
+            q = q.filter("_deleted",false);
+        }
+        
         if (noParams == false && noWorkflowParams == false) {
             return q.list();
         }
@@ -196,12 +217,25 @@ public class JobObjectifyDAOImpl implements JobDAO {
                 throw new Exception("Unable to load Workflow for Job");
             }
         }
-        /**
-         * @TODO Need to verify the Job Parameters match the Workflow
-         * parameters and that valid values are set for each of those parameters
-         */
+        
+        
         Key<Job> jKey = ofy().save().entity(job).now();
 
+        //iterate through parameters and insert
+        //InputWorkspaceFileLink objects for WorkspaceFiles that are being
+        //used
+        if (job.getParameters() != null){
+            for (Parameter p : job.getParameters()){
+                if (p.isIsWorkspaceId()){
+                    InputWorkspaceFileLink fileLink = new InputWorkspaceFileLink();
+                    fileLink.setJobId(job.getId());
+                    fileLink.setParameterName(p.getName());
+                    fileLink.setWorkspaceFileId(Long.valueOf(p.getValue()));
+                    _inputWorkspaceFileLinkDAO.insert(fileLink);
+                }
+            }
+        }
+        
         return job;
     }
 
@@ -287,7 +321,7 @@ public class JobObjectifyDAOImpl implements JobDAO {
             }
         });
         if (resJob == null) {
-            throw new Exception("There was a problem updating the Task");
+            throw new Exception("There was a problem updating the Job");
         }
         return resJob;
     }
