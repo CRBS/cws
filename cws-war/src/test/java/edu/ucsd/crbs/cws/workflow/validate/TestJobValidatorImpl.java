@@ -43,6 +43,8 @@ import edu.ucsd.crbs.cws.workflow.Job;
 import edu.ucsd.crbs.cws.workflow.Workflow;
 import edu.ucsd.crbs.cws.workflow.WorkflowParameter;
 import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -68,6 +70,8 @@ public class TestJobValidatorImpl {
 
     @BeforeClass
     public static void setUpClass() {
+        Logger.getLogger("com.google.appengine.api.datastore.dev.LocalDatastoreService").setLevel(Level.OFF);
+        Logger.getLogger(JobValidatorImpl.class.getName()).setLevel(Level.OFF);
     }
 
     @AfterClass
