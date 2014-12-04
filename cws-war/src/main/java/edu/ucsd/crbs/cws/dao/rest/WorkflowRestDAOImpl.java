@@ -96,7 +96,8 @@ public class WorkflowRestDAOImpl implements WorkflowDAO {
     }
 
     @Override
-    public List<Workflow> getAllWorkflows(boolean omitWorkflowParams) throws Exception {
+    public List<Workflow> getAllWorkflows(boolean omitWorkflowParams,
+            final Boolean showDeleted) throws Exception {
         ClientConfig cc = new DefaultClientConfig();
         cc.getFeatures().put(JSONConfiguration.FEATURE_POJO_MAPPING, Boolean.TRUE);
         Client client = Client.create(cc);
@@ -108,6 +109,11 @@ public class WorkflowRestDAOImpl implements WorkflowDAO {
         if (omitWorkflowParams == true) {
             queryParams.add(Constants.NOWORKFLOWPARAMS_QUERY_PARAM, Boolean.TRUE.toString());
         }
+        
+        if (showDeleted != null){
+            queryParams.add(Constants.SHOW_DELETED_QUERY_PARAM,showDeleted.toString());
+        }
+        
 
         String json = resource.queryParams(queryParams).accept(MediaType.APPLICATION_JSON).get(String.class);
         ObjectMapper mapper = new ObjectMapper();
