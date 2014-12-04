@@ -62,7 +62,8 @@ public interface WorkflowDAO {
      * @return List of Workflow objects if Workflows are found otherwise an empty list or null
      * @throws Exception If there was an error retrieving the Workflows
      */
-    public List<Workflow> getAllWorkflows(boolean omitWorkflowParams) throws Exception;
+    public List<Workflow> getAllWorkflows(boolean omitWorkflowParams,
+            final Boolean showDeleted) throws Exception;
     
     /**
      * Adds a new workflow to the data store.  If the Id of the Workflow is set then the
@@ -102,4 +103,19 @@ public interface WorkflowDAO {
      * @throws Exception 
      */
     public Workflow resave(long workflowId) throws Exception;
+    
+    /**
+     * Deletes {@link Workflow} either logically or for real depending on 
+     * parameter passed in.  In either case {@link Workflow} can only be deleted
+     * if no {@link Job}s are associated with the {@link Workflow}
+     */
+    /*
+    public DeleteWorkflowReport delete(long workflowId,Boolean permanentlyDelete) throws Exception{
+      //look for any jobs associated with workflow
+      //if found add to DeleteWorkflowReport and return
+     
+      //if permanentlyDelete is not null and true then run real delete
+      //else just set _deleted to true 
+    }
+    */
 }
