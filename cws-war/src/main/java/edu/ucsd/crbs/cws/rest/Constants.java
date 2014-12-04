@@ -143,6 +143,9 @@ public class Constants {
 
     public static final String DELETED_QUERY_PARAM = "deleted";
     
+    public static final String SHOW_DELETED_QUERY_PARAM = "showdeleted";
+    
+    
     public static final String ERROR_QUERY_PARAM = "error";
      
     public static final String DETAILED_ERROR_QUERY_PARAM = "detailederror";
@@ -171,6 +174,11 @@ public class Constants {
      * in cases where object has new updated fields or indexes have changed.
      */
     public static final String RESAVE_QUERY_PARAM = "resave";
+    
+    /**
+     * Tells REST service to permanently delete object (no undo)
+     */
+    public static final String PERMANENTLY_DELETE_PARAM = "permanentlydelete";
     
     /**
      * outputs Directory where Job should write output
