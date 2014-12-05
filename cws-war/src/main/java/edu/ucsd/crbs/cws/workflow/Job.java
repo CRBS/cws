@@ -53,7 +53,6 @@ import java.util.List;
  */
 @Entity
 @JsonPropertyOrder(value={ "id","name","owner","status","createDate","submitDate","startDate","finishDate"},alphabetic=true)
-
 public class Job  {
     
     public static boolean REFS_ENABLED = true;
@@ -103,7 +102,7 @@ public class Job  {
     public static class Everything {}
     
     @Id private Long _id;
-    @Load(Job.Everything.class) private Ref<Workflow> _workflow;
+    @Index @Load(Job.Everything.class) private Ref<Workflow> _workflow;
     @Ignore private Workflow _rawWorkflow;
     
     private String _name;
