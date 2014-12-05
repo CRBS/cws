@@ -38,6 +38,9 @@ import edu.ucsd.crbs.cws.workflow.WorkspaceFile;
 import java.util.List;
 
 /**
+ * Interface that defines methods to store and retrieve {@link WorkspaceFile} objects
+ * to a permanent data store
+ * 
  * @author Christopher Churas <churas@ncmir.ucsd.edu>
  */
 public interface WorkspaceFileDAO {
@@ -47,7 +50,7 @@ public interface WorkspaceFileDAO {
      * Gets workspace files owned by this user that exist on the file system of the
      * cluster and are not deleted
      * @param owner
-     * @return
+     * @return List of {@link WorkspaceFile} objects
      * @throws Exception 
      */
     public List<WorkspaceFile> getWorkspaceFiles(final String owner,final String type,final Boolean isFailed,
@@ -57,7 +60,7 @@ public interface WorkspaceFileDAO {
      * Gets {@link WorkspaceFile} by id
      * @param workspaceFileId
      * @param user
-     * @return
+     * @return {@link WorkspaceFile} that matches id set in <b>workspaceFileId</b> parameter
      * @throws Exception 
      */
     public WorkspaceFile getWorkspaceFileById(final String workspaceFileId,User user) throws Exception;
@@ -81,6 +84,7 @@ public interface WorkspaceFileDAO {
      * @param key
      * @return WorkspaceFile object with blobkey set
      * @throws Exception 
+     * @deprecated This method has been replaced by {@link #update(edu.ucsd.crbs.cws.workflow.WorkspaceFile, java.lang.Boolean, java.lang.Boolean, java.lang.Boolean) }
      */
     public WorkspaceFile updateBlobKey(long workspaceFileId,final String key) throws Exception;
     
@@ -89,8 +93,9 @@ public interface WorkspaceFileDAO {
      * Updates path for given {@link WorkspaceFile} object
      * @param workspaceFileId
      * @param path
-     * @return
+     * @return {@link WorkspaceFile} loaded from datastore and with updates
      * @throws Exception 
+     * @deprecated This method has been replaced by {@link #update(edu.ucsd.crbs.cws.workflow.WorkspaceFile, java.lang.Boolean, java.lang.Boolean, java.lang.Boolean) }
      */
     public WorkspaceFile updatePathSizeAndFailStatus(long workspaceFileId,final String path,final String size,final Boolean isFailed) throws Exception;
 
@@ -98,16 +103,17 @@ public interface WorkspaceFileDAO {
      * Updates data store with <b>wsp</b> {@link WorkspaceFile}  The {@link WorkspaceFile#getId()} must
      * be set for this to work properly
      * @param wsp
-     * @return
+     * @return {@link WorkspaceFile} with updates
      * @throws Exception 
      */
-    public WorkspaceFile update(WorkspaceFile wsp) throws Exception;
+    public WorkspaceFile update(WorkspaceFile wsp,Boolean isDeleted, 
+            Boolean isFailed,Boolean isDir) throws Exception;
     
     /**
      * Loads and resaves {@link WorkspaceFile} corresponding to <b>workspaceFileId</b>
      * passed in
      * @param workspaceFileId
-     * @return
+     * @return {@link WorkspaceFile} object from data store after resave
      * @throws Exception 
      */
     public WorkspaceFile resave(long workspaceFileId) throws Exception;
