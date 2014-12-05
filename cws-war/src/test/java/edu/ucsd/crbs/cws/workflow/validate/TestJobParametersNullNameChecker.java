@@ -36,6 +36,8 @@ package edu.ucsd.crbs.cws.workflow.validate;
 import edu.ucsd.crbs.cws.workflow.Parameter;
 import edu.ucsd.crbs.cws.workflow.Job;
 import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.junit.After;
 import org.junit.AfterClass;
 import static org.junit.Assert.assertTrue;
@@ -59,6 +61,7 @@ public class TestJobParametersNullNameChecker {
 
     @BeforeClass
     public static void setUpClass() {
+         Logger.getLogger(JobParametersNullNameChecker.class.getName()).setLevel(Level.OFF);
     }
 
     @AfterClass

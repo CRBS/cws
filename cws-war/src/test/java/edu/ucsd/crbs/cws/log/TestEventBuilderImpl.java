@@ -39,6 +39,8 @@ import edu.ucsd.crbs.cws.workflow.Job;
 import edu.ucsd.crbs.cws.workflow.Workflow;
 import edu.ucsd.crbs.cws.workflow.WorkspaceFile;
 import java.util.Date;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -64,6 +66,7 @@ public class TestEventBuilderImpl {
 
     @BeforeClass
     public static void setUpClass() {
+        Logger.getLogger(EventBuilderImpl.class.getName()).setLevel(Level.OFF);
     }
 
     @AfterClass

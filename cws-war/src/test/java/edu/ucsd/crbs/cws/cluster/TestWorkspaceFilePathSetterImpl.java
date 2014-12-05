@@ -38,6 +38,8 @@ import edu.ucsd.crbs.cws.workflow.Parameter;
 import edu.ucsd.crbs.cws.workflow.Job;
 import edu.ucsd.crbs.cws.workflow.WorkspaceFile;
 import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -64,6 +66,7 @@ public class TestWorkspaceFilePathSetterImpl {
 
     @BeforeClass
     public static void setUpClass() {
+        Logger.getLogger(WorkspaceFilePathSetterImpl.class.getName()).setLevel(Level.OFF);
     }
 
     @AfterClass

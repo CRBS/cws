@@ -36,6 +36,8 @@ import edu.ucsd.crbs.cws.workflow.Workflow;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -58,6 +60,7 @@ public class TestBlobStoreServiceUtil {
 
     @BeforeClass
     public static void setUpClass() {
+        Logger.getLogger("edu.ucsd.crbs.cws.gae.BlobStoreServiceUtil").setLevel(Level.OFF);
     }
 
     @AfterClass

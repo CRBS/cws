@@ -70,6 +70,7 @@ public class TestWorkflowDownloaderImpl {
     @BeforeClass
     public static void setUpClass() {
         Logger.getLogger(WorkflowDownloaderImpl.class.getName()).setLevel(Level.OFF);
+        Logger.getLogger("edu.ucsd.crbs.cws.gae.BlobStoreServiceUtil").setLevel(Level.OFF);
     }
 
     @AfterClass
