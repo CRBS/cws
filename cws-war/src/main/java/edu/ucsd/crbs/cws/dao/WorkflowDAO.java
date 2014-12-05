@@ -36,6 +36,7 @@ package edu.ucsd.crbs.cws.dao;
 import edu.ucsd.crbs.cws.auth.User;
 import edu.ucsd.crbs.cws.workflow.Job;
 import edu.ucsd.crbs.cws.workflow.Workflow;
+import edu.ucsd.crbs.cws.workflow.report.DeleteWorkflowReport;
 import java.util.List;
 
 /**
@@ -86,6 +87,15 @@ public interface WorkflowDAO {
     public Workflow updateBlobKey(long workflowId,final String key) throws Exception;
 
     /**
+     * Updates Deleted field for given {@link Workflow}
+     * @param workflowId
+     * @param isDeleted
+     * @return {@link Workflow} matching <b>workflowId</b> loaded from datastore upon succes.
+     * @throws Exception 
+     */
+    public Workflow updateDeleted(final long workflowId,final boolean isDeleted) throws Exception;
+    
+    /**
      * Given a <b>job</b> this method looks at the {@link Workflow} object within
      * and uses its id to load the {@link Workflow} from the data store.  
      * @param job
@@ -109,13 +119,7 @@ public interface WorkflowDAO {
      * parameter passed in.  In either case {@link Workflow} can only be deleted
      * if no {@link Job}s are associated with the {@link Workflow}
      */
-    /*
-    public DeleteWorkflowReport delete(long workflowId,Boolean permanentlyDelete) throws Exception{
-      //look for any jobs associated with workflow
-      //if found add to DeleteWorkflowReport and return
-     
-      //if permanentlyDelete is not null and true then run real delete
-      //else just set _deleted to true 
-    }
-    */
+    
+    public DeleteWorkflowReport delete(long workflowId,Boolean permanentlyDelete) throws Exception;
+    
 }

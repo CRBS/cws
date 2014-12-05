@@ -50,6 +50,7 @@ import edu.ucsd.crbs.cws.jerseyclient.MultivaluedMapFactoryImpl;
 import edu.ucsd.crbs.cws.rest.Constants;
 import edu.ucsd.crbs.cws.workflow.Job;
 import edu.ucsd.crbs.cws.workflow.Workflow;
+import edu.ucsd.crbs.cws.workflow.report.DeleteWorkflowReport;
 import java.util.List;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
@@ -77,7 +78,11 @@ public class WorkflowRestDAOImpl implements WorkflowDAO {
     public void setUser(User user) {
         _user = user;
     }
-
+    
+    @Override
+    public DeleteWorkflowReport delete(long workflowId, Boolean permanentlyDelete) throws Exception {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
     
     @Override
     public Workflow getWorkflowById(String workflowId, User user) throws Exception {
@@ -163,4 +168,8 @@ public class WorkflowRestDAOImpl implements WorkflowDAO {
         });    
     }
 
+    @Override
+    public Workflow updateDeleted(long workflowId, boolean isDeleted) throws Exception {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
 }

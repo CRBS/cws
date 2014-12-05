@@ -37,6 +37,7 @@ import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Work;
 import com.googlecode.objectify.cmd.Query;
 import edu.ucsd.crbs.cws.auth.User;
+import edu.ucsd.crbs.cws.dao.JobDAO;
 import edu.ucsd.crbs.cws.dao.WorkflowDAO;
 import static edu.ucsd.crbs.cws.dao.objectify.OfyService.ofy;
 import edu.ucsd.crbs.cws.gae.WorkflowParameterDataFetcher;
@@ -44,6 +45,7 @@ import edu.ucsd.crbs.cws.gae.URLFetcherImpl;
 import edu.ucsd.crbs.cws.workflow.Job;
 import edu.ucsd.crbs.cws.workflow.Workflow;
 import edu.ucsd.crbs.cws.workflow.WorkflowParameter;
+import edu.ucsd.crbs.cws.workflow.report.DeleteWorkflowReport;
 import java.util.Date;
 import java.util.List;
 
@@ -58,6 +60,12 @@ public class WorkflowObjectifyDAOImpl implements WorkflowDAO {
     
     WorkflowParameterDataFetcher _dropDownFetcher = new URLFetcherImpl();
 
+    private JobDAO _jobDAO = null;
+    
+    public WorkflowObjectifyDAOImpl(JobDAO jobDAO){
+        _jobDAO = jobDAO;
+    }
+    
     @Override
     public Workflow resave(final long workflowId) throws Exception {
          Workflow res = ofy().transact(new Work<Workflow>() {
@@ -224,6 +232,35 @@ public class WorkflowObjectifyDAOImpl implements WorkflowDAO {
         }
         return resWorkflow;
     }
+    
+    @Override
+    public Workflow updateDeleted(final long workflowId,final boolean isDeleted) throws Exception {
+        Workflow resWorkflow;
+        resWorkflow = ofy().transact(new Work<Workflow>() {
+            @Override
+            public Workflow run() {
+                Workflow w = ofy().load().type(Workflow.class).id(workflowId).now();
+
+                if (w == null) {
+                    return null;
+                }
+                
+                if (w.isDeleted() == isDeleted){
+                   return w;
+                }
+                
+                
+                w.setDeleted(isDeleted);
+                Key<Workflow> wKey = ofy().save().entity(w).now();
+                return w;
+            }
+        });
+        if (resWorkflow == null){
+            throw new Exception("There was a problem updating the workflow");
+        }
+        return resWorkflow;
+    }
+    
 
     @Override
     public Workflow getWorkflowForJob(Job job, User user) throws Exception {
@@ -239,6 +276,13 @@ public class WorkflowObjectifyDAOImpl implements WorkflowDAO {
         return getWorkflowById(job.getWorkflow().getId().toString(), user);
     }
     
-    
+     @Override
+    public DeleteWorkflowReport delete(long workflowId, Boolean permanentlyDelete) throws Exception {
+     //look for any jobs associated with workflow
+     //if found add to DeleteWorkflowReport and return
+      //if permanentlyDelete is not null and true then run real delete
+      //else just set _deleted to true 
+        return null;
+    }
 }
 
