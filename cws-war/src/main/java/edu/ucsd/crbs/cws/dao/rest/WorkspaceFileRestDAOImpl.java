@@ -219,7 +219,8 @@ public class WorkspaceFileRestDAOImpl implements WorkspaceFileDAO {
     }
 
     @Override
-    public WorkspaceFile update(WorkspaceFile wsp) throws Exception {
+    public WorkspaceFile update(WorkspaceFile wsp,Boolean isDeleted, 
+            Boolean isFailed,Boolean isDir) throws Exception {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
