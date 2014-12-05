@@ -346,6 +346,7 @@ public class WorkspaceFileRestService {
             @QueryParam(Constants.PATH_QUERY_PARAM) final String path,
             @QueryParam(Constants.SIZE_QUERY_PARAM) final String size,
             @QueryParam(Constants.WS_FAILED_QUERY_PARAM) final Boolean isFailed,
+            @QueryParam(Constants.DELETED_QUERY_PARAM) final Boolean isDeleted,
             @QueryParam(Constants.USER_LOGIN_PARAM) final String userLogin,
             @QueryParam(Constants.USER_TOKEN_PARAM) final String userToken,
             @QueryParam(Constants.USER_LOGIN_TO_RUN_AS_PARAM) final String userLoginToRunAs,
@@ -361,14 +362,16 @@ public class WorkspaceFileRestService {
                 if (resave != null && resave.equalsIgnoreCase("true")){
                     return _workspaceFileDAO.resave(workspaceFileId);
                 }
-                
-                String adjustedPath = path;
-                if (path != null && path.equals("")){
-                    adjustedPath = null;
+                WorkspaceFile updatedWsp = new WorkspaceFile();
+                updatedWsp.setId(workspaceFileId);
+                if (path != null && !path.equals("")){
+                    updatedWsp.setPath(path);
                 }
-               
-                WorkspaceFile resWorkspaceFile = _workspaceFileDAO.updatePathSizeAndFailStatus(
-                        workspaceFileId,adjustedPath,size,isFailed);
+                if (size != null){
+                    updatedWsp.setSize(new Long(size));
+                }
+                
+                WorkspaceFile resWorkspaceFile = _workspaceFileDAO.update(updatedWsp, isDeleted, isFailed,null);
                 return resWorkspaceFile;
             }
             throw new WebApplicationException(HttpServletResponse.SC_UNAUTHORIZED);
