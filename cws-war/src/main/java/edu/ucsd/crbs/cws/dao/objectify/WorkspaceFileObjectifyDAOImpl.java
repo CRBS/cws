@@ -177,104 +177,76 @@ public class WorkspaceFileObjectifyDAOImpl implements WorkspaceFileDAO {
         return wsp;
     }
 
+    /**
+     * 
+     * @param workspaceFileId
+     * @param key
+     * @return {@link WorkspaceFile} from data store with updates
+     * @throws Exception 
+     * @deprecated This method has been replaced by {@link #update(edu.ucsd.crbs.cws.workflow.WorkspaceFile, java.lang.Boolean, java.lang.Boolean, java.lang.Boolean) }
+     */
     @Override
     public WorkspaceFile updateBlobKey(final long workspaceFileId,
             final String key) throws Exception {
-        WorkspaceFile resWsp;
-        resWsp = ofy().transact(new Work<WorkspaceFile>() {
-            @Override
-            public WorkspaceFile run() {
-                WorkspaceFile wsp = ofy().load().type(WorkspaceFile.class).id(workspaceFileId).now();
-                if (wsp == null) {
-                    return null;
-                }
-
-                if (wsp.getBlobKey() == null && key == null) {
-                    return wsp;
-                }
-
-                if (wsp.getBlobKey() != null && key != null
-                        && wsp.getBlobKey().equals(key)) {
-                    return wsp;
-                }
-
-                wsp.setBlobKey(key);
-                Key<WorkspaceFile> wspKey = ofy().save().entity(wsp).now();
-                return wsp;
-            }
-        });
-        if (resWsp == null) {
-            throw new Exception("There was a problem updating the WorkspaceFile");
-        }
-        return resWsp;
+        WorkspaceFile tempWsp = new WorkspaceFile();
+        tempWsp.setId(workspaceFileId);
+        tempWsp.setBlobKey(key);
+        return update(tempWsp,null,null,null);
     }
 
+    /**
+     * 
+     * @param workspaceFileId
+     * @param path
+     * @param size
+     * @param isFailed
+     * @return {@link WorkspaceFile} from data store with updates
+     * @throws Exception 
+     * @deprecated This method has been replaced by {@link #update(edu.ucsd.crbs.cws.workflow.WorkspaceFile, java.lang.Boolean, java.lang.Boolean, java.lang.Boolean) }
+     */
     @Override
     public WorkspaceFile updatePathSizeAndFailStatus(final long workspaceFileId, final String path,
             final String size,final Boolean isFailed) throws Exception {
-        WorkspaceFile resWsp;
-        resWsp = ofy().transact(new Work<WorkspaceFile>() {
-            @Override
-            public WorkspaceFile run() {
-                WorkspaceFile wsp = ofy().load().type(WorkspaceFile.class).id(workspaceFileId).now();
-                if (wsp == null) {
-                    return null;
-                }
-                Long newSize = null;
-                boolean update = false;
-                
-                if (wsp.getPath() == null && path != null) {
-                    wsp.setPath(path);
-                    update = true;
-                }
-                else if (wsp.getPath() != null && path != null) {
-                    if (!wsp.getPath().equals(path)) {
-                        wsp.setPath(path);
-                        update = true;
-                    }
-                }
-                
-                if (wsp.getSize() == null && size != null){
-                    wsp.setSize(new Long(size));
-                    update = true;
-                }
-                else if (wsp.getSize() != null && size != null){
-                    newSize = new Long(size);
-                    if (newSize.longValue() != wsp.getSize().longValue()){
-                        wsp.setSize(newSize);
-                        update = true;
-                    }
-                }
-                
-                if (isFailed != null && wsp.isFailed() != isFailed){
-                    wsp.setFailed(isFailed);
-                    update = true;
-                }
-                
-                if (update == true){
-                    Key<WorkspaceFile> wspKey = ofy().save().entity(wsp).now();
-                    return wsp;
-                }
-                return wsp;
-            }
-        });
-        if (resWsp == null) {
-            throw new Exception("There was a problem updating the WorkspaceFile");
+        
+        WorkspaceFile tempWsp = new WorkspaceFile();
+        tempWsp.setId(workspaceFileId);
+        tempWsp.setPath(path);
+        if (size != null){
+            tempWsp.setSize(new Long(size));
         }
-        return resWsp;
+        
+        return update(tempWsp,null,isFailed,null);
     }
 
     @Override
-    public WorkspaceFile update(WorkspaceFile wsp) throws Exception {
+    public WorkspaceFile update(final WorkspaceFile wsp,final Boolean isDeleted, 
+            final Boolean isFailed,final Boolean isDir) throws Exception {
         if (wsp == null) {
             throw new IllegalArgumentException("WorkspaceFile cannot be null");
         }
         if (wsp.getId() == null) {
             throw new Exception("Id must be set");
         }
-
-        ofy().save().entity(wsp).now();
-        return wsp;
+        WorkspaceFile resWsp;
+        resWsp = ofy().transact(new Work<WorkspaceFile>() {
+            @Override
+            public WorkspaceFile run() {
+                WorkspaceFile wspFromDataStore = ofy().load().type(WorkspaceFile.class).id(wsp.getId()).now();
+                if (wspFromDataStore == null) {
+                    return null;
+                }                
+                
+                if (wspFromDataStore.updateWithChanges(wsp, isDeleted, isFailed, isDir)){
+                    Key<WorkspaceFile> wspKey = ofy().save().entity(wspFromDataStore).now();
+                    return wspFromDataStore;
+                }
+                return wspFromDataStore;
+            }
+        });
+        if (resWsp == null) {
+            throw new Exception("There was a problem updating the WorkspaceFile");
+        }
+        return resWsp;
     }
 
     
