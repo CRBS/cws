@@ -42,8 +42,11 @@ import edu.ucsd.crbs.cws.auth.AuthenticatorImpl;
 import edu.ucsd.crbs.cws.auth.Permission;
 import edu.ucsd.crbs.cws.auth.User;
 import edu.ucsd.crbs.cws.dao.EventDAO;
+import edu.ucsd.crbs.cws.dao.JobDAO;
 import edu.ucsd.crbs.cws.dao.WorkflowDAO;
 import edu.ucsd.crbs.cws.dao.objectify.EventObjectifyDAOImpl;
+import edu.ucsd.crbs.cws.dao.objectify.InputWorkspaceFileLinkObjectifyDAOImpl;
+import edu.ucsd.crbs.cws.dao.objectify.JobObjectifyDAOImpl;
 import edu.ucsd.crbs.cws.dao.objectify.WorkflowObjectifyDAOImpl;
 import edu.ucsd.crbs.cws.log.Event;
 import edu.ucsd.crbs.cws.log.EventBuilder;
@@ -51,6 +54,7 @@ import edu.ucsd.crbs.cws.log.EventBuilderImpl;
 import edu.ucsd.crbs.cws.servlet.ServletUtil;
 import edu.ucsd.crbs.cws.workflow.Workflow;
 import edu.ucsd.crbs.cws.workflow.WorkflowParameter;
+import edu.ucsd.crbs.cws.workflow.report.DeleteWorkflowReport;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -86,7 +90,7 @@ public class WorkflowRestService {
     
     static EventDAO _eventDAO = new EventObjectifyDAOImpl();
 
-    static WorkflowDAO _workflowDAO = new WorkflowObjectifyDAOImpl();
+    static WorkflowDAO _workflowDAO = new WorkflowObjectifyDAOImpl((JobDAO)new JobObjectifyDAOImpl(new InputWorkspaceFileLinkObjectifyDAOImpl()));
 
     /**
      * URL path to workflow file servlet
@@ -269,7 +273,7 @@ public class WorkflowRestService {
     @Path(Constants.WORKFLOW_ID_REST_PATH)
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public void deleteWorkflow(@PathParam(Constants.WORKFLOW_ID_PATH_PARAM)final Long workflowId,
+    public DeleteWorkflowReport deleteWorkflow(@PathParam(Constants.WORKFLOW_ID_PATH_PARAM)final Long workflowId,
             @QueryParam(Constants.PERMANENTLY_DELETE_PARAM)final Boolean permanentlyDelete,
             @QueryParam(Constants.USER_LOGIN_PARAM) final String userLogin,
             @QueryParam(Constants.USER_TOKEN_PARAM) final String userToken,
@@ -279,12 +283,13 @@ public class WorkflowRestService {
             User user = _authenticator.authenticate(request);
             Event event = _eventBuilder.createEvent(request, user);
             _log.info(event.getStringOfLocationData());
+            Workflow w = null;
             if (!user.isAuthorizedTo(Permission.DELETE_ALL_WORKFLOWS)){
                 if (!user.isAuthorizedTo(Permission.DELETE_THEIR_WORKFLOWS)){
                     throw new WebApplicationException(HttpServletResponse.SC_UNAUTHORIZED);
                 }
                 else {
-                    Workflow w = _workflowDAO.getWorkflowById(workflowId.toString(),user);
+                    w = _workflowDAO.getWorkflowById(workflowId.toString(),user);
                     if (w == null){
                         throw new Exception("Workflow ("+workflowId+") not found");
                     }
@@ -298,12 +303,23 @@ public class WorkflowRestService {
                     }
                 }
             }
+            else {
+                w = _workflowDAO.getWorkflowById(workflowId.toString(), user);
+                if (w == null) {
+                    throw new Exception("Workflow (" + workflowId + ") not found");
+                }
+            }
             // delete workflow
-            //DeleteWorkflowReport dwr = _workflowDAO.delete(workflowId,permanentlyDelete);
-            //if (dwr.isSuccessful()){
-            //  event.logWorkflowDelete...
-            //}
-            //return dwr;
+            DeleteWorkflowReport dwr = _workflowDAO.delete(workflowId,permanentlyDelete);
+            if (dwr.isSuccessful()){
+                if (permanentlyDelete == null || permanentlyDelete == false){
+                     _eventDAO.neverComplainInsert(_eventBuilder.setAsLogicalDeleteWorkflowEvent(event, w));
+                }
+                else {
+                     _eventDAO.neverComplainInsert(_eventBuilder.setAsDeleteWorkflowEvent(event, w));
+                }
+            }
+            return dwr;
         }catch(WebApplicationException wae){
             _log.log(Level.SEVERE,"Caught WebApplicationException",wae);
             throw wae;
