@@ -76,6 +76,17 @@ public class Event {
     
     public static final String CREATE_WORKSPACEFILE_EVENT_TYPE = "createworkspacefile";
     
+    /**
+     * Logical deletion of a Workflow
+     */
+    public static final String LOGICAL_DELETE_WORKFLOW_EVENT_TYPE = "logicaldeleteworkflow";
+    
+    /**
+     * Deletion of a Workflow
+     */
+    public static final String DELETE_WORKFLOW_EVENT_TYPE = "deleteworkflow";
+    
+    
     
     @Id private Long _id;
     @Index private Date _date;

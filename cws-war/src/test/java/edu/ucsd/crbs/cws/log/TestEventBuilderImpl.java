@@ -258,4 +258,63 @@ public class TestEventBuilderImpl {
         assertTrue(resEvent.getMessage().equals("perms(16)"));
     }
     
+    @Test
+    public void testSetAsLogicalDeleteWorkflowEvent(){
+        EventBuilderImpl builder = new EventBuilderImpl();
+        assertTrue(builder.setAsLogicalDeleteWorkflowEvent(null, null) == null);
+        
+        Event e = new Event();
+        assertTrue(builder.setAsLogicalDeleteWorkflowEvent(e, null) == null);
+        
+        Workflow w = new Workflow();
+        assertTrue(builder.setAsLogicalDeleteWorkflowEvent(null, w) == null);
+        
+        Event resEvent = builder.setAsLogicalDeleteWorkflowEvent(e, w);
+        assertTrue(resEvent != null);
+        assertTrue(resEvent.getEventType().equals(Event.LOGICAL_DELETE_WORKFLOW_EVENT_TYPE));
+        assertTrue(resEvent.getDate() != null);
+        assertTrue(resEvent.getWorkflowId() == null);
+        
+        w.setId(new Long(2));
+        resEvent = builder.setAsLogicalDeleteWorkflowEvent(e, w);
+        assertTrue(resEvent != null);
+        assertTrue(resEvent.getEventType().equals(Event.LOGICAL_DELETE_WORKFLOW_EVENT_TYPE));
+        assertTrue(resEvent.getDate() != null);
+        assertTrue(resEvent.getWorkflowId() == 2L);
+    }
+
+    
+    @Test
+    public void testSetAsDeleteWorkflowEvent(){
+        EventBuilderImpl builder = new EventBuilderImpl();
+        assertTrue(builder.setAsDeleteWorkflowEvent(null, null) == null);
+        
+        Event e = new Event();
+        assertTrue(builder.setAsDeleteWorkflowEvent(e, null) == null);
+        
+        Workflow w = new Workflow();
+        assertTrue(builder.setAsDeleteWorkflowEvent(null, w) == null);
+        
+        Event resEvent = builder.setAsDeleteWorkflowEvent(e, w);
+        assertTrue(resEvent != null);
+        assertTrue(resEvent.getEventType().equals(Event.DELETE_WORKFLOW_EVENT_TYPE));
+        assertTrue(resEvent.getDate() != null);
+        assertTrue(resEvent.getWorkflowId() == null);
+        assertTrue(resEvent.getMessage().equals("Name=null,Version=0,CreateDate=null"));
+        
+        w.setId(new Long(2));
+        w.setVersion(2);
+        Date curDate = new Date();
+        w.setCreateDate(curDate);
+        w.setName("bob");
+        resEvent = builder.setAsDeleteWorkflowEvent(e, w);
+        assertTrue(resEvent != null);
+        assertTrue(resEvent.getEventType().equals(Event.DELETE_WORKFLOW_EVENT_TYPE));
+        assertTrue(resEvent.getDate() != null);
+        assertTrue(resEvent.getWorkflowId() == 2L);
+        assertTrue(resEvent.getMessage().equals("Name=bob,Version=2,CreateDate="+curDate.toString()));
+        
+        
+    }
+
 }
