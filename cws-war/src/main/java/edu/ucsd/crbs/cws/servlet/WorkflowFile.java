@@ -38,7 +38,10 @@ import edu.ucsd.crbs.cws.auth.Authenticator;
 import edu.ucsd.crbs.cws.auth.AuthenticatorImpl;
 import edu.ucsd.crbs.cws.auth.Permission;
 import edu.ucsd.crbs.cws.auth.User;
+import edu.ucsd.crbs.cws.dao.JobDAO;
 import edu.ucsd.crbs.cws.dao.WorkflowDAO;
+import edu.ucsd.crbs.cws.dao.objectify.InputWorkspaceFileLinkObjectifyDAOImpl;
+import edu.ucsd.crbs.cws.dao.objectify.JobObjectifyDAOImpl;
 import edu.ucsd.crbs.cws.dao.objectify.WorkflowObjectifyDAOImpl;
 import edu.ucsd.crbs.cws.gae.BlobStoreServiceUtil;
 import static edu.ucsd.crbs.cws.servlet.WorkflowFile.WFID;
@@ -66,7 +69,7 @@ public class WorkflowFile extends HttpServlet {
 
     Downloader _workflowDownloader = new WorkflowDownloaderImpl();
 
-    WorkflowDAO _workflowDAO = new WorkflowObjectifyDAOImpl();
+    WorkflowDAO _workflowDAO = new WorkflowObjectifyDAOImpl((JobDAO)new JobObjectifyDAOImpl(new InputWorkspaceFileLinkObjectifyDAOImpl()));
     /**
      * Handles <b>GET</b> requests to <b>/workflowfile</b> servlet which lets
      * users download a specific workflow kar file. This method assumes the
