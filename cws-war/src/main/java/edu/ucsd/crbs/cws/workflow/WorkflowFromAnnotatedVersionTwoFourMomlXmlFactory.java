@@ -117,7 +117,7 @@ public class WorkflowFromAnnotatedVersionTwoFourMomlXmlFactory {
     public static final String ALLOW_FAILED_WORKSPACEFILE = "allowfailedworkspacefile";
     
 
-    public static final Logger log = Logger.getLogger(WorkflowFromVersionOneMomlXmlFactory.class.getName());
+    public static final Logger log = Logger.getLogger(WorkflowFromAnnotatedVersionTwoFourMomlXmlFactory.class.getName());
 
     /**
      * Input Stream set via {@link #setWorkflowXml(java.io.InputStream)} 
