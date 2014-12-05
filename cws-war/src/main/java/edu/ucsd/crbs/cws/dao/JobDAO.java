@@ -112,4 +112,7 @@ public interface JobDAO {
      * @throws Exception 
      */
     public Job resave(long jobId) throws Exception;
+    
+    
+    public List<Job> getJobsWithWorkflowId(long workflowId) throws Exception;
 }

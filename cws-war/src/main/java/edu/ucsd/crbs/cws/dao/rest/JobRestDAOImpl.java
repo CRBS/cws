@@ -255,5 +255,9 @@ public class JobRestDAOImpl implements JobDAO {
         return mapper.readValue(json, new TypeReference<Job>() {
         });    }
 
-    
+    @Override
+    public List<Job> getJobsWithWorkflowId(long workflowId) throws Exception {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
 }
