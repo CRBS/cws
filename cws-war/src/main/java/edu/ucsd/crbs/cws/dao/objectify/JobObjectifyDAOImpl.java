@@ -147,11 +147,10 @@ public class JobObjectifyDAOImpl implements JobDAO {
         return null;
     }
 
-    @Override
-    public List<Job> getJobs(String owner, String status,
+    private Query<Job> getJobsQuery(String owner, String status,
            Boolean notSubmittedToScheduler, boolean noParams, 
            boolean noWorkflowParams,final Boolean showDeleted) throws Exception {
-        Query<Job> q = ofy().load().type(Job.class);
+         Query<Job> q = ofy().load().type(Job.class);
 
         if (status != null) {
             q = q.filter("_status in ", generateListFromCommaSeparatedString(status));
@@ -169,13 +168,23 @@ public class JobObjectifyDAOImpl implements JobDAO {
         else {
             q = q.filter("_deleted",false);
         }
+        return q;
+    }
+    
+    @Override
+    public List<Job> getJobs(String owner, String status,
+           Boolean notSubmittedToScheduler, boolean noParams, 
+           boolean noWorkflowParams,final Boolean showDeleted) throws Exception {
+        
+        Query<Job> q = getJobsQuery(owner,status,notSubmittedToScheduler,
+                noParams,noWorkflowParams,showDeleted);
         
         if (noParams == false && noWorkflowParams == false) {
             return q.list();
         }
 
-        List<Job> job = q.list();
-        for (Job j : job) {
+        List<Job> jobs = q.list();
+        for (Job j : jobs) {
             if (noParams == true) {
                 j.setParameters(null);
             }
@@ -187,8 +196,19 @@ public class JobObjectifyDAOImpl implements JobDAO {
                 }
             }
         }
-        return job;
+        return jobs;
     }
+
+    @Override
+    public int getJobsCount(String owner, String status, 
+            Boolean notSubmittedToScheduler, boolean noParams, 
+            boolean noWorkflowParams, Boolean showDeleted) throws Exception {
+        Query<Job> q = getJobsQuery(owner,status,notSubmittedToScheduler,
+                noParams,noWorkflowParams,showDeleted);
+        return q.count();
+    }
+    
+    
 
     /**
      * Creates a new Job in the data store
