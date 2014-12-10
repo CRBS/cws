@@ -260,4 +260,8 @@ public class JobRestDAOImpl implements JobDAO {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
+    @Override
+    public int getJobsWithWorkflowIdCount(long workflowId) throws Exception {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
 }
