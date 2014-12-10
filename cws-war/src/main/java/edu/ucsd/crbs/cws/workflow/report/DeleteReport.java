@@ -34,9 +34,12 @@
 package edu.ucsd.crbs.cws.workflow.report;
 
 /**
+ * Summarizes result of delete operation.  
+ * 
  * @author Christopher Churas <churas@ncmir.ucsd.edu>
  */
 public interface DeleteReport {
+    
     /**
      * Gets the id of whatever is being deleted
      * @return id of object being deleted

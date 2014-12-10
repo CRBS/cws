@@ -33,6 +33,10 @@
 
 package edu.ucsd.crbs.cws.workflow.report;
 
+import edu.ucsd.crbs.cws.workflow.Job;
+import edu.ucsd.crbs.cws.workflow.Workflow;
+import java.util.List;
+
 /**
  * Provides a summary of deletion of a {@link Workflow}
  * 
@@ -44,10 +48,18 @@ public class DeleteWorkflowReport implements DeleteReport{
     private boolean _successful;
     private String _reason;
     
+    /**
+     * Set to {@link Workflow} Id
+     * @param id 
+     */
     public void setId(Long id){
         _id = id;
     }
     
+    /**
+     * Gets {@link Workflow} id
+     * @return Id of {@link Workflow}
+     */
     @Override
     public Long getId() {
         return _id;
@@ -70,5 +82,4 @@ public class DeleteWorkflowReport implements DeleteReport{
     public String getReason() {
         return _reason;
     }
-
 }
