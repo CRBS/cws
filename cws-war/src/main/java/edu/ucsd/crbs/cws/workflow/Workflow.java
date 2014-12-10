@@ -103,15 +103,16 @@ public class Workflow {
     }
     
      public void setParentWorkflow(Workflow workflow){
+        _rawParent = workflow;
+
         if (workflow == null){
             _parent = null;
-            _rawParent = null;
             return;
         }
         if (REFS_ENABLED){
             _parent = Ref.create(workflow);
         }
-        _rawParent = workflow;
+        
     }
     
     public Workflow getParentWorkflow(){
