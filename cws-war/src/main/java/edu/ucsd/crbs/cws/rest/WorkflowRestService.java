@@ -284,6 +284,9 @@ public class WorkflowRestService {
             Event event = _eventBuilder.createEvent(request, user);
             _log.info(event.getStringOfLocationData());
             Workflow w = null;
+            DeleteWorkflowReport dwr = new DeleteWorkflowReport();
+            dwr.setSuccessful(false);
+            
             if (!user.isAuthorizedTo(Permission.DELETE_ALL_WORKFLOWS)){
                 if (!user.isAuthorizedTo(Permission.DELETE_THEIR_WORKFLOWS)){
                     throw new WebApplicationException(HttpServletResponse.SC_UNAUTHORIZED);
@@ -291,26 +294,36 @@ public class WorkflowRestService {
                 else {
                     w = _workflowDAO.getWorkflowById(workflowId.toString(),user);
                     if (w == null){
-                        throw new Exception("Workflow ("+workflowId+") not found");
+                        dwr.setReason("Workflow ("+workflowId+") not found");
+                        return dwr;
                     }
                     if (w.getOwner() == null){
-                        throw new Exception("Workflow ("+workflowId+") does not have owner");
+                        dwr.setReason("Workflow ("+workflowId+") does not have owner");
+                        return dwr;
                     }
                     if (!user.getLoginToRunJobAs().equals(w.getOwner())){
-                        throw new Exception(user.getLoginToRunJobAs()+
+                        dwr.setReason(user.getLoginToRunJobAs()+
                                 " does not have permission to delete Workflow ("
                                 +workflowId+")");
+                        return dwr;
                     }
                 }
             }
             else {
                 w = _workflowDAO.getWorkflowById(workflowId.toString(), user);
                 if (w == null) {
-                    throw new Exception("Workflow (" + workflowId + ") not found");
+                    dwr.setReason("Workflow ("+workflowId+") not found");
+                    return dwr;
                 }
             }
             // delete workflow
-            DeleteWorkflowReport dwr = _workflowDAO.delete(workflowId,permanentlyDelete);
+            dwr = _workflowDAO.delete(workflowId,permanentlyDelete);
+            if (dwr == null){
+                dwr = new DeleteWorkflowReport();
+                dwr.setSuccessful(false);
+                dwr.setReason("Unknown");
+            }
+            
             if (dwr.isSuccessful()){
                 if (permanentlyDelete == null || permanentlyDelete == false){
                      _eventDAO.neverComplainInsert(_eventBuilder.setAsLogicalDeleteWorkflowEvent(event, w));
