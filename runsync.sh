@@ -11,7 +11,7 @@ declare panStat="/usr/local/bin/panfishstat"
 declare theLogin="chris"
 declare theToken="dc5902078cfa40b980229662c2e0c226"
 
-declare theJar="${baseDir}/cws-war/target/cws-war-1.0-SNAPSHOT-jar-with-dependencies.jar"
+declare theJar="${baseDir}/cws-war/target/cws-war-1.18-SNAPSHOT-jar-with-dependencies.jar"
 
 declare helpEmail="support@slashsegmentation.com"
 declare bccEmail="support@slashsegmentation.com"
