@@ -43,9 +43,11 @@ import edu.ucsd.crbs.cws.workflow.InputWorkspaceFileLink;
 import edu.ucsd.crbs.cws.workflow.Job;
 import edu.ucsd.crbs.cws.workflow.Parameter;
 import edu.ucsd.crbs.cws.workflow.Workflow;
+import edu.ucsd.crbs.cws.workflow.WorkspaceFile;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -77,13 +79,16 @@ public class JobObjectifyDAOImpl implements JobDAO {
     @Override
     public Job resave(final long jobId) throws Exception {
 
-        Job resTask = ofy().transact(new Work<Job>() {
+        Job resJob = ofy().transact(new Work<Job>() {
             @Override
             public Job run() {
                 Job job;
                 try {
                     job = getJobById(Long.toString(jobId));
                 } catch (Exception ex) {
+                    _log.log(Level.WARNING,
+                            "Caught exception attempting to load job {0} : {1}",
+                            new Object[]{jobId,ex.getMessage()});
                     return null;
                 }
                 if (job == null) {
@@ -95,7 +100,10 @@ public class JobObjectifyDAOImpl implements JobDAO {
             }
         });
 
-        return resTask;
+        if (resJob == null){
+            throw new Exception("There was an error resaving job "+jobId);
+        }
+        return resJob;
     }
                 
     @Override
@@ -138,8 +146,6 @@ public class JobObjectifyDAOImpl implements JobDAO {
         }
         return null;
     }
-    
-    
 
     @Override
     public List<Job> getJobs(String owner, String status,
@@ -228,9 +234,11 @@ public class JobObjectifyDAOImpl implements JobDAO {
             for (Parameter p : job.getParameters()){
                 if (p.isIsWorkspaceId()){
                     InputWorkspaceFileLink fileLink = new InputWorkspaceFileLink();
-                    fileLink.setJobId(job.getId());
+                    fileLink.setJob(job);
                     fileLink.setParameterName(p.getName());
-                    fileLink.setWorkspaceFileId(Long.valueOf(p.getValue()));
+                    WorkspaceFile wsf = new WorkspaceFile();
+                    wsf.setId(Long.valueOf(p.getValue()));
+                    fileLink.setWorkspaceFile(wsf);
                     _inputWorkspaceFileLinkDAO.insert(fileLink);
                 }
             }
@@ -290,7 +298,7 @@ public class JobObjectifyDAOImpl implements JobDAO {
                     jobNeedsToBeSaved = true;
                 }
                 if (deleted != null){
-                    job.setDeleted(deleted.booleanValue());
+                    job.setDeleted(deleted);
                     jobNeedsToBeSaved = true;
                 }
                 if (error != null){
@@ -326,11 +334,34 @@ public class JobObjectifyDAOImpl implements JobDAO {
         return resJob;
     }
 
+    /**
+     * Gets {@link Job}s that were run from the <b>workflowId</b> passed in
+     * @param workflowId id of {@link Workflow} that {@link Job} was run from
+     * @return List of {@link Job}s that were run from <b>workflowId</b>
+     * @throws Exception If there was an error querying the data store
+     */
     @Override
     public List<Job> getJobsWithWorkflowId(long workflowId) throws Exception {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        Query<Job> q = ofy().load().type(Job.class);
+        Workflow w = new Workflow();
+        w.setId(workflowId);
+        q = q.filter("_workflow", Key.create(w));
+        return q.list();
     }
-    
+
+    /**
+     * Gets number of {@link Job}s that were run from the <b>workflowId</b> passed in
+     * @param workflowId id of {@link Workflow} that {@link Job} was run from
+     * @return number of jobs run under the <b>workflowId</b>
+     * @throws Exception If there was an error querying the data store
+     */
+    @Override
+    public int getJobsWithWorkflowIdCount(long workflowId) throws Exception {
+        Query<Job> q = ofy().load().type(Job.class);
+        Workflow w = new Workflow();
+        w.setId(workflowId);
+        return q.filter("_workflow", Key.create(w)).count();
+    }
     
     private List<String> generateListFromCommaSeparatedString(final String val) {
         return Arrays.asList(val.split(COMMA));
