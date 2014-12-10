@@ -33,6 +33,10 @@
 
 package edu.ucsd.crbs.cws.dao.objectify;
 
+import com.google.appengine.api.blobstore.BlobInfo;
+import com.google.appengine.api.blobstore.BlobInfoFactory;
+import com.google.appengine.api.blobstore.BlobKey;
+import com.google.appengine.api.blobstore.BlobstoreServiceFactory;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Work;
 import com.googlecode.objectify.cmd.Query;
@@ -48,6 +52,8 @@ import edu.ucsd.crbs.cws.workflow.WorkflowParameter;
 import edu.ucsd.crbs.cws.workflow.report.DeleteWorkflowReport;
 import java.util.Date;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Provides access methods to load, modify, and save Workflow objects to Google App
@@ -57,6 +63,9 @@ import java.util.List;
  */
 public class WorkflowObjectifyDAOImpl implements WorkflowDAO {
 
+    private static final Logger _log
+            = Logger.getLogger(WorkflowObjectifyDAOImpl.class.getName());
+    
     
     WorkflowParameterDataFetcher _dropDownFetcher = new URLFetcherImpl();
 
@@ -276,13 +285,68 @@ public class WorkflowObjectifyDAOImpl implements WorkflowDAO {
         return getWorkflowById(job.getWorkflow().getId().toString(), user);
     }
     
-     @Override
+    /**
+     * Deletes {@link Workflow} identified by <b>workflowId</b> logically or
+     * for real depending on value of <b>permanentlyDelete</b> parameter.<p/>
+     * 
+     * This method first sees if any {@link Job}s have been run on {@link Workflow}
+     * if yes then {@link DeleteWorkflowReport}'s {@link DeleteWorkflowReport#isSuccessful()}
+     * will be set to <b><code>false</b></code> and {@link DeleteWorkflowReport#getReason()}
+     * will be set to the following:<p/>
+     * 
+     * <code>Cannot delete (NUMBER) jobs have been run under workflow</code>
+     * 
+     * @param workflowId
+     * @param permanentlyDelete
+     * @return {@link DeleteWorkflowReport} denoting success or failure
+     * @throws Exception If there was an error querying the datastore
+     */
+    @Override
     public DeleteWorkflowReport delete(long workflowId, Boolean permanentlyDelete) throws Exception {
+
+        DeleteWorkflowReport dwr = new DeleteWorkflowReport();
+        dwr.setSuccessful(false);
+        dwr.setReason("Unknown");
+        
+        _log.log(Level.INFO,"Checking if its possible to delete workflow {0} ",workflowId);
+        
      //look for any jobs associated with workflow
+     int numAssociatedJobs = _jobDAO.getJobsWithWorkflowIdCount(workflowId);
+     
      //if found add to DeleteWorkflowReport and return
+     if (numAssociatedJobs > 0){
+        dwr.setReason("Cannot delete "+numAssociatedJobs+
+                " jobs have been run under workflow");
+        return dwr;
+     }
+
       //if permanentlyDelete is not null and true then run real delete
-      //else just set _deleted to true 
-        return null;
+     if (permanentlyDelete != null && permanentlyDelete == true){
+         //need to load workflow and get its blobkey if any
+         Workflow w = getWorkflowById(Long.toString(workflowId), null);
+         if (w.getBlobKey() != null){
+             _log.log(Level.INFO,"Blob key found {0}  Deleting from blobstore",
+                     w.getBlobKey());
+             BlobKey bk = new BlobKey(w.getBlobKey());
+             BlobInfo bInfo = new BlobInfoFactory().loadBlobInfo(bk);
+             if (bInfo == null){
+                 _log.log(Level.WARNING,"No BlobInfo found");
+             }
+             else {
+                  
+                 _log.log(Level.INFO,"Found file {0}",bInfo.getFilename());
+             }
+             BlobstoreServiceFactory.getBlobstoreService().delete(bk);
+         }
+         ofy().delete().type(Workflow.class).id(workflowId).now();
+     }
+     else {
+        //else just set _deleted to true 
+        updateDeleted(workflowId, true);
+     }
+     dwr.setSuccessful(true);
+     dwr.setReason(null);
+     return dwr;
     }
 }
 
