@@ -34,6 +34,7 @@
 package edu.ucsd.crbs.cws.dao.objectify;
 
 import com.googlecode.objectify.Key;
+import com.googlecode.objectify.Work;
 import com.googlecode.objectify.cmd.Query;
 import edu.ucsd.crbs.cws.dao.InputWorkspaceFileLinkDAO;
 import static edu.ucsd.crbs.cws.dao.objectify.OfyService.ofy;
@@ -87,5 +88,57 @@ public class InputWorkspaceFileLinkObjectifyDAOImpl implements InputWorkspaceFil
     public InputWorkspaceFileLink getById(Long inputWorkspaceFileLinkId) throws Exception {
         return ofy().load().type(InputWorkspaceFileLink.class).id(inputWorkspaceFileLinkId).now();
     }
+
+    /**
+     * In a transaction, resaves {@link InputWorkspaceFileLink} whose {@link InputWorkspaceFileLink#getId() matches 
+     * <b>inputWorkspaceFileLinkId</b>
+     * @param inputWorkspaceFileLinkId
+     * @return {@link InputWorkspaceFileLink} after resave or null if save did not occur
+     * @throws Exception If there is an error during the save
+     */
+    @Override
+    public InputWorkspaceFileLink resave(final long inputWorkspaceFileLinkId) throws Exception {
+        InputWorkspaceFileLink res = ofy().transact(new Work<InputWorkspaceFileLink>() {
+            @Override
+            public InputWorkspaceFileLink run() {
+                InputWorkspaceFileLink link;
+                try {
+                    link = getById(inputWorkspaceFileLinkId);
+                } catch(Exception ex){
+                    return null;
+                }
+                if (link == null){
+                    return null;
+                }
+                Key<InputWorkspaceFileLink> tLink = ofy().save().entity(link).now();
+                return link;
+            }
+        });
+        return res;
+    }
+     
+    /**
+     * Gets list of all {@link InputWorkspaceFileLink}s
+     * @param showDeleted {@link InputWorkspaceFileLink}s with {@link InputWorkspaceFileLink#isDeleted()} will only
+     * be displayed if this parameter is <b>NOT <code>null</code></b> and set to <b><code>true</code></b>
+     * @return List of {@link INputWorkspaceFileLink} objects
+     * @throws Exception 
+     */
+    @Override
+    public List<InputWorkspaceFileLink> getInputWorkspaceFileLinks(Boolean showDeleted) throws Exception {
+        Query<InputWorkspaceFileLink> q = ofy().load().type(InputWorkspaceFileLink.class);
+        
+        if (showDeleted != null){
+            q = q.filter("_deleted",showDeleted);
+        }
+        else {
+            q = q.filter("_deleted",false);
+        }
+        return q.list();
+    }
+    
+    
+    
+    
 
 }
