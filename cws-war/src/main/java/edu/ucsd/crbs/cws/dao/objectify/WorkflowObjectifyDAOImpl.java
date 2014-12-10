@@ -305,6 +305,7 @@ public class WorkflowObjectifyDAOImpl implements WorkflowDAO {
     public DeleteWorkflowReport delete(long workflowId, Boolean permanentlyDelete) throws Exception {
 
         DeleteWorkflowReport dwr = new DeleteWorkflowReport();
+        dwr.setId(workflowId);
         dwr.setSuccessful(false);
         dwr.setReason("Unknown");
         
