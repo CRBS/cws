@@ -95,6 +95,11 @@ public class Constants {
     public static final String REST_PATH = "rest";
     
     /**
+     * REST path added to denote a count is desired
+     */
+    public static final String COUNT_PATH = "count";
+    
+    /**
      * User login query parameter name.  This should be passed to all
      * rest calls
      */
