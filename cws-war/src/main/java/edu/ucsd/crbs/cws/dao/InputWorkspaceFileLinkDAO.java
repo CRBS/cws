@@ -34,6 +34,7 @@
 package edu.ucsd.crbs.cws.dao;
 
 import edu.ucsd.crbs.cws.workflow.InputWorkspaceFileLink;
+import edu.ucsd.crbs.cws.workflow.Job;
 import java.util.List;
 
 /**
@@ -51,6 +52,14 @@ public interface InputWorkspaceFileLinkDAO {
      */
     public InputWorkspaceFileLink insert(InputWorkspaceFileLink workspaceFileLink) throws Exception;
     
+    /**
+     * Resaves {@link InputWorkspaceFileLink} whose {@link InputWorkspaceFileLink#getId() matches 
+     * <b>inputWorkspaceFileLinkId</b>
+     * @param inputWorkspaceFileLinkId
+     * @return {@link InputWorkspaceFileLink} after resave
+     * @throws Exception If there is an error during the save
+     */
+    public InputWorkspaceFileLink resave(final long inputWorkspaceFileLinkId) throws Exception;
     
     /**
      * Gets {@link InputWorkspaceFileLink} objects whose {@link InputWorkspaceFileLink#getJobId()} matches <b>jobId</b>
@@ -77,6 +86,24 @@ public interface InputWorkspaceFileLinkDAO {
      * @throws Exception 
      */
     public InputWorkspaceFileLink getById(Long inputWorkspaceFileLinkId) throws Exception;
+    
+    /**
+     * Gets list of all {@link InputWorkspaceFileLink}s
+     * @param showDeleted {@link InputWorkspaceFileLink}s with {@link InputWorkspaceFileLink#isDeleted()} will only
+     * be displayed if this parameter is <b>NOT <code>null</code></b> and set to <b><code>true</code></b>
+     * @return List of {@link INputWorkspaceFileLink} objects
+     * @throws Exception 
+     */
+    public List<InputWorkspaceFileLink> getInputWorkspaceFileLinks(Boolean showDeleted) throws Exception;
+    
+    /**
+     * Examines <b>job</b> passed in and adds/corrects/removes 
+     * {@link InputWorkspaceFileLink} objects as needed.  
+     * @param job
+     * @return
+     * @throws Exception 
+     */
+ //   public void updateInputWorkspaceFileLinksForJob(Job job) throws Exception;
     
     
 }
