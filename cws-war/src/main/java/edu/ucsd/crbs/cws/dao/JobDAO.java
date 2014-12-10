@@ -30,7 +30,6 @@
  * THE CRBS Workflow Service WILL NOT INFRINGE ANY PATENT, TRADEMARK OR OTHER
  * RIGHTS. 
  */
-
 package edu.ucsd.crbs.cws.dao;
 
 import edu.ucsd.crbs.cws.workflow.Job;
@@ -39,53 +38,61 @@ import java.util.List;
 /**
  * Interface that defines methods to retrieve and persist {@link Job} objects to
  * a data store
+ *
  * @author Christopher Churas <churas@ncmir.ucsd.edu>
  */
 public interface JobDAO {
-    
+
     /**
-     * Gets {@link Job} from Data Store by querying using jobId passed in.  
+     * Gets {@link Job} from Data Store by querying using jobId passed in.
+     *
      * @param jobId
-     * @return 
-     * @throws Exception 
+     * @return
+     * @throws Exception
      */
     public Job getJobById(final String jobId) throws Exception;
-    
-    
+
     /**
-     * Gets {@link Job} from Data Store by querying using <b>jobId</b> and <b>user</b>
+     * Gets {@link Job} from Data Store by querying using <b>jobId</b> and
+     * <b>user</b>
      * passed in
+     *
      * @param jobId id of job
      * @param user login of user
      * @return
-     * @throws Exception 
+     * @throws Exception
      */
-    public Job getJobByIdAndUser(final String jobId,final String user) throws Exception;
-    
+    public Job getJobByIdAndUser(final String jobId, final String user) throws Exception;
+
     /**
      * Gets jobs using parameters as filters
+     *
      * @param owner If non null only Jobs with matching owners will be returned
      * @param status If non null only Jobs with matching status will be returned
-     * @param notSubmittedToScheduler If non null only Jobs matching submitted to scheduler flag will be returned
+     * @param notSubmittedToScheduler If non null only Jobs matching submitted
+     * to scheduler flag will be returned
      * @param noParams True means to exclude Parameters in returned Jobs
-     * @param noWorkflowParams True means to exclude WorkflowParameters in Workflow objects returned with Jobs
+     * @param noWorkflowParams True means to exclude WorkflowParameters in
+     * Workflow objects returned with Jobs
      * @return
-     * @throws Exception 
+     * @throws Exception
      */
-    public List<Job> getJobs(final String owner,final String status, final Boolean notSubmittedToScheduler,
-            boolean noParams,boolean noWorkflowParams,final Boolean showDeleted) throws Exception;
+    public List<Job> getJobs(final String owner, final String status, final Boolean notSubmittedToScheduler,
+            boolean noParams, boolean noWorkflowParams, final Boolean showDeleted) throws Exception;
 
     /**
      * Inserts a new {@link Job} into data store skipping Workflow Check
+     *
      * @param j
      * @param skipWorkflowCheck
      * @return
-     * @throws Exception 
+     * @throws Exception
      */
-    public Job insert(Job j,boolean skipWorkflowCheck) throws Exception;
-    
+    public Job insert(Job j, boolean skipWorkflowCheck) throws Exception;
+
     /**
-     * Updates existing job with values passed in.  
+     * Updates existing job with values passed in.
+     *
      * @param jobId
      * @param status
      * @param estCpu
@@ -97,22 +104,39 @@ public interface JobDAO {
      * @param submittedToScheduler
      * @param jobId
      * @return
-     * @throws Exception 
+     * @throws Exception
      */
-    public Job update(long jobId,final String status,Long estCpu,Long estRunTime,
-            Long estDisk,Long submitDate,Long startDate,Long finishDate,
-            Boolean submittedToScheduler,final String schedulerJobId,
-            final Boolean deleted,final String error,final String detailedError) throws Exception;
-    
-    
+    public Job update(long jobId, final String status, Long estCpu, Long estRunTime,
+            Long estDisk, Long submitDate, Long startDate, Long finishDate,
+            Boolean submittedToScheduler, final String schedulerJobId,
+            final Boolean deleted, final String error, final String detailedError) throws Exception;
+
     /**
      * Loads and resaves {@link Job} with given <b>jobId</b>
+     *
      * @param jobId
      * @return Resaved {@link Job}
-     * @throws Exception 
+     * @throws Exception
      */
     public Job resave(long jobId) throws Exception;
-    
-    
+
+    /**
+     * Gets {@link Job}s that were run from the <b>workflowId</b> passed in
+     *
+     * @param workflowId id of {@link Workflow} that {@link Job} was run from
+     * @return List of {@link Job}s that were run from <b>workflowId</b>
+     * @throws Exception If there was an error querying the data store
+     */
     public List<Job> getJobsWithWorkflowId(long workflowId) throws Exception;
+
+    /**
+     * Gets number of {@link Job}s that were run from the <b>workflowId</b>
+     * passed in
+     *
+     * @param workflowId id of {@link Workflow} that {@link Job} was run from
+     * @return number of jobs run under the <b>workflowId</b>
+     * @throws Exception If there was an error querying the data store
+     */
+    public int getJobsWithWorkflowIdCount(long workflowId) throws Exception;
+   
 }
