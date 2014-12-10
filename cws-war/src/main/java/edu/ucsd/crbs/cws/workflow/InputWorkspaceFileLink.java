@@ -33,8 +33,10 @@
 
 package edu.ucsd.crbs.cws.workflow;
 
+import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
+import com.googlecode.objectify.annotation.Ignore;
 import com.googlecode.objectify.annotation.Index;
 
 /**
@@ -44,10 +46,15 @@ import com.googlecode.objectify.annotation.Index;
 @Entity
 public class InputWorkspaceFileLink {
 
+    public static boolean REFS_ENABLED = true;
+
+    
     @Id private Long _id;
     private String _parameterName;
-    @Index private Long _jobId;
-    @Index private Long _workspaceFileId;
+    @Index private Ref<Job> _job;
+    @Ignore private Job _rawJob;
+    @Index private Ref<WorkspaceFile> _workspaceFile;
+    @Ignore private WorkspaceFile _rawWorkspaceFile;
     @Index private boolean _deleted;
     
     public Long getId() {
@@ -58,21 +65,50 @@ public class InputWorkspaceFileLink {
         this._id = _id;
     }
 
-    public Long getJobId() {
-        return _jobId;
+    public Job getJob() {
+        if (REFS_ENABLED == false){
+            return _rawJob;
+        }
+        if (_job == null){
+            return null;
+        }
+        return _job.get();
     }
 
-    public void setJobId(Long jobId) {
-        this._jobId = jobId;
+    public void setJob(Job job) {
+        _rawJob = job;
+        
+        if (job == null){
+            _job = null;
+            return;
+        }
+        
+        if (REFS_ENABLED ){
+            _job = Ref.create(job);
+        }
     }
 
-    public Long getWorkspaceFileId() {
-        return _workspaceFileId;
+    public WorkspaceFile getWorkspaceFile() {
+        if (REFS_ENABLED == false){
+            return _rawWorkspaceFile;
+        }
+        if (_workspaceFile == null){
+            return null;
+        }
+        return _workspaceFile.get();
     }
 
-    public void setWorkspaceFileId(Long _workspaceFileId) {
-        this._workspaceFileId = _workspaceFileId;
+    public void setWorkspaceFile(WorkspaceFile workspaceFile) {
+        _rawWorkspaceFile = workspaceFile;
+        if (workspaceFile == null){
+            _workspaceFile = null;
+            return;
+        }
+        if (REFS_ENABLED){
+            _workspaceFile = Ref.create(workspaceFile);
+        }
     }
+
 
     public boolean isDeleted() {
         return _deleted;
