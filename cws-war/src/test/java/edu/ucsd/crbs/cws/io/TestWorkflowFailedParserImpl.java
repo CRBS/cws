@@ -36,18 +36,18 @@ package edu.ucsd.crbs.cws.io;
 import edu.ucsd.crbs.cws.rest.Constants;
 import java.io.File;
 import java.io.FileWriter;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.junit.After;
 import org.junit.AfterClass;
 import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
-import static org.mockito.Mockito.*;
 
 
 
@@ -66,6 +66,7 @@ public class TestWorkflowFailedParserImpl {
 
     @BeforeClass
     public static void setUpClass() {
+        Logger.getLogger(WorkflowFailedParserImpl.class.getName()).setLevel(Level.OFF);
     }
 
     @AfterClass

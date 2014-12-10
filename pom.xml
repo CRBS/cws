@@ -3,12 +3,12 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>edu.ucsd.crbs.cws</groupId>
   <artifactId>cws</artifactId>
-  <version>1.0-SNAPSHOT</version>
+  <version>1.18-SNAPSHOT</version>
   <packaging>pom</packaging>
   
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <appengine.target.version>1.9.12</appengine.target.version>
+    <appengine.target.version>1.9.15</appengine.target.version>
     <maven.compiler.source>1.7</maven.compiler.source>
     <maven.compiler.target>1.7</maven.compiler.target>
   </properties>

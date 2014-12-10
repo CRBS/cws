@@ -221,4 +221,53 @@ public class EventBuilderImpl implements EventBuilder {
         }
         return false;
     }
+
+    @Override
+    public Event setAsLogicalDeleteWorkflowEvent(Event event, Workflow workflow) {
+        if (anyOfTheseObjectsNull(event,workflow) == true){
+            _log.log(Level.WARNING,"One or more parameters passed in is null.  Unable to log event.");
+            return null;
+        }
+
+        event.setWorkflowId(workflow.getId());
+        event.setEventType(Event.LOGICAL_DELETE_WORKFLOW_EVENT_TYPE);
+        event.setDate(new Date());
+        
+        return event;
+    }
+
+    @Override
+    public Event setAsDeleteWorkflowEvent(Event event, Workflow workflow) {
+         if (anyOfTheseObjectsNull(event,workflow) == true){
+            _log.log(Level.WARNING,"One or more parameters passed in is null.  Unable to log event.");
+            return null;
+        }
+
+        event.setWorkflowId(workflow.getId());
+        event.setEventType(Event.DELETE_WORKFLOW_EVENT_TYPE);
+        event.setDate(new Date());
+        StringBuilder sb = new StringBuilder();
+        
+        sb.append("Name=");
+        if (workflow.getName() != null){
+           sb.append(workflow.getName());
+        }
+        else {
+           sb.append("null");
+        }
+        sb.append(",Version=");
+        sb.append(Integer.toString(workflow.getVersion()));
+        sb.append(",CreateDate=");
+        if (workflow.getCreateDate() != null){
+            sb.append(workflow.getCreateDate().toString());
+        }
+        else {
+            sb.append("null");
+        }
+        event.setMessage(sb.toString());
+       
+        return event;
+    }
+    
+    
 }

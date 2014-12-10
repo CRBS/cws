@@ -145,5 +145,36 @@ public class Permission {
      * Permission to create workspace file under any user
      */
     public static final int CREATE_ANY_WORKSPACEFILE = 262144;
+    
+    /**
+     * Permission to delete their workflows
+     */
+    public static final int DELETE_THEIR_WORKFLOWS = 524288;
+    
+    /**
+     * Permission to delete all workflows
+     */
+    public static final int DELETE_ALL_WORKFLOWS = 1048576;
+    
+    /**
+     * Permission to delete their jobs
+     */
+    public static final int DELETE_THEIR_JOBS = 2097152;
+    
+    /**
+     * Permission to delete all jobs
+     */
+     public static final int DELETE_ALL_JOBS = 4194304;
+     
+    /**
+     * Permission to delete their WorkspaceFiles
+     */
+    public static final int DELETE_THEIR_WORKSPACEFILES = 8388608;
+    
+    /**
+     * Permission to delete all WorkspaceFiles
+     */
+     public static final int DELETE_ALL_WORKSPACEFILES = 16777216;
 
 }
+

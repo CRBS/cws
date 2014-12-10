@@ -112,7 +112,9 @@ public class JobRestDAOImpl implements JobDAO {
     }
     
     @Override
-    public List<Job> getJobs(String owner, String status, Boolean notSubmittedToScheduler, boolean noParams, boolean noWorkflowParams) throws Exception {
+    public List<Job> getJobs(String owner, String status,
+            Boolean notSubmittedToScheduler, boolean noParams, 
+            boolean noWorkflowParams,final Boolean showDeleted) throws Exception {
         ClientConfig cc = new DefaultClientConfig();
         cc.getFeatures().put(JSONConfiguration.FEATURE_POJO_MAPPING, Boolean.TRUE);
         Client client = Client.create(cc);
@@ -140,12 +142,20 @@ public class JobRestDAOImpl implements JobDAO {
         if (noWorkflowParams == true) {
             queryParams.add(Constants.NOWORKFLOWPARAMS_QUERY_PARAM, Boolean.TRUE.toString());
         }
+        if (showDeleted != null){
+            queryParams.add(Constants.SHOW_DELETED_QUERY_PARAM,showDeleted.toString());
+        }
 
         String json = resource.queryParams(queryParams).accept(MediaType.APPLICATION_JSON).get(String.class);
         ObjectMapper mapper = new ObjectMapper();
         mapper.registerModule(new ObjectifyJacksonModule());
         return mapper.readValue(json, new TypeReference<List<Job>>() {
         });
+    }
+
+    @Override
+    public int getJobsCount(String owner, String status, Boolean notSubmittedToScheduler, boolean noParams, boolean noWorkflowParams, Boolean showDeleted) throws Exception {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
@@ -250,5 +260,13 @@ public class JobRestDAOImpl implements JobDAO {
         return mapper.readValue(json, new TypeReference<Job>() {
         });    }
 
-    
+    @Override
+    public List<Job> getJobsWithWorkflowId(long workflowId) throws Exception {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public int getJobsWithWorkflowIdCount(long workflowId) throws Exception {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
 }

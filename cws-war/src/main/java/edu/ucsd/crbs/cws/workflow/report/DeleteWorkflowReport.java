@@ -31,54 +31,55 @@
  * RIGHTS. 
  */
 
-package edu.ucsd.crbs.cws.workflow;
+package edu.ucsd.crbs.cws.workflow.report;
 
-import com.googlecode.objectify.annotation.Entity;
-import com.googlecode.objectify.annotation.Id;
-import com.googlecode.objectify.annotation.Index;
+import edu.ucsd.crbs.cws.workflow.Job;
+import edu.ucsd.crbs.cws.workflow.Workflow;
+import java.util.List;
 
 /**
- * Links an input {@link WorkspaceFile} with a {@link Task}
+ * Provides a summary of deletion of a {@link Workflow}
+ * 
  * @author Christopher Churas <churas@ncmir.ucsd.edu>
  */
-@Entity
-public class JobWorkspaceFile {
+public class DeleteWorkflowReport implements DeleteReport{
 
-    @Id private Long _id;
-    @Index private Long _jobId;
-    @Index private Long _workspaceFileId;
-    @Index private boolean _deleted;
+    private Long _id;
+    private boolean _successful;
+    private String _reason;
     
+    /**
+     * Set to {@link Workflow} Id
+     * @param id 
+     */
+    public void setId(Long id){
+        _id = id;
+    }
+    
+    /**
+     * Gets {@link Workflow} id
+     * @return Id of {@link Workflow}
+     */
+    @Override
     public Long getId() {
         return _id;
     }
 
-    public void setId(Long _id) {
-        this._id = _id;
+    public void setSuccessful(boolean successful) {
+        _successful = successful;
+    }    
+    
+    @Override
+    public boolean isSuccessful() {
+        return _successful;
     }
 
-    public Long getJobId() {
-        return _jobId;
-    }
-
-    public void setJobId(Long jobId) {
-        this._jobId = jobId;
-    }
-
-    public Long getWorkspaceFileId() {
-        return _workspaceFileId;
-    }
-
-    public void setWorkspaceFileId(Long _workspaceFileId) {
-        this._workspaceFileId = _workspaceFileId;
-    }
-
-    public boolean isDeleted() {
-        return _deleted;
-    }
-
-    public void setDeleted(boolean _deleted) {
-        this._deleted = _deleted;
+    public void setReason(final String reason){
+        _reason = reason;
     }
     
+    @Override
+    public String getReason() {
+        return _reason;
+    }
 }

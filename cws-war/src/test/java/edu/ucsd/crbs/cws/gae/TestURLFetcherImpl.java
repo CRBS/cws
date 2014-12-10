@@ -37,6 +37,8 @@ import edu.ucsd.crbs.cws.workflow.WorkflowParameter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.junit.After;
 import org.junit.AfterClass;
 import static org.junit.Assert.assertTrue;
@@ -64,6 +66,7 @@ public class TestURLFetcherImpl {
 
     @BeforeClass
     public static void setUpClass() {
+        Logger.getLogger(URLFetcherImpl.class.getName()).setLevel(Level.OFF);
     }
 
     @AfterClass

@@ -33,15 +33,14 @@
 
 package edu.ucsd.crbs.cws.workflow;
 
-import edu.ucsd.crbs.cws.workflow.WorkflowFromAnnotatedVersionTwoFourMomlXmlFactory;
 import edu.ucsd.crbs.cws.io.KeplerMomlFromKar;
-import edu.ucsd.crbs.cws.workflow.Workflow;
-import edu.ucsd.crbs.cws.workflow.WorkflowParameter;
 import java.io.FileInputStream;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -71,6 +70,7 @@ public class TestWorkflowFromAnnotatedVersionTwoFourMomlXmlFactory {
 
     @BeforeClass
     public static void setUpClass() {
+        Logger.getLogger(WorkflowFromAnnotatedVersionTwoFourMomlXmlFactory.class.getName()).setLevel(Level.OFF);
     }
 
     @AfterClass

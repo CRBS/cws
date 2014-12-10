@@ -33,7 +33,10 @@
 
 package edu.ucsd.crbs.cws.servlet;
 
+import edu.ucsd.crbs.cws.dao.JobDAO;
 import edu.ucsd.crbs.cws.dao.WorkflowDAO;
+import edu.ucsd.crbs.cws.dao.objectify.InputWorkspaceFileLinkObjectifyDAOImpl;
+import edu.ucsd.crbs.cws.dao.objectify.JobObjectifyDAOImpl;
 import edu.ucsd.crbs.cws.dao.objectify.WorkflowObjectifyDAOImpl;
 import edu.ucsd.crbs.cws.gae.BlobStoreServiceUtil;
 import edu.ucsd.crbs.cws.rest.Constants;
@@ -54,7 +57,7 @@ public class WorkflowDownloaderImpl implements Downloader {
 
     private static final Logger _log = Logger.getLogger(WorkflowDownloaderImpl.class.getName());
 
-    WorkflowDAO _workflowDAO = new WorkflowObjectifyDAOImpl();
+    WorkflowDAO _workflowDAO = new WorkflowObjectifyDAOImpl((JobDAO)new JobObjectifyDAOImpl(new InputWorkspaceFileLinkObjectifyDAOImpl()));
 
     /**
      * Given a <b>workflowId</b> this method sends the associate workflow file to

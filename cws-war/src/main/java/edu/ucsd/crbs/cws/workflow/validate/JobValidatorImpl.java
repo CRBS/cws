@@ -33,7 +33,10 @@
 package edu.ucsd.crbs.cws.workflow.validate;
 
 import edu.ucsd.crbs.cws.auth.User;
+import edu.ucsd.crbs.cws.dao.JobDAO;
 import edu.ucsd.crbs.cws.dao.WorkflowDAO;
+import edu.ucsd.crbs.cws.dao.objectify.InputWorkspaceFileLinkObjectifyDAOImpl;
+import edu.ucsd.crbs.cws.dao.objectify.JobObjectifyDAOImpl;
 import edu.ucsd.crbs.cws.dao.objectify.WorkflowObjectifyDAOImpl;
 import edu.ucsd.crbs.cws.workflow.Parameter;
 import edu.ucsd.crbs.cws.workflow.ParameterWithError;
@@ -56,7 +59,7 @@ public class JobValidatorImpl implements JobValidator {
     private static final Logger _log
             = Logger.getLogger(JobValidatorImpl.class.getName());
 
-    WorkflowDAO _workflowDAO = new WorkflowObjectifyDAOImpl();
+    WorkflowDAO _workflowDAO = new WorkflowObjectifyDAOImpl((JobDAO)new JobObjectifyDAOImpl(new InputWorkspaceFileLinkObjectifyDAOImpl()));
 
     JobParametersChecker _jobParamNullChecker = new JobParametersNullNameChecker();
     JobParametersChecker _jobParamDuplicateChecker = new JobParametersDuplicateChecker();

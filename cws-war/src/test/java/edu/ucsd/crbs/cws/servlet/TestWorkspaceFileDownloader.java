@@ -38,6 +38,8 @@ import com.google.appengine.tools.development.testing.LocalServiceTestHelper;
 import edu.ucsd.crbs.cws.dao.WorkspaceFileDAO;
 import edu.ucsd.crbs.cws.workflow.WorkspaceFile;
 import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.servlet.http.HttpServletResponse;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -67,6 +69,7 @@ public class TestWorkspaceFileDownloader {
 
     @BeforeClass
     public static void setUpClass() {
+        Logger.getLogger(WorkspaceFileDownloader.class.getName()).setLevel(Level.OFF);
     }
 
     @AfterClass

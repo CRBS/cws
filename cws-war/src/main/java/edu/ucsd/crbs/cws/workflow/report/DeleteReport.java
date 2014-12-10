@@ -31,58 +31,30 @@
  * RIGHTS. 
  */
 
-package edu.ucsd.crbs.cws.dao.objectify;
-
-import com.googlecode.objectify.ObjectifyFactory;
-import com.googlecode.objectify.ObjectifyService;
-import com.googlecode.objectify.Objectify;
-import edu.ucsd.crbs.cws.auth.User;
-import edu.ucsd.crbs.cws.log.Event;
-import edu.ucsd.crbs.cws.workflow.Job;
-import edu.ucsd.crbs.cws.workflow.InputWorkspaceFileLink;
-import edu.ucsd.crbs.cws.workflow.Workflow;
-import edu.ucsd.crbs.cws.workflow.WorkspaceFile;
-
+package edu.ucsd.crbs.cws.workflow.report;
 
 /**
- * Contains static methods to retrieve Objectify object that lets caller interact
- * with Google App Engine NoSQL data store.  Code was taken from Best Practices 
- * section in <a href="http://code.google.com/p/objectify-appengine/wiki">Objectify Wiki</a>
+ * Summarizes result of delete operation.  
  * 
  * @author Christopher Churas <churas@ncmir.ucsd.edu>
  */
-public class OfyService {
+public interface DeleteReport {
     
     /**
-     * Put list of classes that need to be persisted by Objectify in here
+     * Gets the id of whatever is being deleted
+     * @return id of object being deleted
      */
-    static {
-        factory().register(Workflow.class);
-        factory().register(Job.class);
-        factory().register(User.class);
-        factory().register(Event.class);
-        factory().register(WorkspaceFile.class);
-        factory().register(InputWorkspaceFileLink.class);
-    }
-
+    public Long getId();
+    
     /**
-     * Gets Objectify object which is the main object used to interact with Google
-     * App Engine NoSQL Datastore.  This is the method to call for loading, querying,
-     * and saving objects to the data store.
-     * @return Objectify object
+     * Gets whether delete was successful
+     * @return <b><code>true</code></b> if delete worked <b><code>false</code></b> otherwise
      */
-    public static Objectify ofy() {
-        return ObjectifyService.ofy();
-    }
-
-
+    public boolean isSuccessful();
+    
     /**
-     * Retrieves the ObjectifyFactory object from the Service
-     * @return 
+     * If delete was not successful contains human readable message for reason
+     * @return <b><code>null</code></b> or String containing reason for deletion failure
      */
-    public static ObjectifyFactory factory() {
-        return ObjectifyService.factory();
-    }
-
-
+    public String getReason();
 }

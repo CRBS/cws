@@ -110,7 +110,8 @@ public class WorkspaceFileRestDAOImpl implements WorkspaceFileDAO {
     
     
     @Override
-    public List<WorkspaceFile> getWorkspaceFiles(String owner, final String type,final Boolean isFailed,Boolean synced) throws Exception {
+    public List<WorkspaceFile> getWorkspaceFiles(String owner, final String type,final Boolean isFailed,Boolean synced,
+            final Boolean showDeleted) throws Exception {
         ClientConfig cc = new DefaultClientConfig();
         cc.getFeatures().put(JSONConfiguration.FEATURE_POJO_MAPPING, Boolean.TRUE);
         Client client = Client.create(cc);
@@ -132,6 +133,9 @@ public class WorkspaceFileRestDAOImpl implements WorkspaceFileDAO {
 
         if (synced != null) {
             queryParams.add(Constants.SYNCED_QUERY_PARAM,synced.toString());
+        }
+        if (showDeleted != null){
+            queryParams.add(Constants.SHOW_DELETED_QUERY_PARAM,showDeleted.toString());
         }
 
         String json = resource.queryParams(queryParams).accept(MediaType.APPLICATION_JSON).get(String.class);
@@ -191,7 +195,9 @@ public class WorkspaceFileRestDAOImpl implements WorkspaceFileDAO {
                 path(Long.toString(workspaceFileId));
         
         MultivaluedMap queryParams = _multivaluedMapFactory.getMultivaluedMap(_user);
-        queryParams.add(Constants.PATH_QUERY_PARAM, path);
+        if (path != null){
+            queryParams.add(Constants.PATH_QUERY_PARAM, path);
+        }
         
         if (size != null){
             queryParams.add(Constants.SIZE_QUERY_PARAM, size);
@@ -213,7 +219,8 @@ public class WorkspaceFileRestDAOImpl implements WorkspaceFileDAO {
     }
 
     @Override
-    public WorkspaceFile update(WorkspaceFile wsp) throws Exception {
+    public WorkspaceFile update(WorkspaceFile wsp,Boolean isDeleted, 
+            Boolean isFailed,Boolean isDir) throws Exception {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 

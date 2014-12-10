@@ -6,6 +6,8 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.junit.After;
 import org.junit.AfterClass;
 import static org.junit.Assert.assertTrue;
@@ -33,6 +35,7 @@ public class TestWorkflowFromVersionOneMomlXmlFactory {
 
     @BeforeClass
     public static void setUpClass() {
+         Logger.getLogger(WorkflowFromVersionOneMomlXmlFactory.class.getName()).setLevel(Level.OFF);
     }
 
     @AfterClass

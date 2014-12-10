@@ -359,7 +359,7 @@ public class App {
                 Long workspaceId = (Long)optionSet.valueOf(RESAVE_WORKSPACEFILE_ARG);
                 if (workspaceId == -1){
                     System.out.println("Resaving all workspace files");
-                    List<WorkspaceFile> wsfList = workspaceFileDAO.getWorkspaceFiles(null,null,null, null);
+                    List<WorkspaceFile> wsfList = workspaceFileDAO.getWorkspaceFiles(null,null,null, null,null);
                     if (wsfList != null){
                         System.out.println("Found "+wsfList.size()+
                                 " workspace files to resave");
@@ -384,7 +384,7 @@ public class App {
                 Long jobId = (Long)optionSet.valueOf(RESAVE_JOB_ARG);
                 if (jobId == -1){
                     System.out.println("Resaving all jobs");
-                    List<Job> jobList = jobDAO.getJobs(null,null,null, true, true);
+                    List<Job> jobList = jobDAO.getJobs(null,null,null, true, true,Boolean.TRUE);
                     if (jobList != null){
                         System.out.println("Found "+jobList.size()+" jobs to resave");
                         for (Job j : jobList){
@@ -408,7 +408,9 @@ public class App {
                 Long workflowId = (Long)optionSet.valueOf(RESAVE_WORKFLOW_ARG);
                 if (workflowId == -1){
                     System.out.println("Resaving all workflows");
-                    List<Workflow> workflowList = workflowDAO.getAllWorkflows(true);
+                    List<Workflow> workflowList = workflowDAO.getAllWorkflows(true,
+                            Boolean.TRUE);
+                    
                     if (workflowList != null){
                         System.out.println("Found "+workflowList.size()+" workflow(s) to resave");
                         for (Workflow w : workflowList){
@@ -818,7 +820,7 @@ public class App {
     }
     
     /**
-     * Parses <b>optionSet</b> for {@link LOGIN#LOGIN_ARG}, {@link TOKEN#TOKEN_ARG}, and {@link RUN_AS#RUN_AS_ARG} 
+     * Parses <b>optionSet</b> for {@link App#LOGIN_ARG}, {@link App#TOKEN_ARG}, and {@link App#RUN_AS_ARG} 
      * to generate {@link User} object
      * @param optionSet
      * @return User object with {@link User#getLogin()}, {@link User#getLoginToRunJobAs()}, and
@@ -976,7 +978,7 @@ public class App {
     /**
      * Creates example {@link Job} with {@link Parameter} objects and a
      * {@link Workflow}
-     * @return 
+     * @return Example {@link Job} object
      */
     public static Job getJobWithParametersAndWorkflow() {
         Job j = new Job();
@@ -1006,7 +1008,7 @@ public class App {
 
     /**
      * Creates example {@link Workflow} object with no {@link WorkflowParameter} objects
-     * @return 
+     * @return Example {@link Workflow} object
      */
     public static Workflow getWorkflowWithNoParameters() {
         Workflow w = new Workflow();

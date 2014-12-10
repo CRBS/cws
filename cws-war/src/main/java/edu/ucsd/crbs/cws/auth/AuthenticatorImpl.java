@@ -44,8 +44,7 @@ public class AuthenticatorImpl implements Authenticator {
     private User authenticate(HttpServletRequest request,final String userLogin,
             final String userToken,final String loginToRunAs) throws Exception {
 
-        _log.log(Level.INFO,"Authenticating user: {0} token: {1}",
-                new Object[]{userLogin,userToken});
+        _log.log(Level.INFO,"Authenticating user: {0}",userLogin);
         //call get special users to see if this request is a special one.
         // if it is we bypass the query and directly create the object
         

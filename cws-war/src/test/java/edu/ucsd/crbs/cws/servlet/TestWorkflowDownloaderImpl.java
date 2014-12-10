@@ -38,6 +38,8 @@ import com.google.appengine.tools.development.testing.LocalServiceTestHelper;
 import edu.ucsd.crbs.cws.dao.WorkflowDAO;
 import edu.ucsd.crbs.cws.workflow.Workflow;
 import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.servlet.http.HttpServletResponse;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -67,6 +69,8 @@ public class TestWorkflowDownloaderImpl {
 
     @BeforeClass
     public static void setUpClass() {
+        Logger.getLogger(WorkflowDownloaderImpl.class.getName()).setLevel(Level.OFF);
+        Logger.getLogger("edu.ucsd.crbs.cws.gae.BlobStoreServiceUtil").setLevel(Level.OFF);
     }
 
     @AfterClass

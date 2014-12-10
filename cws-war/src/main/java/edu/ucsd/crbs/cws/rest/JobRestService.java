@@ -40,9 +40,11 @@ import edu.ucsd.crbs.cws.auth.User;
 import edu.ucsd.crbs.cws.cluster.OutputWorkspaceFileUtil;
 import edu.ucsd.crbs.cws.cluster.OutputWorkspaceFileUtilImpl;
 import edu.ucsd.crbs.cws.dao.EventDAO;
+import edu.ucsd.crbs.cws.dao.InputWorkspaceFileLinkDAO;
 import edu.ucsd.crbs.cws.dao.JobDAO;
 import edu.ucsd.crbs.cws.dao.WorkspaceFileDAO;
 import edu.ucsd.crbs.cws.dao.objectify.EventObjectifyDAOImpl;
+import edu.ucsd.crbs.cws.dao.objectify.InputWorkspaceFileLinkObjectifyDAOImpl;
 import edu.ucsd.crbs.cws.dao.objectify.JobObjectifyDAOImpl;
 import edu.ucsd.crbs.cws.dao.objectify.WorkspaceFileObjectifyDAOImpl;
 import edu.ucsd.crbs.cws.log.Event;
@@ -80,7 +82,9 @@ public class JobRestService {
     private static final Logger _log
             = Logger.getLogger(JobRestService.class.getName());
     
-    static JobDAO _jobDAO = new JobObjectifyDAOImpl();
+    static InputWorkspaceFileLinkDAO _inputWorkspaceFileLinkDAO = new InputWorkspaceFileLinkObjectifyDAOImpl();
+    
+    static JobDAO _jobDAO = new JobObjectifyDAOImpl(_inputWorkspaceFileLinkDAO);
     
     static EventDAO _eventDAO = new EventObjectifyDAOImpl();
 
@@ -143,6 +147,7 @@ public class JobRestService {
             @QueryParam(Constants.NOPARAMS_QUERY_PARAM) final boolean noParams,
             @QueryParam(Constants.NOWORKFLOWPARAMS_QUERY_PARAM) final boolean noWorkflowParams,
             @QueryParam(Constants.NOTSUBMITTED_TO_SCHED_QUERY_PARAM) final boolean notSubmitted,
+            @QueryParam(Constants.SHOW_DELETED_QUERY_PARAM) final Boolean showDeleted,
             @QueryParam(Constants.USER_LOGIN_PARAM) final String userLogin,
             @QueryParam(Constants.USER_TOKEN_PARAM) final String userToken,
             @QueryParam(Constants.USER_LOGIN_TO_RUN_AS_PARAM) final String userLoginToRunAs,
@@ -155,7 +160,7 @@ public class JobRestService {
             
             // user can list everything so let them do whatever
             if (user.isAuthorizedTo(Permission.LIST_ALL_JOBS)) {
-                return _jobDAO.getJobs(owner, status, notSubmitted, noParams, noWorkflowParams);
+                return _jobDAO.getJobs(owner, status, notSubmitted, noParams, noWorkflowParams,showDeleted);
             }
             
             // user can only list their jobs so return error message if they try to
@@ -164,7 +169,7 @@ public class JobRestService {
                 if (owner != null && !owner.equals(user.getLoginToRunJobAs())){
                     throw new Exception("Not authorized to list jobs owned by "+owner);
                 }
-                return _jobDAO.getJobs(user.getLoginToRunJobAs(), status, notSubmitted, noParams, noWorkflowParams);
+                return _jobDAO.getJobs(user.getLoginToRunJobAs(), status, notSubmitted, noParams, noWorkflowParams,showDeleted);
             }
             
             throw new WebApplicationException(HttpServletResponse.SC_UNAUTHORIZED);
@@ -179,6 +184,69 @@ public class JobRestService {
         }
     }
 
+    /**
+     * Gets count of jobs constrained by query parameters.  This is done since it
+     * is more efficient to query for count this way.
+     * @param status
+     * @param owner
+     * @param noParams
+     * @param noWorkflowParams
+     * @param notSubmitted
+     * @param showDeleted
+     * @param userLogin
+     * @param userToken
+     * @param userLoginToRunAs
+     * @param request
+     * @return 
+     */
+    @GET
+    @Path(Constants.COUNT_PATH)
+    @Produces(MediaType.APPLICATION_JSON)
+    public int getJobsCount(@QueryParam(Constants.STATUS_QUERY_PARAM) final String status,
+            @QueryParam(Constants.OWNER_QUERY_PARAM) final String owner,
+            @QueryParam(Constants.NOPARAMS_QUERY_PARAM) final boolean noParams,
+            @QueryParam(Constants.NOWORKFLOWPARAMS_QUERY_PARAM) final boolean noWorkflowParams,
+            @QueryParam(Constants.NOTSUBMITTED_TO_SCHED_QUERY_PARAM) final boolean notSubmitted,
+            @QueryParam(Constants.SHOW_DELETED_QUERY_PARAM) final Boolean showDeleted,
+            @QueryParam(Constants.USER_LOGIN_PARAM) final String userLogin,
+            @QueryParam(Constants.USER_TOKEN_PARAM) final String userToken,
+            @QueryParam(Constants.USER_LOGIN_TO_RUN_AS_PARAM) final String userLoginToRunAs,
+            @Context HttpServletRequest request) {
+        
+        try {
+            User user = _authenticator.authenticate(request);
+             Event event = _eventBuilder.createEvent(request, user);
+            _log.info(event.getStringOfLocationData());
+            
+            // user can list everything so let them do whatever
+            if (user.isAuthorizedTo(Permission.LIST_ALL_JOBS)) {
+                return _jobDAO.getJobsCount(owner, status, notSubmitted, 
+                        noParams, noWorkflowParams,showDeleted);
+            }
+            
+            // user can only list their jobs so return error message if they try to
+            // list jobs for another user otherwise use their login
+            if (user.isAuthorizedTo(Permission.LIST_THEIR_JOBS)){
+                if (owner != null && !owner.equals(user.getLoginToRunJobAs())){
+                    throw new Exception("Not authorized to count jobs owned by "+owner);
+                }
+                return _jobDAO.getJobsCount(user.getLoginToRunJobAs(), status, 
+                        notSubmitted, noParams, noWorkflowParams,showDeleted);
+            }
+            
+            throw new WebApplicationException(HttpServletResponse.SC_UNAUTHORIZED);
+        }catch(WebApplicationException wae){
+            _log.log(Level.SEVERE,"Caught WebApplicationException",wae);
+            throw wae;
+            
+
+        } catch (Exception ex) {
+            _log.log(Level.SEVERE,"Caught Exception",ex);
+            throw new WebApplicationException(ex);
+        }
+        
+    }
+        
     /**
      * Gets a specific {@link Job} by id.  Return value of this method
      * is dependent on permissions set for <b>userLogin</b> and <b>userToken</b>

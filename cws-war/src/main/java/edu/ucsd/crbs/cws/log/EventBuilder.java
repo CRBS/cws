@@ -55,30 +55,61 @@ public interface EventBuilder {
     public Event createEvent(HttpServletRequest request,User user);
     
     /**
-     * Converts Event into what is known as a Create Job Event
+     * Converts {@link Event} into what is known as a Create Job Event
      * @param event
      * @param job
-     * @return Same Event object passed in unless there was a problem in which case null is returned
+     * @return Modified {@link Event} object passed in unless there was a problem in which case null is returned
      */
     public Event setAsCreateJobEvent(Event event,Job job);
     
     /**
-     * Converts Event into what is known as a failed create job event
+     * Converts {@link Event} into what is known as a failed create job event
      * @param event
      * @param job
-     * @return 
+     * @return Modified {@link Event} object passed in unless there was a problem in which case null is returned
      */
     public Event setAsFailedCreateJobEvent(Event event,Job job);
     
     /**
-     * Converts Event into what is known as a Create Workflow Event
+     * Converts {@link Event} into what is known as a Create Workflow Event
      * @param event
      * @param workflow
-     * @return Same Event object passed in unless there was a problem in which case null is returned
+     * @return Modified {@link Event} object passed in unless there was a problem in which case null is returned
      */
     public Event setAsCreateWorkflowEvent(Event event,Workflow workflow);
     
+    /**
+     * Converts {@link Event} into what is known as Create WorkspaceFile Event
+     * @param event
+     * @param workspaceFile
+     * @return Modified {@link Event} object passed in unless there was a problem in which case null is returned
+     */
     public Event setAsCreateWorkspaceFileEvent(Event event,WorkspaceFile workspaceFile);
     
+    /**
+     * Converts {@link Event} into what is known as Create User Event
+     * @param event
+     * @param user
+     * @return Modified {@link Event} object passed in unless there was a problem in which case null is returned
+     */
     public Event setAsCreateUserEvent(Event event,User user);
+    
+    /**
+     * Converts {@link Event} into what is known as Logical Delete Workflow Event
+     * @param event
+     * @param workflow
+     * @return Modified {@link Event} object passed in unless there was a problem in which case null is returned
+     */
+    public Event setAsLogicalDeleteWorkflowEvent(Event event,Workflow workflow);
+    
+    /**
+     * Converts {@link Event} into what is known as Delete Workflow Event
+     * @param event
+     * @param workflow
+     * @return Modified {@link Event} object passed in unless there was a problem in which case null is returned
+     */
+    public Event setAsDeleteWorkflowEvent(Event event,Workflow workflow);
+    
+    
+    
 }

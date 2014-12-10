@@ -33,9 +33,15 @@
 
 package edu.ucsd.crbs.cws.dao.objectify;
 
+import com.google.appengine.api.blobstore.BlobInfo;
+import com.google.appengine.api.blobstore.BlobInfoFactory;
+import com.google.appengine.api.blobstore.BlobKey;
+import com.google.appengine.api.blobstore.BlobstoreServiceFactory;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Work;
+import com.googlecode.objectify.cmd.Query;
 import edu.ucsd.crbs.cws.auth.User;
+import edu.ucsd.crbs.cws.dao.JobDAO;
 import edu.ucsd.crbs.cws.dao.WorkflowDAO;
 import static edu.ucsd.crbs.cws.dao.objectify.OfyService.ofy;
 import edu.ucsd.crbs.cws.gae.WorkflowParameterDataFetcher;
@@ -43,8 +49,11 @@ import edu.ucsd.crbs.cws.gae.URLFetcherImpl;
 import edu.ucsd.crbs.cws.workflow.Job;
 import edu.ucsd.crbs.cws.workflow.Workflow;
 import edu.ucsd.crbs.cws.workflow.WorkflowParameter;
+import edu.ucsd.crbs.cws.workflow.report.DeleteWorkflowReport;
 import java.util.Date;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Provides access methods to load, modify, and save Workflow objects to Google App
@@ -54,9 +63,18 @@ import java.util.List;
  */
 public class WorkflowObjectifyDAOImpl implements WorkflowDAO {
 
+    private static final Logger _log
+            = Logger.getLogger(WorkflowObjectifyDAOImpl.class.getName());
+    
     
     WorkflowParameterDataFetcher _dropDownFetcher = new URLFetcherImpl();
 
+    private JobDAO _jobDAO = null;
+    
+    public WorkflowObjectifyDAOImpl(JobDAO jobDAO){
+        _jobDAO = jobDAO;
+    }
+    
     @Override
     public Workflow resave(final long workflowId) throws Exception {
          Workflow res = ofy().transact(new Work<Workflow>() {
@@ -132,20 +150,31 @@ public class WorkflowObjectifyDAOImpl implements WorkflowDAO {
      * Obtains all Workflows from data store, optionally removing the WorkflowParameters
      * if omitWorkflowParams is set to true
      * @param omitWorkflowParams If set to true then WorkflowParameters is set to null
+     * @param showDeleted
      * @return List of Workflow objects or empty list or null
      */
     @Override
-    public List<Workflow> getAllWorkflows(boolean omitWorkflowParams) {
-          /* @TODO figure out way to make objectify optionally retreive workflow parameters instead of removing them here */
-         List<Workflow> workflows = ofy().load().type(Workflow.class).list();
-         if (omitWorkflowParams == false){
-             return workflows;
-         }
-         
-         for (Workflow w : workflows){
-             w.setParameters(null);
-         }
-         return workflows;
+    public List<Workflow> getAllWorkflows(boolean omitWorkflowParams,
+            final Boolean showDeleted) {
+        /* @TODO figure out way to make objectify optionally retreive workflow parameters instead of removing them here */
+        Query<Workflow> q = ofy().load().type(Workflow.class);
+
+        if (showDeleted != null) {
+            q = q.filter("_deleted", showDeleted);
+        } else {
+            q = q.filter("_deleted", false);
+        }
+
+        List<Workflow> workflows = q.list();
+
+        if (omitWorkflowParams == false) {
+            return workflows;
+        }
+
+        for (Workflow w : workflows) {
+            w.setParameters(null);
+        }
+        return workflows;
     }
 
     /**
@@ -212,6 +241,35 @@ public class WorkflowObjectifyDAOImpl implements WorkflowDAO {
         }
         return resWorkflow;
     }
+    
+    @Override
+    public Workflow updateDeleted(final long workflowId,final boolean isDeleted) throws Exception {
+        Workflow resWorkflow;
+        resWorkflow = ofy().transact(new Work<Workflow>() {
+            @Override
+            public Workflow run() {
+                Workflow w = ofy().load().type(Workflow.class).id(workflowId).now();
+
+                if (w == null) {
+                    return null;
+                }
+                
+                if (w.isDeleted() == isDeleted){
+                   return w;
+                }
+                
+                
+                w.setDeleted(isDeleted);
+                Key<Workflow> wKey = ofy().save().entity(w).now();
+                return w;
+            }
+        });
+        if (resWorkflow == null){
+            throw new Exception("There was a problem updating the workflow");
+        }
+        return resWorkflow;
+    }
+    
 
     @Override
     public Workflow getWorkflowForJob(Job job, User user) throws Exception {
@@ -227,6 +285,69 @@ public class WorkflowObjectifyDAOImpl implements WorkflowDAO {
         return getWorkflowById(job.getWorkflow().getId().toString(), user);
     }
     
-    
+    /**
+     * Deletes {@link Workflow} identified by <b>workflowId</b> logically or
+     * for real depending on value of <b>permanentlyDelete</b> parameter.<p/>
+     * 
+     * This method first sees if any {@link Job}s have been run on {@link Workflow}
+     * if yes then {@link DeleteWorkflowReport}'s {@link DeleteWorkflowReport#isSuccessful()}
+     * will be set to <b><code>false</b></code> and {@link DeleteWorkflowReport#getReason()}
+     * will be set to the following:<p/>
+     * 
+     * <code>Cannot delete (NUMBER) jobs have been run under workflow</code>
+     * 
+     * @param workflowId
+     * @param permanentlyDelete
+     * @return {@link DeleteWorkflowReport} denoting success or failure
+     * @throws Exception If there was an error querying the datastore
+     */
+    @Override
+    public DeleteWorkflowReport delete(long workflowId, Boolean permanentlyDelete) throws Exception {
+
+        DeleteWorkflowReport dwr = new DeleteWorkflowReport();
+        dwr.setId(workflowId);
+        dwr.setSuccessful(false);
+        dwr.setReason("Unknown");
+        
+        _log.log(Level.INFO,"Checking if its possible to delete workflow {0} ",workflowId);
+        
+     //look for any jobs associated with workflow
+     int numAssociatedJobs = _jobDAO.getJobsWithWorkflowIdCount(workflowId);
+     
+     //if found add to DeleteWorkflowReport and return
+     if (numAssociatedJobs > 0){
+        dwr.setReason("Cannot delete "+numAssociatedJobs+
+                " jobs have been run under workflow");
+        return dwr;
+     }
+
+      //if permanentlyDelete is not null and true then run real delete
+     if (permanentlyDelete != null && permanentlyDelete == true){
+         //need to load workflow and get its blobkey if any
+         Workflow w = getWorkflowById(Long.toString(workflowId), null);
+         if (w.getBlobKey() != null){
+             _log.log(Level.INFO,"Blob key found {0}  Deleting from blobstore",
+                     w.getBlobKey());
+             BlobKey bk = new BlobKey(w.getBlobKey());
+             BlobInfo bInfo = new BlobInfoFactory().loadBlobInfo(bk);
+             if (bInfo == null){
+                 _log.log(Level.WARNING,"No BlobInfo found");
+             }
+             else {
+                  
+                 _log.log(Level.INFO,"Found file {0}",bInfo.getFilename());
+             }
+             BlobstoreServiceFactory.getBlobstoreService().delete(bk);
+         }
+         ofy().delete().type(Workflow.class).id(workflowId).now();
+     }
+     else {
+        //else just set _deleted to true 
+        updateDeleted(workflowId, true);
+     }
+     dwr.setSuccessful(true);
+     dwr.setReason(null);
+     return dwr;
+    }
 }
 
