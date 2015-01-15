@@ -31,8 +31,10 @@
  * RIGHTS. 
  */
 
-package edu.ucsd.crbs.cws.cluster;
+package edu.ucsd.crbs.cws.cluster.submission;
 
+import edu.ucsd.crbs.cws.cluster.JobEmailNotificationData;
+import edu.ucsd.crbs.cws.cluster.submission.JobCmdScriptCreatorImpl;
 import edu.ucsd.crbs.cws.rest.Constants;
 import edu.ucsd.crbs.cws.util.RunCommandLineProcessImpl;
 import edu.ucsd.crbs.cws.workflow.Job;

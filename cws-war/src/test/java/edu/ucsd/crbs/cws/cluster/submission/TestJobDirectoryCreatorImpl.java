@@ -31,8 +31,11 @@
  * RIGHTS. 
  */
 
-package edu.ucsd.crbs.cws.cluster;
+package edu.ucsd.crbs.cws.cluster.submission;
 
+import edu.ucsd.crbs.cws.cluster.JobPath;
+import edu.ucsd.crbs.cws.cluster.JobPathImpl;
+import edu.ucsd.crbs.cws.cluster.submission.JobDirectoryCreatorImpl;
 import edu.ucsd.crbs.cws.workflow.Job;
 import java.io.File;
 import org.junit.After;

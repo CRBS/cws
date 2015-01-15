@@ -31,21 +31,23 @@
  * RIGHTS. 
  */
 
-package edu.ucsd.crbs.cws.cluster;
+package edu.ucsd.crbs.cws.cluster.submission;
 
 import edu.ucsd.crbs.cws.workflow.Job;
 
 /**
- * Defines method to create directory for {@link Job}
+ * Defines method interface for creation of script to run {@link Job}
+ * 
  * @author Christopher Churas <churas@ncmir.ucsd.edu>
  */
-public interface JobDirectoryCreator {
-    
+public interface JobCmdScriptCreator {
+   
     /**
-     * Creates directory for {@link Job}
+     * Creates script to run {@link Job} parameter <b>j</b> passed in
+     * @param jobDirectory
      * @param j
-     * @return String containing path to directory
+     * @return
      * @throws Exception 
      */
-    public String create(Job j) throws Exception;
+    public String create(final String jobDirectory,Job j,Long workspaceFileId) throws Exception;
 }

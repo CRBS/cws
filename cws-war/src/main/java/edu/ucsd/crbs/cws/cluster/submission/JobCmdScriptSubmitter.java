@@ -31,23 +31,25 @@
  * RIGHTS. 
  */
 
-package edu.ucsd.crbs.cws.cluster;
+package edu.ucsd.crbs.cws.cluster.submission;
 
 import edu.ucsd.crbs.cws.workflow.Job;
 
 /**
- * Defines method interface for creation of script to run {@link Job}
- * 
+ * Classes implementing this interface can submit or run a script that runs
+ * a Workflow Job
  * @author Christopher Churas <churas@ncmir.ucsd.edu>
  */
-public interface JobCmdScriptCreator {
-   
+public interface JobCmdScriptSubmitter {
+    
     /**
-     * Creates script to run {@link Job} parameter <b>j</b> passed in
-     * @param jobDirectory
-     * @param j
-     * @return
+     * Run the cmdScript either directly or by submitting to some
+     * batch processing system
+     * @param cmdScript Full path to program/script to run
+     * @param j Job that will be run by cmdScript
+     * @return jobid from batch processing system to track job progress
      * @throws Exception 
      */
-    public String create(final String jobDirectory,Job j,Long workspaceFileId) throws Exception;
+    public String submit(final String cmdScript,
+            Job j) throws Exception;
 }

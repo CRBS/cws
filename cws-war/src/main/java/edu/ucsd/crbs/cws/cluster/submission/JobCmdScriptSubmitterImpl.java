@@ -31,8 +31,9 @@
  * RIGHTS. 
  */
 
-package edu.ucsd.crbs.cws.cluster;
+package edu.ucsd.crbs.cws.cluster.submission;
 
+import edu.ucsd.crbs.cws.cluster.submission.JobCmdScriptSubmitter;
 import edu.ucsd.crbs.cws.workflow.Job;
 import java.io.BufferedReader;
 import java.io.File;

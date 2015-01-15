@@ -31,8 +31,9 @@
  * RIGHTS. 
  */
 
-package edu.ucsd.crbs.cws.cluster;
+package edu.ucsd.crbs.cws.cluster.submission;
 
+import edu.ucsd.crbs.cws.cluster.JobEmailNotificationData;
 import edu.ucsd.crbs.cws.io.StringEscaper;
 import edu.ucsd.crbs.cws.io.KeplerHtmlStringEscaper;
 import edu.ucsd.crbs.cws.io.ResourceToExecutableScriptWriter;
