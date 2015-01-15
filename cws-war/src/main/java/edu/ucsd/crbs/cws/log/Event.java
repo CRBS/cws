@@ -33,6 +33,7 @@
 
 package edu.ucsd.crbs.cws.log;
 
+import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Index;
@@ -48,6 +49,7 @@ import java.util.Date;
  * @author Christopher Churas <churas@ncmir.ucsd.edu>
  */
 @Entity
+@Cache
 public class Event {
 
    

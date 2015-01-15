@@ -34,6 +34,7 @@
 package edu.ucsd.crbs.cws.workflow;
 
 import com.googlecode.objectify.Ref;
+import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Ignore;
@@ -44,6 +45,7 @@ import com.googlecode.objectify.annotation.Index;
  * @author Christopher Churas <churas@ncmir.ucsd.edu>
  */
 @Entity
+@Cache
 public class InputWorkspaceFileLink {
 
     public static boolean REFS_ENABLED = true;

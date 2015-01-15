@@ -1,6 +1,7 @@
 package edu.ucsd.crbs.cws.auth;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Ignore;
@@ -15,6 +16,7 @@ import java.util.List;
  * @author Christopher Churas <churas@ncmir.ucsd.edu>
  */
 @Entity
+@Cache
 public class User {
 
     @Id private Long _id;    

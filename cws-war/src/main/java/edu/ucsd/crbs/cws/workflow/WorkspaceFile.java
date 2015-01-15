@@ -35,6 +35,7 @@ package edu.ucsd.crbs.cws.workflow;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.googlecode.objectify.annotation.AlsoLoad;
+import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Ignore;
@@ -55,6 +56,7 @@ import java.util.Date;
  * @author Christopher Churas <churas@ncmir.ucsd.edu>
  */
 @Entity
+@Cache
 public class WorkspaceFile {
     
     @Id private Long _id;

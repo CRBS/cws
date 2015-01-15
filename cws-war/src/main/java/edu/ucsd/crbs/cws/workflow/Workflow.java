@@ -37,6 +37,7 @@ package edu.ucsd.crbs.cws.workflow;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.googlecode.objectify.Ref;
+import com.googlecode.objectify.annotation.Cache;
 import java.util.List;
 
 
@@ -53,6 +54,7 @@ import java.util.Iterator;
  * @author Christopher Churas <churas@ncmir.ucsd.edu>
  */
 @Entity
+@Cache
 @JsonPropertyOrder(value={ "id","name","createDate","version","description","releaseNotes"},alphabetic=true)
 public class Workflow {
     
