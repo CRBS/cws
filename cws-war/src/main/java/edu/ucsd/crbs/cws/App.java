@@ -52,7 +52,7 @@ import edu.ucsd.crbs.cws.cluster.JobEmailNotificationData;
 import edu.ucsd.crbs.cws.cluster.JobPath;
 import edu.ucsd.crbs.cws.cluster.JobPathImpl;
 import edu.ucsd.crbs.cws.cluster.JobStatusUpdater;
-import edu.ucsd.crbs.cws.cluster.JobSubmitter;
+import edu.ucsd.crbs.cws.cluster.JobSubmissionManager;
 import edu.ucsd.crbs.cws.cluster.MapOfJobStatusFactoryImpl;
 import edu.ucsd.crbs.cws.cluster.OutputWorkspaceFileUtil;
 import edu.ucsd.crbs.cws.cluster.OutputWorkspaceFileUtilImpl;
@@ -530,7 +530,7 @@ public class App {
                 WorkspaceFilePathSetterImpl pathSetter = new WorkspaceFilePathSetterImpl(workspaceFileDAO);
                 
                 // Submit jobs to scheduler
-                JobSubmitter submitter = new JobSubmitter(jobDAO,
+                JobSubmissionManager submitter = new JobSubmissionManager(jobDAO,
                         workspaceFileDAO,
                         pathSetter,
                         jobPath,
