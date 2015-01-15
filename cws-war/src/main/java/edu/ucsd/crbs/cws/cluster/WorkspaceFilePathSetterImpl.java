@@ -70,7 +70,17 @@ public class WorkspaceFilePathSetterImpl implements WorkspaceFilePathSetter {
      * value of {@link WorkspaceFile#getPath()} if that path is not null. 
      *
      * @param j Job to update
-     * @return true if all files {@link Parameter} were updated successfully with valid paths otherwise false
+     * @return If successful then 
+     * {@link WorkspaceFilePathSetterStatus#isSuccessful() } will be 
+     * <b><code>true</code></b> and 
+     * {@link WorkspaceFilePathSetterStatus#getSuggestedJobStatus() } will be
+     * set to {@link Job#IN_QUEUE_STATUS}.  If not successful then 
+     * {@link WorkspaceFilePathSetterStatus#isSuccessful() } will be 
+     * <b><code>false</code></b> and 
+     * {@link WorkspaceFilePathSetterStatus#getSuggestedJobStatus() } will be
+     * set to {@link Job#ERROR_STATUS} or {@link Job#WORKSPACE_SYNC_STATUS} and
+     * {@link WorkspaceFilePathSetterStatus#getReason() } will be set with an
+     * explanation
      * @throws NullPointerException if a Parameter value is null or if {@link WorkspaceFileDAO} set via constructor is null
      * @throws NumberFormatException if a Parameter value cannot be converted to a workspace id which is a Long
      */
