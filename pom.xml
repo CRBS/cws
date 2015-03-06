@@ -9,6 +9,7 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <appengine.target.version>1.9.15</appengine.target.version>
+    <appengine.application.name>REPLACE_WITH_YOUR_APPLICATION_NAME_FROM_GAE</appengine.application.name>
     <maven.compiler.source>1.7</maven.compiler.source>
     <maven.compiler.target>1.7</maven.compiler.target>
   </properties>
@@ -23,6 +24,21 @@
               </plugin>
           </plugins>
       </pluginManagement>
+      <plugins>
+          <plugin>
+                  <groupId>org.codehaus.mojo</groupId>
+                  <artifactId>build-helper-maven-plugin</artifactId>
+                  <version>1.9.1</version>
+                  <executions>
+                      <execution>
+                          <id>parse-version</id>
+                          <goals>
+                              <goal>parse-version</goal>
+                          </goals>
+                      </execution>
+                  </executions>
+              </plugin>
+      </plugins>
   </build>
   <modules>
     <module>cws-war</module>
