@@ -17,14 +17,17 @@ local webserver to host the webservice
 
 The script **local.sh** runs the above commands
 
-
-
 Deploying to Google App Engine
 ==============================
 
 The below commands will build and deploy CRBS Workflow Service
-to Google App Engine.  The version deployed to is whatever is
-set in cws-war/pom.xml line <appengine.app.version>##</appengine.app.version>
+to Google App Engine.  
+
+The version deployed to is whatever is 
+set to vMAJORVERSION-MINORVERSION and the application name 
+deployed to is set in main **pom.xml** in the 
+**appengine.application.name** property
+which **MUST** be set before deploying
 
     mvn clean install
     cd cws-ear
@@ -32,6 +35,7 @@ set in cws-war/pom.xml line <appengine.app.version>##</appengine.app.version>
 
 The script **deploy.sh** runs the above commands
 
+WARNING: Be sure to adjust appengine.application.name property in pom.xml before deploying!!! **
 
 
 Command line program
