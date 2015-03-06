@@ -23,6 +23,7 @@
           <version>5</version>
           <defaultLibBundleDir>lib</defaultLibBundleDir>
           <unpackTypes>war</unpackTypes>
+          <filtering>true</filtering>
         </configuration>
       </plugin>
       <plugin>
