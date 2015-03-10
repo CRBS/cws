@@ -1,18 +1,19 @@
 
-
-declare baseURL="http://localhost:8080"
-#declare baseURL="https://crbsworkflow.appspot.com"
+#declare baseURL="http://localhost:8080"
+declare theVersion=`grep "<version>" pom.xml | head -n 1 | sed "s/^ *<version>//" | sed "s/<\/.*$//"`
+declare theJar="cws-war/target/cws-war-${theVersion}-jar-with-dependencies.jar"
+declare baseURL="https://testcrbsworkflow.appspot.com"
 declare user="chris"
 declare token="dc5902078cfa40b980229662c2e0c226"
 declare usertoken="userlogin=${user}&usertoken=${token}"
 echo ""
 echo "Add new workflow"
-echo "java -jar cws-war/target/cws-war-1.19-SNAPSHOT-jar-with-dependencies.jar --uploadwf cws-war/src/test/resources/example.kar --url ${baseURL} --login ${user} --token ${token}"
+echo "java -jar $theJar --uploadwf cws-war/src/test/resources/example.kar --url ${baseURL} --login ${user} --token ${token}"
 
 echo ""
 echo ""
 echo "Add a file to workspace"
-echo "java -jar cws-war/target/cws-war-1.19-SNAPSHOT-jar-with-dependencies.jar --uploadfile cws-war/src/test/resources/example.kar --url ${baseURL} --login ${user} --token ${token}"
+echo "java -jar $theJar --uploadfile cws-war/src/test/resources/example.kar --url ${baseURL} --login ${user} --token ${token}"
 echo ""
 echo ""
 echo "Add new job be sure to replace XXXX with workflow id"
