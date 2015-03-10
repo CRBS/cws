@@ -121,6 +121,8 @@ public class App {
     
     public static final String GET_JOB_ARG = "getjob";
     
+    public static final String GET_WORKSPACE_FILE_ARG = "getworkspacefile";
+    
     public static final String MD5_ARG = "md5";
     
     public static final String SIZE_ARG = "size";
@@ -245,6 +247,7 @@ public class App {
                     accepts(NAME_ARG,"Sets name for Workspace file when used with --"+UPLOAD_FILE_ARG+" and --"+REGISTER_FILE_ARG).withRequiredArg().ofType(String.class).describedAs("WorkspaceFile name");
                     accepts(REGISTER_JAR_ARG,"Path to Jar to register WorkspaceFiles").withRequiredArg().ofType(File.class).describedAs("Path to this jar");
                     accepts(GET_JOB_ARG,"Gets job from service in JSON format, requires --"+URL_ARG).withRequiredArg().ofType(Long.class).describedAs("Job Id");
+                    accepts(GET_WORKSPACE_FILE_ARG,"Gets WorkspaceFile from service in JSON format, requires --"+URL_ARG).withRequiredArg().ofType(Long.class).describedAs("WorkspaceFile Id or -1 for all");
                     accepts(PROJECT_ARG,"Project name ie CRBS.  Used with --"+SYNC_WITH_CLUSTER_ARG).withRequiredArg().ofType(String.class);
                     accepts(PORTALNAME_ARG,"Portal name ie SLASH portal Used with --"+SYNC_WITH_CLUSTER_ARG).withRequiredArg().ofType(String.class);
                     accepts(PORTAL_URL_ARG,"Portal url ie http://slashsegmentation.com Used with --"+SYNC_WITH_CLUSTER_ARG).withRequiredArg().ofType(String.class);
@@ -277,7 +280,8 @@ public class App {
                      !optionSet.has(RESAVE_WORKFLOW_ARG) &&
                      !optionSet.has(PREVIEW_WORKFLOW_ARG) &&
                      !optionSet.has(GEN_OLD_KEPLER_XML_ARG) &&
-                     !optionSet.has(GET_JOB_ARG)) {
+                     !optionSet.has(GET_JOB_ARG) &&
+                     !optionSet.has(GET_WORKSPACE_FILE_ARG)) {
                 System.out.println(PROGRAM_HELP + "\n");
                 parser.printHelpOn(System.out);
                 System.exit(0);
@@ -292,6 +296,11 @@ public class App {
             if (optionSet.has(GET_JOB_ARG)){
                 failIfOptionSetMissingURLOrLoginOrToken(optionSet,"--"+GET_JOB_ARG+" flag");
                 getJobAsJson(optionSet);
+                System.exit(0);
+            }
+            if (optionSet.has(GET_WORKSPACE_FILE_ARG)){
+                failIfOptionSetMissingURLOrLoginOrToken(optionSet,"--"+GET_WORKSPACE_FILE_ARG+" flag");
+                getWorkspaceFileAsJson(optionSet);
                 System.exit(0);
             }
 
@@ -687,6 +696,39 @@ public class App {
         else {
             System.err.println("Unable to retreive job with id: "+
                     ((Long)optionSet.valueOf(GET_JOB_ARG)).toString());
+            System.exit(1);
+        }
+        return;
+        
+    }
+    
+    public static void getWorkspaceFileAsJson(OptionSet optionSet) throws Exception {
+        WorkspaceFileRestDAOImpl workspaceFileDAO = new WorkspaceFileRestDAOImpl();
+        workspaceFileDAO.setRestURL((String)optionSet.valueOf(URL_ARG));
+        User u = getUserFromOptionSet(optionSet);       
+        workspaceFileDAO.setUser(u);
+        Long workspaceFileId = (Long)optionSet.valueOf(GET_WORKSPACE_FILE_ARG);
+        
+        if (workspaceFileId == -1){
+            List<WorkspaceFile> wsfList = workspaceFileDAO.getWorkspaceFiles(null,null,null,null,null);
+            ObjectMapper om = new ObjectMapper();
+            ObjectWriter ow = om.writerWithDefaultPrettyPrinter();
+            if (wsfList != null){
+                for (WorkspaceFile wsf : wsfList){
+                    System.out.println(ow.writeValueAsString(wsf));
+                }
+            }
+            return;
+        }
+        WorkspaceFile wsf = workspaceFileDAO.getWorkspaceFileById(workspaceFileId.toString(), u);
+        if (wsf != null){
+            ObjectMapper om = new ObjectMapper();
+            ObjectWriter ow = om.writerWithDefaultPrettyPrinter();
+            System.out.println(ow.writeValueAsString(wsf));
+        }
+        else {
+            System.err.println("Unable to retreive WorkspaceFile with id: "+
+                    ((Long)optionSet.valueOf(GET_WORKSPACE_FILE_ARG)).toString());
             System.exit(1);
         }
         return;
