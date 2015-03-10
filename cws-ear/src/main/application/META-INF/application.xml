@@ -3,7 +3,7 @@
   <display-name>appengine-modules-ear</display-name>
   <module>
     <web>
-      <web-uri>cws-war-1.19-SNAPSHOT.war</web-uri>
+      <web-uri>cws-war-${project.version}.war</web-uri>
       <context-root>/cws-war</context-root>
     </web>
   </module>
