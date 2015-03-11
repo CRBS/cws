@@ -75,6 +75,13 @@ public class WorkflowObjectifyDAOImpl implements WorkflowDAO {
         _jobDAO = jobDAO;
     }
     
+    /**
+     * Via a transaction load {@link Workflow} by <b>workflowId</b> and then 
+     * resave it
+     * @param workflowId
+     * @return Saved {@link Workflow}
+     * @throws Exception 
+     */
     @Override
     public Workflow resave(final long workflowId) throws Exception {
          Workflow res = ofy().transact(new Work<Workflow>() {
