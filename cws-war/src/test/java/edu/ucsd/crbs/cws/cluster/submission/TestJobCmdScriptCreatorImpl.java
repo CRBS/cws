@@ -336,6 +336,75 @@ public class TestJobCmdScriptCreatorImpl {
        
     }
     
+    
+    @Test
+    public void testCreateAndRunScriptWithFakeKeplerThatSucceedsWithPreExistingWorkflowFailedFile() throws Exception{
+        assumeTrue(SystemUtils.IS_OS_UNIX);
+        File baseDirectory = Folder.newFolder();
+        File tempDirectory = new File(baseDirectory+File.separator+"subdir");
+        File outputsDir = new File(tempDirectory+File.separator+Constants.OUTPUTS_DIR_NAME);
+        assertTrue(outputsDir.mkdirs());
+        
+        JobEmailNotificationData emailNotifyData = createJobEmailNotificationData();
+        File checkForTrue = new File("/bin/true");
+        if (checkForTrue.exists() == false){
+            checkForTrue = new File("/usr/bin/true");
+            assumeTrue(checkForTrue.exists());
+        }
+        JobCmdScriptCreatorImpl scriptCreator = new JobCmdScriptCreatorImpl("/workflowsdir",
+                checkForTrue.getAbsolutePath(),"register.jar",
+        emailNotifyData);
+        scriptCreator.setJavaBinaryPath("/bin/echo");
+        
+        Job j = new Job();
+        Workflow w = new Workflow();
+        w.setId(new Long(5));
+        j.setWorkflow(w);
+        
+        FileWriter fw = new FileWriter(outputsDir.getAbsoluteFile()+File.separator+"WORKFLOW.FAILED.txt");
+        fw.write("simple.error.message=simple\n");
+        fw.write("detailed.error.message=detailed\n");
+        fw.flush();
+        fw.close();
+        
+        String jobCmd = scriptCreator.create(tempDirectory.getAbsolutePath(), j,new Long(2345));
+                
+        assertTrue(jobCmd != null);
+        assertTrue(jobCmd.equals(outputsDir.getAbsolutePath()+File.separator+JobCmdScriptCreatorImpl.JOB_CMD_SH));
+        File checkCmdFile = new File(jobCmd);
+        assertTrue(checkCmdFile.canExecute());
+       
+        RunCommandLineProcessImpl rclpi = new RunCommandLineProcessImpl();
+        rclpi.setWorkingDirectory(tempDirectory.getAbsolutePath());
+
+        String result = rclpi.runCommandLineProcess(jobCmd);
+       
+        
+        String logFile = baseDirectory.getAbsoluteFile()+File.separator+"job...log";
+        File checkLogFile = new File(logFile);
+        assertTrue(logFile+" and we ran "+jobCmd,checkLogFile.exists());
+        List<String> lines = IOUtils.readLines(new FileReader(logFile));
+        for (String line : lines){
+            if (line.startsWith("exitcode: ")){
+                assertTrue(line,line.equals("exitcode: 0"));
+            }
+        }
+        
+         String updateFile = tempDirectory.getAbsoluteFile()+File.separator+
+                "updateworkspacefile.out";
+        
+        lines = IOUtils.readLines(new FileReader(updateFile));
+        for (String line : lines){
+            if (line.startsWith("-jar")){
+                assertTrue(line,line.startsWith("-jar register.jar --updatepath 2345 --path "+
+                        outputsDir.getAbsolutePath()+
+                        " --size "));
+                assertTrue(line,line.endsWith(" --workspacefilefailed false"));
+            }
+        }
+       
+    }
+    
     @Test
     public void testCreateAndRunScriptWithFakeKeplerThatGeneratesWorkflowFailedFile() throws Exception{
         assumeTrue(SystemUtils.IS_OS_UNIX);
