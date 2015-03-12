@@ -475,7 +475,10 @@ public class TestJobCmdScriptCreatorImpl {
         JobEmailNotificationData emailNotifyData = createJobEmailNotificationData();
         
         JobCmdScriptCreatorImpl scriptCreator = new JobCmdScriptCreatorImpl("/workflowsdir",
-                "kill -s USR2 $$;sleep 100","register.jar",
+                "mv "+outputsDir.getAbsoluteFile()+File.separator+"WORKFLOW.FAILED.txt2 "
+                     +outputsDir.getAbsoluteFile()+File.separator
+                     +"WORKFLOW.FAILED.txt; kill -s USR2 $$;sleep 100",
+                "register.jar",
         emailNotifyData);
         scriptCreator.setJavaBinaryPath("/bin/echo");
         
@@ -484,7 +487,7 @@ public class TestJobCmdScriptCreatorImpl {
         w.setId(new Long(5));
         j.setWorkflow(w);
         
-        FileWriter fw = new FileWriter(outputsDir.getAbsoluteFile()+File.separator+"WORKFLOW.FAILED.txt");
+        FileWriter fw = new FileWriter(outputsDir.getAbsoluteFile()+File.separator+"WORKFLOW.FAILED.txt2");
         fw.write("simple.error.message=simple\n");
         fw.write("detailed.error.message=detailed\n");
         fw.flush();
@@ -521,10 +524,13 @@ public class TestJobCmdScriptCreatorImpl {
         lines = IOUtils.readLines(new FileReader(outputsDir.getAbsoluteFile()+File.separator+"WORKFLOW.FAILED.txt"));
         for (String line : lines){
             if (line.startsWith("simple.error.message")){
-                assertTrue(line,line.equals("simple.error.message=Job killed by scheduler"));
+                assertTrue(line,line.equals("simple.error.message=simple"));
             }
             if (line.startsWith("detailed.error.message")){
-                assertTrue(line,line.equals("detailed.error.message=Job received USR2 signal which is the signal to exit"));
+                assertTrue(line,line.equals("detailed.error.message=detailed"));
+            }
+            if (line.startsWith(" Job received")){
+                assertTrue(line,line.equals(" Job received USR2 signal which in SGE meant it is about to be killed"));
             }
         }
         
