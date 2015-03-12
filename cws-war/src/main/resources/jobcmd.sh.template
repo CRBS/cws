@@ -4,6 +4,15 @@
 declare workflowFailedTxt="WORKFLOW.FAILED.txt"
 
 #
+# Delete workflow failed file that is created by submitter to handle
+# case where job fails to even start cs-244
+#
+if [ -e "$workflowFailedTxt" ] ; then
+  /bin/rm -f "$workflowFailedTxt"
+fi
+
+
+#
 # function called when USR2 signal is caught
 #
 on_usr2() {
@@ -59,17 +68,17 @@ if [ "$EMAIL_ADDR" != "" ] ; then
   fi
 
   OUTEMAIL="Dear @@USER@@,\\n\\n"
-  OUTEMAIL="${OUTEMAIL}Your job: @@JOB_NAME@@\\n"
-  OUTEMAIL="${OUTEMAIL}Id: @@JOB_ID@@\\n"
-  OUTEMAIL="${OUTEMAIL}is now actively running on @@PROJECT@@ resources.  Please login to the @@PORTAL_NAME@@\\n"
+  OUTEMAIL="${OUTEMAIL}Your @@WORKFLOW_NAME@@ workflow job: @@JOB_NAME@@ "
+  OUTEMAIL="${OUTEMAIL}(@@JOB_ID@@) is now actively running on @@PROJECT@@ resources.\\n"
+  OUTEMAIL="${OUTEMAIL}Please login to the @@PORTAL_NAME@@ "
   OUTEMAIL="${OUTEMAIL}(@@PORTAL_URL@@) to check status.\\n\\n"
-  OUTEMAIL="${OUTEMAIL}Contact @@PROJECT@@ support at @@HELP_EMAIL@@ if you have any questions\\n"
-  OUTEMAIL="${OUTEMAIL}regarding your job.\\n\\n"
+  OUTEMAIL="${OUTEMAIL}Contact @@PROJECT@@ support at @@HELP_EMAIL@@ if you "
+  OUTEMAIL="${OUTEMAIL}have any questions regarding your job.\\n\\n"
   OUTEMAIL="${OUTEMAIL}Sincerely,\\n\\n"
   OUTEMAIL="${OUTEMAIL}The @@PROJECT@@ Team\\n"
   OUTEMAIL="${OUTEMAIL}@@HELP_EMAIL@@\\n"
 
-  echo -e "${OUTEMAIL}" | /bin/mail -s "@@PROJECT@@ Workflow Notification Email - @@JOB_NAME@@ has started running" -r "@@HELP_EMAIL@@" $BCC_EMAIL_FLAG $EMAIL_ADDR
+  echo -e "${OUTEMAIL}" | /bin/mail -s "@@PROJECT@@ Workflow @@WORKFLOW_NAME@@ - @@JOB_NAME@@ has started running" -r "@@HELP_EMAIL@@" $BCC_EMAIL_FLAG $EMAIL_ADDR
 fi
 
 # TODO:  Need to switch from wait to a polling loop so script
@@ -117,8 +126,7 @@ if [ "$EMAIL_ADDR" != "" ] ; then
   declare finishedMessage="finished"
 
   OUTEMAIL="Dear @@USER@@,\\n\\n"
-  OUTEMAIL="${OUTEMAIL}Your job: @@JOB_NAME@@\\n"
-  OUTEMAIL="${OUTEMAIL}Id: @@JOB_ID@@\\n"
+  OUTEMAIL="${OUTEMAIL}Your @@WORKFLOW_NAME@@ job: @@JOB_NAME@@ (@@JOB_ID@@) "
 
   if [ -s "$workflowFailedTxt" ] ; then
     declare simpleError=`egrep "^simple.error.message=" $workflowFailedTxt | sed "s/^.*=//" | sed "s/\"/ /g"`
@@ -137,7 +145,7 @@ if [ "$EMAIL_ADDR" != "" ] ; then
   OUTEMAIL="${OUTEMAIL}The @@PROJECT@@ Team\\n"
   OUTEMAIL="${OUTEMAIL}@@HELP_EMAIL@@\\n"
 
-  echo -e "${OUTEMAIL}" | /bin/mail -s "@@PROJECT@@ Workflow Notification Email - @@JOB_NAME@@ has $finishedMessage" -r "@@HELP_EMAIL@@" $BCC_EMAIL_FLAG $EMAIL_ADDR
+  echo -e "${OUTEMAIL}" | /bin/mail -s "@@PROJECT@@ Workflow @@WORKFLOW_NAME@@ - @@JOB_NAME@@ has $finishedMessage" -r "@@HELP_EMAIL@@" $BCC_EMAIL_FLAG $EMAIL_ADDR
   sleep 10
 fi
 
