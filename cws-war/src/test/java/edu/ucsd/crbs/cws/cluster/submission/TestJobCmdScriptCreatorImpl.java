@@ -521,13 +521,10 @@ public class TestJobCmdScriptCreatorImpl {
         lines = IOUtils.readLines(new FileReader(outputsDir.getAbsoluteFile()+File.separator+"WORKFLOW.FAILED.txt"));
         for (String line : lines){
             if (line.startsWith("simple.error.message")){
-                assertTrue(line,line.equals("simple.error.message=simple"));
+                assertTrue(line,line.equals("simple.error.message=Job killed by scheduler"));
             }
             if (line.startsWith("detailed.error.message")){
-                assertTrue(line,line.equals("detailed.error.message=detailed"));
-            }
-            if (line.startsWith(" Job received")){
-                assertTrue(line,line.equals(" Job received USR2 signal which in SGE meant it is about to be killed"));
+                assertTrue(line,line.equals("detailed.error.message=Job received USR2 signal which is the signal to exit"));
             }
         }
         
