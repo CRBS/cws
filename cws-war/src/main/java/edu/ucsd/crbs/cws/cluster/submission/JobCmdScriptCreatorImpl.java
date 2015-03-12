@@ -129,6 +129,8 @@ public class JobCmdScriptCreatorImpl implements JobCmdScriptCreator, StringRepla
     public static final String PROJECT_TOKEN = "@@PROJECT@@";
     
     public static final String HELP_EMAIL_TOKEN = "@@HELP_EMAIL@@";
+    
+    public static final String WORKFLOW_NAME_TOKEN = "@@WORKFLOW_NAME@@";
 
     
     public static final String REGISTER_OUTPUT_TO_WORKSPACE_TOKEN = "@@REGISTER_OUTPUT_TO_WORKSPACE@@";
@@ -179,6 +181,8 @@ public class JobCmdScriptCreatorImpl implements JobCmdScriptCreator, StringRepla
 
     private String _java;
     
+    private String _workflowName;
+    
     /**
      * Replaces occurrences of @@JOB_ARGS@@ @@KEPLER_SH@@ with correct values
      *
@@ -199,6 +203,7 @@ public class JobCmdScriptCreatorImpl implements JobCmdScriptCreator, StringRepla
                 replace(PORTAL_URL_TOKEN,_emailNotifyData.getPortalURL()).
                 replace(HELP_EMAIL_TOKEN,_emailNotifyData.getHelpEmail()).
                 replace(BCC_EMAIL_TOKEN,_emailNotifyData.getBccEmail()).
+                replace(WORKFLOW_NAME_TOKEN,_workflowName).
                 replace(JOB_ID_TOKEN,_jobId);
                 
     }
@@ -283,6 +288,13 @@ public class JobCmdScriptCreatorImpl implements JobCmdScriptCreator, StringRepla
         }
         else {
             _jobName = "Unknown";
+        }
+        
+        if (j.getWorkflow().getName() != null){
+            _workflowName = j.getWorkflow().getName();
+        }
+        else {
+            _workflowName = "Unknown";
         }
         
         setUserEmail(j);
