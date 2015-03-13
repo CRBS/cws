@@ -38,9 +38,12 @@ import edu.ucsd.crbs.cws.cluster.submission.JobCmdScriptSubmitter;
 import edu.ucsd.crbs.cws.cluster.submission.JobDirectoryCreator;
 import edu.ucsd.crbs.cws.dao.JobDAO;
 import edu.ucsd.crbs.cws.dao.WorkspaceFileDAO;
+import edu.ucsd.crbs.cws.io.WorkflowFailedWriter;
+import edu.ucsd.crbs.cws.rest.Constants;
 import edu.ucsd.crbs.cws.workflow.Job;
 import edu.ucsd.crbs.cws.workflow.Workflow;
 import edu.ucsd.crbs.cws.workflow.WorkspaceFile;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.logging.Level;
@@ -96,6 +99,7 @@ public class TestJobSubmissionManager {
         null,
         null,
         null,
+        null,
         null);
         
         js.submitJobs();
@@ -129,6 +133,7 @@ public class TestJobSubmissionManager {
         JobSubmissionManager js = new JobSubmissionManager(jobDAO,
                 workspaceFileDAO,
                 workspaceFilePathSetter,
+                null,
                 null,
                 null,
                 null,
@@ -180,7 +185,7 @@ public class TestJobSubmissionManager {
         null,
         null,
         null,
-        null);
+        null,null);
         
         js.submitJobs();
         verify(jobDAO).getJobs(null, null, true, false, false, null);
@@ -238,6 +243,11 @@ public class TestJobSubmissionManager {
         when(cmdScriptCreator.create("hi", myJob, 2L)).thenReturn("cmd");
         when(cmdScriptSubmitter.submit("cmd", myJob)).thenReturn("submitted");
         
+        WorkflowFailedWriter wfwi = mock(WorkflowFailedWriter.class);
+        
+        
+        
+        
         when(workspaceFilePathSetter.setPaths(myJob)).thenReturn(pathSetterStatus);
         JobSubmissionManager js = new JobSubmissionManager(jobDAO,
                 workspaceFileDAO,
@@ -245,7 +255,7 @@ public class TestJobSubmissionManager {
                 directoryCreator,
                 cmdScriptCreator,
                 cmdScriptSubmitter,
-                workflowSync);
+                workflowSync,wfwi);
         
         js.submitJobs();
         verify(jobDAO).getJobs(null, null, true, false, false, null);
@@ -257,8 +267,9 @@ public class TestJobSubmissionManager {
         verify(directoryCreator).create(myJob);
         verify(cmdScriptCreator).create("hi", myJob, 2L);
         verify(cmdScriptSubmitter).submit("cmd", myJob);
-
-        
+        verify(wfwi).setPath("hi"+File.separator+Constants.OUTPUTS_DIR_NAME);
+        verify(wfwi).write(Constants.JOB_DID_NOT_START_SIMPLE_ERROR, 
+                Constants.JOB_DID_NOT_START_DETAILED_ERROR);
     }
     
 }

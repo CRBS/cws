@@ -41,8 +41,13 @@ import edu.ucsd.crbs.cws.cluster.submission.JobCmdScriptCreatorImpl;
 import edu.ucsd.crbs.cws.auth.User;
 import edu.ucsd.crbs.cws.dao.JobDAO;
 import edu.ucsd.crbs.cws.dao.WorkspaceFileDAO;
+import edu.ucsd.crbs.cws.io.WorkflowFailedWriter;
+import edu.ucsd.crbs.cws.io.WorkflowFailedWriterImpl;
+import edu.ucsd.crbs.cws.rest.Constants;
 import edu.ucsd.crbs.cws.workflow.Job;
+import edu.ucsd.crbs.cws.workflow.Workflow;
 import edu.ucsd.crbs.cws.workflow.WorkspaceFile;
+import java.io.File;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -66,6 +71,7 @@ public class JobSubmissionManager {
     WorkspaceFilePathSetter _workspacePathSetter;
     private WorkspaceFileDAO _workspaceFileDAO;
     private JobDAO _jobDAO;
+    private WorkflowFailedWriter _failedWorkflowWriter;
 
     /**
      * Constructor
@@ -107,6 +113,7 @@ public class JobSubmissionManager {
         _workspacePathSetter = workspaceFilePathSetter;
         _jobDAO = jobDAO;
         _workspaceFileDAO = workspaceFileDAO;
+         _failedWorkflowWriter = new WorkflowFailedWriterImpl();
         
     }
     
@@ -116,7 +123,8 @@ public class JobSubmissionManager {
             JobDirectoryCreator directoryCreator,
             JobCmdScriptCreator cmdScriptCreator,
             JobCmdScriptSubmitter cmdScriptSubmitter,
-            SyncWorkflowFileToFileSystem workflowSync){
+            SyncWorkflowFileToFileSystem workflowSync,
+            WorkflowFailedWriter failedWorkflowWriter){
         _directoryCreator = directoryCreator;
         _cmdScriptCreator = cmdScriptCreator;
         _cmdScriptSubmitter = cmdScriptSubmitter;
@@ -124,6 +132,7 @@ public class JobSubmissionManager {
         _workspacePathSetter = workspaceFilePathSetter;
         _jobDAO = jobDAO;
         _workspaceFileDAO = workspaceFileDAO;
+        _failedWorkflowWriter = failedWorkflowWriter;
     }
             
 
@@ -219,6 +228,10 @@ public class JobSubmissionManager {
     private void submitJob(Job j) throws Exception {
         _workflowSync.sync(j.getWorkflow());
         String jobDir = _directoryCreator.create(j);
+        
+        _failedWorkflowWriter.setPath(jobDir+File.separator+Constants.OUTPUTS_DIR_NAME);
+        _failedWorkflowWriter.write(Constants.JOB_DID_NOT_START_SIMPLE_ERROR,
+                Constants.JOB_DID_NOT_START_DETAILED_ERROR);
         
         String cmdScript = _cmdScriptCreator.create(jobDir, j,
                 getJobsWorkspaceId(j));
