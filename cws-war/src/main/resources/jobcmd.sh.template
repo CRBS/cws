@@ -12,6 +12,10 @@ if [ -e "$workflowFailedTxt" ] ; then
 fi
 
 
+writeWorkflowFailedFile(){
+  echo -e "simple.error.message=${1}\\ndetailed.error.message=${2}\\n" > $workflowFailedTxt
+}
+
 #
 # function called when USR2 signal is caught
 #
@@ -89,6 +93,26 @@ fi
 wait $!
 
 declare jobExitCode=$?
+
+#
+# If stderr file has size greater then 0 check
+# for possible failures cs-244
+#
+if [ ! -e "$workflowFailedTxt" ] ; then
+  if [ -s "stderr" ] ; then
+
+    # Check for Exception in thread "main" Java returned: 1
+    grep "Exception in thread \"main\" Java returned: 1" stderr
+    if [ $? == 0 ] ; then
+ 
+      # check for sql error
+      declare possibleError=`grep "SQLException" stdout | sed "s/^.*SQLException: //" | sed "s/:.*//" | head -n 1`
+
+      writeWorkflowFailedFile "Error running Kepler" "Found Exception in thread main Java returned: 1 in the stderr file for Kepler : $possibleError"
+
+    fi
+  fi
+fi
 
 if [ "$jobExitCode" == "0" ] ; then
   if [ -s "$workflowFailedTxt" ] ; then
