@@ -104,15 +104,21 @@ if [ ! -e "$workflowFailedTxt" ] ; then
     # Check for Exception in thread "main" Java returned: 1
     grep "Exception in thread \"main\" Java returned: 1" stderr
     if [ $? == 0 ] ; then
-      
-      # check for sql error
-      declare possibleError=""
-      if [ -s "stdout" ] ; then
-        possibleError=`grep "SQLException" stdout | sed "s/^.*SQLException: //" | sed "s/:.*//" | head -n 1`
-      fi
+      writeWorkflowFailedFile "Error running Kepler" "Found Exception in thread main Java returned: 1 in the stderr file for Kepler"
+    fi
+  fi
+fi
 
-      writeWorkflowFailedFile "Error running Kepler" "Found Exception in thread main Java returned: 1 in the stderr file for Kepler : $possibleError"
-
+#
+# Also check stdout for SQLException if workflowFailedTxt exists
+#
+if [ ! -e "$workflowFailedTxt" ] ; then
+  if [ -s "stdout" ] ; then
+    
+    # Check for Table already exists exception
+    grep "SQLException" stdout
+    if [ $? == 0 ] ; then
+      writeWorkflowFailedFile "Error running Kepler due to internal database" "SQLException was found in stdout file"
     fi
   fi
 fi
