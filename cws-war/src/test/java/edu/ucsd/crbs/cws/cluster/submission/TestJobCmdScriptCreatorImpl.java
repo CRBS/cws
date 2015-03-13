@@ -664,7 +664,7 @@ public class TestJobCmdScriptCreatorImpl {
             result = rclpi.runCommandLineProcess(jobCmd);
         }
         catch(Exception ex){
-            assertTrue(ex.getMessage(),ex.getMessage().startsWith("Non zero exit code (100)"));
+            assertTrue(ex.getMessage(),ex.getMessage().startsWith("Non zero exit code (101)"));
         }
         
         String logFile = tempDirectory.getAbsoluteFile()+File.separator+"job...log";
@@ -673,7 +673,7 @@ public class TestJobCmdScriptCreatorImpl {
         List<String> lines = IOUtils.readLines(new FileReader(logFile));
         for (String line : lines){
             if (line.startsWith("exitcode: ")){
-                assertTrue(line,line.equals("exitcode: 100"));
+                assertTrue(line,line.equals("exitcode: 101"));
             }
         }
         
