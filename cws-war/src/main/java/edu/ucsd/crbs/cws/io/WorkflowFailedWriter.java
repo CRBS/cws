@@ -34,6 +34,9 @@
 package edu.ucsd.crbs.cws.io;
 
 /**
+ * Defines methods for writing a
+ * {@value edu.ucsd.crbs.cws.rest.Constants#WORKFLOW_FAILED_FILE}
+ * file
  * @author Christopher Churas <churas@ncmir.ucsd.edu>
  */
 public interface WorkflowFailedWriter {
