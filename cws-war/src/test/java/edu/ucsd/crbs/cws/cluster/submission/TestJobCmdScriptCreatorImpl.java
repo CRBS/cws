@@ -287,6 +287,10 @@ public class TestJobCmdScriptCreatorImpl {
             checkForTrue = new File("/usr/bin/true");
             assumeTrue(checkForTrue.exists());
         }
+        
+        File stderrFile = new File(outputsDir.getAbsolutePath()+File.separator+"stderr");
+        assertTrue(stderrFile.createNewFile());
+        
         JobCmdScriptCreatorImpl scriptCreator = new JobCmdScriptCreatorImpl("/workflowsdir",
                 checkForTrue.getAbsolutePath(),"register.jar",
         emailNotifyData);
