@@ -34,7 +34,6 @@
 package edu.ucsd.crbs.cws.cluster.submission;
 
 import edu.ucsd.crbs.cws.cluster.JobEmailNotificationData;
-import edu.ucsd.crbs.cws.cluster.submission.JobCmdScriptCreatorImpl;
 import edu.ucsd.crbs.cws.rest.Constants;
 import edu.ucsd.crbs.cws.util.RunCommandLineProcessImpl;
 import edu.ucsd.crbs.cws.workflow.Job;
@@ -603,6 +602,90 @@ public class TestJobCmdScriptCreatorImpl {
             }
         }
         
+       
+    }
+    
+    
+    
+    @Test
+    public void testCreateAndRunScriptWithKeplerThatHasNonZeroStdErrFileWithNoStdOut() throws Exception{
+        assumeTrue(SystemUtils.IS_OS_UNIX);
+        File baseDirectory = Folder.newFolder();
+        File tempDirectory = new File(baseDirectory+File.separator+"subdir");
+        File outputsDir = new File(tempDirectory+File.separator+Constants.OUTPUTS_DIR_NAME);
+        assertTrue(outputsDir.mkdirs());
+        
+        JobEmailNotificationData emailNotifyData = createJobEmailNotificationData();
+        
+        File checkForTrue = new File("/bin/true");
+        if (checkForTrue.exists() == false){
+            checkForTrue = new File("/usr/bin/true");
+            assumeTrue(checkForTrue.exists());
+        }
+        
+        JobCmdScriptCreatorImpl scriptCreator = new JobCmdScriptCreatorImpl("/workflowsdir",
+                checkForTrue.getAbsolutePath(),"register.jar",
+        emailNotifyData);
+        scriptCreator.setJavaBinaryPath("/bin/echo");
+        Job j = new Job();
+        Workflow w = new Workflow();
+        w.setId(new Long(5));
+        j.setWorkflow(w);
+        
+        FileWriter fw = new FileWriter(outputsDir.getAbsoluteFile()+File.separator+"stderr");
+        fw.write("Exception in thread \"main\" Java returned: 1\n" +
+"	at org.kepler.build.modules.ModulesTask.execute(ModulesTask.java:106)\n" +
+"	at org.kepler.build.runner.Kepler.main(Kepler.java:109)\n" +
+"Caused by: Java returned: 1\n" +
+"	at org.kepler.build.modules.ModulesTask.execute(ModulesTask.java:106)\n" +
+"	at org.kepler.build.runner.Kepler.run(Kepler.java:266)\n" +
+"	at org.kepler.build.modules.ModulesTask.execute(ModulesTask.java:102)\n" +
+"	... 1 more\n" +
+"Caused by: Java returned: 1\n" +
+"	at org.apache.tools.ant.taskdefs.Java.execute(Java.java:111)\n" +
+"	at org.kepler.build.Run.runSuite(Run.java:379)\n" +
+"	at org.kepler.build.Run.run(Run.java:240)\n" +
+"	at org.kepler.build.modules.ModulesTask.execute(ModulesTask.java:102)\n" +
+"	... 3 more");
+        fw.flush();
+        fw.close();
+        
+        String jobCmd = scriptCreator.create(tempDirectory.getAbsolutePath(), j,new Long(10));
+                
+        assertTrue(jobCmd != null);
+        assertTrue(jobCmd.equals(outputsDir.getAbsolutePath()+File.separator+JobCmdScriptCreatorImpl.JOB_CMD_SH));
+        File checkCmdFile = new File(jobCmd);
+        assertTrue(checkCmdFile.canExecute());
+       
+        RunCommandLineProcessImpl rclpi = new RunCommandLineProcessImpl();
+        rclpi.setWorkingDirectory(outputsDir.getAbsolutePath());
+        String result;
+        try {
+            result = rclpi.runCommandLineProcess(jobCmd);
+        }
+        catch(Exception ex){
+            assertTrue(ex.getMessage(),ex.getMessage().startsWith("Non zero exit code (100)"));
+        }
+        
+        String logFile = tempDirectory.getAbsoluteFile()+File.separator+"job...log";
+        File checkLogFile = new File(logFile);
+        assertTrue(logFile+" and we ran "+jobCmd,checkLogFile.exists());
+        List<String> lines = IOUtils.readLines(new FileReader(logFile));
+        for (String line : lines){
+            if (line.startsWith("exitcode: ")){
+                assertTrue(line,line.equals("exitcode: 100"));
+            }
+        }
+        
+        lines = IOUtils.readLines(new FileReader(outputsDir.getAbsoluteFile()+File.separator+"WORKFLOW.FAILED.txt"));
+        for (String line : lines){
+            if (line.startsWith("simple.error.message")){
+                assertTrue(line,line.equals("simple.error.message=Error running Kepler"));
+            }
+            if (line.startsWith("detailed.error.message")){
+                assertTrue(line,line.equals("detailed.error.message=Found Exception in thread main Java returned: 1 in the stderr file for Kepler : "));
+            }
+        }
        
     }
 }
