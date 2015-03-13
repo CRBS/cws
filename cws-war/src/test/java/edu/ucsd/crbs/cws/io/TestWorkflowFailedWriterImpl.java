@@ -30,10 +30,12 @@
  * THE CRBS Workflow Service WILL NOT INFRINGE ANY PATENT, TRADEMARK OR OTHER
  * RIGHTS. 
  */
-
 package edu.ucsd.crbs.cws.io;
 
+import edu.ucsd.crbs.cws.rest.Constants;
 import java.io.File;
+import java.io.FileReader;
+import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.junit.After;
@@ -46,9 +48,6 @@ import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
-import static org.mockito.Mockito.*;
-
-
 
 /**
  *
@@ -59,8 +58,7 @@ public class TestWorkflowFailedWriterImpl {
 
     @Rule
     public TemporaryFolder Folder = new TemporaryFolder();
-    
-    
+
     public TestWorkflowFailedWriterImpl() {
     }
 
@@ -87,35 +85,134 @@ public class TestWorkflowFailedWriterImpl {
         try {
             wfwi.setPath(null);
             fail("Expected IllegalArgumentException");
-        }
-        catch(IllegalArgumentException iae){
+        } catch (IllegalArgumentException iae) {
             assertTrue(iae.getMessage().equals("Path cannot be null"));
         }
     }
-    
+
     @Test
     public void testSetPathToNonDirectory() throws Exception {
         WorkflowFailedWriterImpl wfwi = new WorkflowFailedWriterImpl();
         try {
             wfwi.setPath("/asdf/doesnotexist");
             fail("Expected Exception");
-        }
-        catch(Exception iae){
+        } catch (Exception iae) {
             assertTrue(iae.getMessage().equals("Path /asdf/doesnotexist must be a directory"));
         }
     }
-    
+
     @Test
     public void testSetPathSuccessful() throws Exception {
         File testFolder = Folder.newFolder();
         WorkflowFailedWriterImpl wfwi = new WorkflowFailedWriterImpl();
         try {
             wfwi.setPath(testFolder.getAbsolutePath());
-        }
-        catch(Exception ex){
-            fail("Caught unexpected exception: "+ex.getMessage());
+        } catch (Exception ex) {
+            fail("Caught unexpected exception: " + ex.getMessage());
         }
     }
-    
-    
+
+    @Test
+    public void testWriteWithUnsetPath() throws Exception {
+        File testFolder = Folder.newFolder();
+        WorkflowFailedWriterImpl wfwi = new WorkflowFailedWriterImpl();
+        try {
+            wfwi.write("error", "detailederror");
+            fail("Expected exception");
+        } catch (NullPointerException npe) {
+            assertTrue(npe.getMessage().equals("Path not set, must call setPath first"));
+        }
+    }
+
+    @Test
+    public void testWriteWithNullErrorAndNullDetailedError() throws Exception {
+        File testFolder = Folder.newFolder();
+        WorkflowFailedWriterImpl wfwi = new WorkflowFailedWriterImpl();
+        wfwi.setPath(testFolder.getAbsolutePath());
+
+        try {
+            wfwi.write(null, null);
+            fail("Expected exception");
+        } catch (IllegalArgumentException iae) {
+            assertTrue(iae.getMessage().equals("error cannot be null"));
+        }
+    }
+
+    @Test
+    public void testWriteWithNullError() throws Exception {
+        File testFolder = Folder.newFolder();
+        WorkflowFailedWriterImpl wfwi = new WorkflowFailedWriterImpl();
+        wfwi.setPath(testFolder.getAbsolutePath());
+
+        try {
+            wfwi.write(null, "detailederror");
+            fail("Expected exception");
+        } catch (IllegalArgumentException iae) {
+            assertTrue(iae.getMessage().equals("error cannot be null"));
+        }
+    }
+
+    @Test
+    public void testWriteWithNullDetailedError() throws Exception {
+        File testFolder = Folder.newFolder();
+        WorkflowFailedWriterImpl wfwi = new WorkflowFailedWriterImpl();
+        wfwi.setPath(testFolder.getAbsolutePath());
+
+        try {
+            wfwi.write("error", null);
+            fail("Expected exception");
+        } catch (IllegalArgumentException iae) {
+            assertTrue(iae.getMessage().equals("detailedError cannot be null"));
+        }
+    }
+
+    @Test
+    public void testWriteSuccessful() throws Exception {
+        File testFolder = Folder.newFolder();
+        WorkflowFailedWriterImpl wfwi = new WorkflowFailedWriterImpl();
+        wfwi.setPath(testFolder.getAbsolutePath());
+        wfwi.write("error", "detailederror");
+
+        Properties props = new Properties();
+        props.load(new FileReader(testFolder.getAbsolutePath() + File.separator + Constants.WORKFLOW_FAILED_FILE));
+        assertTrue(props.getProperty(Constants.SIMPLE_ERROR_MESSAGE_KEY).equals("error"));
+        assertTrue(props.getProperty(Constants.DETAILED_ERROR_MESSAGE_KEY).equals("detailederror"));
+    }
+
+    @Test
+    public void testWriteMultipleTimesOnSamePath() throws Exception {
+        File testFolder = Folder.newFolder();
+        WorkflowFailedWriterImpl wfwi = new WorkflowFailedWriterImpl();
+        wfwi.setPath(testFolder.getAbsolutePath());
+        wfwi.write("error", "detailederror");
+
+        Properties props = new Properties();
+        props.load(new FileReader(testFolder.getAbsolutePath() + File.separator + Constants.WORKFLOW_FAILED_FILE));
+        assertTrue(props.getProperty(Constants.SIMPLE_ERROR_MESSAGE_KEY).equals("error"));
+        assertTrue(props.getProperty(Constants.DETAILED_ERROR_MESSAGE_KEY).equals("detailederror"));
+
+        wfwi.write("hi", "there");
+        props.load(new FileReader(testFolder.getAbsolutePath() + File.separator + Constants.WORKFLOW_FAILED_FILE));
+        assertTrue(props.getProperty(Constants.SIMPLE_ERROR_MESSAGE_KEY).equals("hi"));
+        assertTrue(props.getProperty(Constants.DETAILED_ERROR_MESSAGE_KEY).equals("there"));
+    }
+
+    public void testWriteMultipleTimesWithDifferentPaths() throws Exception{
+        File testFolder = Folder.newFolder();
+        WorkflowFailedWriterImpl wfwi = new WorkflowFailedWriterImpl();
+        wfwi.setPath(testFolder.getAbsolutePath());
+        wfwi.write("error", "detailederror");
+
+        Properties props = new Properties();
+        props.load(new FileReader(testFolder.getAbsolutePath() + File.separator + Constants.WORKFLOW_FAILED_FILE));
+        assertTrue(props.getProperty(Constants.SIMPLE_ERROR_MESSAGE_KEY).equals("error"));
+        assertTrue(props.getProperty(Constants.DETAILED_ERROR_MESSAGE_KEY).equals("detailederror"));
+
+        testFolder = Folder.newFolder();
+        wfwi.setPath(testFolder.getAbsolutePath());
+        wfwi.write("hi", "there");
+        props.load(new FileReader(testFolder.getAbsolutePath() + File.separator + Constants.WORKFLOW_FAILED_FILE));
+        assertTrue(props.getProperty(Constants.SIMPLE_ERROR_MESSAGE_KEY).equals("hi"));
+        assertTrue(props.getProperty(Constants.DETAILED_ERROR_MESSAGE_KEY).equals("there"));
+    }
 }

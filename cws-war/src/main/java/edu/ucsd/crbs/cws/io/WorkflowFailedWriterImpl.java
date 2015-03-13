@@ -72,7 +72,7 @@ public class WorkflowFailedWriterImpl implements WorkflowFailedWriter {
         if (path == null){
             throw new IllegalArgumentException("Path cannot be null");
         }
-        File _path = new File(path);
+        _path = new File(path);
         if (!_path.isDirectory()){
             _path = null;
             throw new Exception("Path "+path+" must be a directory");
