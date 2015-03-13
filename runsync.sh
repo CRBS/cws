@@ -1,4 +1,6 @@
 
+declare theVersion=`grep "<version>" pom.xml | head -n 1 | sed "s/^ *<version>//" | sed "s/<\/.*$//"`
+declare theJar="cws-war/target/cws-war-${theVersion}-jar-with-dependencies.jar"
 
 declare queue="coleslaw_shadow.q"
 declare baseurl="http://localhost:8080"
@@ -11,7 +13,6 @@ declare panStat="/usr/local/bin/panfishstat"
 declare theLogin="chris"
 declare theToken="dc5902078cfa40b980229662c2e0c226"
 
-declare theJar="${baseDir}/cws-war/target/cws-war-1.19-SNAPSHOT-jar-with-dependencies.jar"
 
 declare helpEmail="support@slashsegmentation.com"
 declare bccEmail="support@slashsegmentation.com"
