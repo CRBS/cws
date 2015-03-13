@@ -605,10 +605,8 @@ public class TestJobCmdScriptCreatorImpl {
        
     }
     
-    
-    
     @Test
-    public void testCreateAndRunScriptWithKeplerThatHasNonZeroStdErrFileWithNoStdOut() throws Exception{
+    public void testCreateAndRunScriptWithKeplerThatHasExceptionInStdErrFile() throws Exception{
         assumeTrue(SystemUtils.IS_OS_UNIX);
         File baseDirectory = Folder.newFolder();
         File tempDirectory = new File(baseDirectory+File.separator+"subdir");
@@ -683,7 +681,81 @@ public class TestJobCmdScriptCreatorImpl {
                 assertTrue(line,line.equals("simple.error.message=Error running Kepler"));
             }
             if (line.startsWith("detailed.error.message")){
-                assertTrue(line,line.equals("detailed.error.message=Found Exception in thread main Java returned: 1 in the stderr file for Kepler : "));
+                assertTrue(line,line.equals("detailed.error.message=Found Exception in thread main Java returned: 1 in the stderr file for Kepler"));
+            }
+        }
+       
+    }
+    
+    @Test
+    public void testCreateAndRunScriptWithKeplerThatHasSQLExceptionInStdOutFile() throws Exception{
+        assumeTrue(SystemUtils.IS_OS_UNIX);
+        File baseDirectory = Folder.newFolder();
+        File tempDirectory = new File(baseDirectory+File.separator+"subdir");
+        File outputsDir = new File(tempDirectory+File.separator+Constants.OUTPUTS_DIR_NAME);
+        assertTrue(outputsDir.mkdirs());
+        
+        JobEmailNotificationData emailNotifyData = createJobEmailNotificationData();
+        
+        File checkForTrue = new File("/bin/true");
+        if (checkForTrue.exists() == false){
+            checkForTrue = new File("/usr/bin/true");
+            assumeTrue(checkForTrue.exists());
+        }
+        
+        JobCmdScriptCreatorImpl scriptCreator = new JobCmdScriptCreatorImpl("/workflowsdir",
+                checkForTrue.getAbsolutePath(),"register.jar",
+        emailNotifyData);
+        scriptCreator.setJavaBinaryPath("/bin/echo");
+        Job j = new Job();
+        Workflow w = new Workflow();
+        w.setId(new Long(5));
+        j.setWorkflow(w);
+        
+        FileWriter fw = new FileWriter(outputsDir.getAbsoluteFile()+File.separator+"stdout");
+        fw.write("     [null]\n" +
+"     [null]     ... 4 more\n" +
+"     [null] Caused by: java.lang.Exception: Failed to call application initializer class \"org.kepler.gui.KeplerInitializer\".  Perhaps the configuration file \"file:/sharktopus/megashark/cws/bin/Kepler-20141020.103034/common/configs/ptolemy/configs/kepler/ConfigRedirectGUIWithCache.xml\" has a problem?\n" +
+"     [null] Caused by: java.sql.SQLException: Unable to start HSQL server for jdbc:hsqldb:hsql://localhost:26343/hsqldb;filepath=hsqldb:file:/home/churas/.kepler/cache-2.4/cachedata/hsqldb\n" +
+"     [null]     at ptolemy.actor.gui.ConfigurationApplication.readConfiguration(ConfigurationApplication.java:716)      at org.kepler.util.sql.HSQL._getConnection(HSQL.java:683)\n" +
+"     [null]\n");
+        fw.flush();
+        fw.close();
+        
+        String jobCmd = scriptCreator.create(tempDirectory.getAbsolutePath(), j,new Long(10));
+                
+        assertTrue(jobCmd != null);
+        assertTrue(jobCmd.equals(outputsDir.getAbsolutePath()+File.separator+JobCmdScriptCreatorImpl.JOB_CMD_SH));
+        File checkCmdFile = new File(jobCmd);
+        assertTrue(checkCmdFile.canExecute());
+       
+        RunCommandLineProcessImpl rclpi = new RunCommandLineProcessImpl();
+        rclpi.setWorkingDirectory(outputsDir.getAbsolutePath());
+        String result;
+        try {
+            result = rclpi.runCommandLineProcess(jobCmd);
+        }
+        catch(Exception ex){
+            assertTrue(ex.getMessage(),ex.getMessage().startsWith("Non zero exit code (101)"));
+        }
+        
+        String logFile = tempDirectory.getAbsoluteFile()+File.separator+"job...log";
+        File checkLogFile = new File(logFile);
+        assertTrue(logFile+" and we ran "+jobCmd,checkLogFile.exists());
+        List<String> lines = IOUtils.readLines(new FileReader(logFile));
+        for (String line : lines){
+            if (line.startsWith("exitcode: ")){
+                assertTrue(line,line.equals("exitcode: 101"));
+            }
+        }
+        
+        lines = IOUtils.readLines(new FileReader(outputsDir.getAbsoluteFile()+File.separator+"WORKFLOW.FAILED.txt"));
+        for (String line : lines){
+            if (line.startsWith("simple.error.message")){
+                assertTrue(line,line.equals("simple.error.message=Error running Kepler due to internal database"));
+            }
+            if (line.startsWith("detailed.error.message")){
+                assertTrue(line,line.equals("detailed.error.message=SQLException was found in stdout file"));
             }
         }
        
