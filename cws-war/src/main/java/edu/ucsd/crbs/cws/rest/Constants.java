@@ -225,4 +225,10 @@ public class Constants {
     public static final String SIMPLE_ERROR_MESSAGE_KEY = "simple.error.message";
     public static final String DETAILED_ERROR_MESSAGE_KEY = "detailed.error.message";
 
+    public static final String JOB_DID_NOT_START_SIMPLE_ERROR = "Unable to start"
+            + " job";
+    
+    public static final String JOB_DID_NOT_START_DETAILED_ERROR = "For unknown "
+            + "reason the scheduler failed to even start this job";
+    
 }
