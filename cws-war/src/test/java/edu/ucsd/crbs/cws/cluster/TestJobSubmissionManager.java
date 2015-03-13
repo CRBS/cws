@@ -43,6 +43,8 @@ import edu.ucsd.crbs.cws.workflow.Workflow;
 import edu.ucsd.crbs.cws.workflow.WorkspaceFile;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -66,7 +68,7 @@ public class TestJobSubmissionManager {
 
     @BeforeClass
     public static void setUpClass() {
-       // Logger.getLogger(JobSubmitter.class.getName()).setLevel(Level.OFF);
+       Logger.getLogger(JobSubmissionManager.class.getName()).setLevel(Level.OFF);
     }
     
     @AfterClass
