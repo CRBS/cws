@@ -1,8 +1,7 @@
 
-#declare baseURL="http://localhost:8080"
+declare baseURL="http://localhost:8080"
 declare theVersion=`grep "<version>" pom.xml | head -n 1 | sed "s/^ *<version>//" | sed "s/<\/.*$//"`
 declare theJar="cws-war/target/cws-war-${theVersion}-jar-with-dependencies.jar"
-declare baseURL="https://testcrbsworkflow.appspot.com"
 declare user="chris"
 declare token="dc5902078cfa40b980229662c2e0c226"
 declare usertoken="userlogin=${user}&usertoken=${token}"
