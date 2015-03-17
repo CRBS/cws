@@ -115,7 +115,7 @@ public class Job  {
     private long _estimatedCpuInSeconds;
     private long _estimatedRunTimeInSeconds;
     private long _estimatedDiskInBytes;
-    private Date _createDate;
+    @Index private Date _createDate;
     private Date _submitDate;
     private Date _startDate;
     private Date _finishDate;
