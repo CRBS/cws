@@ -144,8 +144,23 @@ if [ -s "$workflowFailedTxt" ] ; then
   workspaceStatusFlag="--workspacefilefailed true"
 fi
 
+
+
+#
+# cs-287 fix.  If update fails need to retry and if that fails need to
+# notify via email and fail the workflow.  The other option is to have
+# the workflow generate failed file and just wait for help ?
+#
 @@JAVA@@ @@UPDATE_WORKSPACE_PATH@@
 
+if [ $? != 0 ] ; then
+  echo "Update of workspace path failed.  Sleeping 30 seconds and retrying"
+  sleep 30
+  @@JAVA@@ @@UPDATE_WORKSPACE_PATH@@
+  if [ $? != 0 ] ; then
+    writeWorkflowFailedFile "Unable to update WorkspaceFile" "Received non zero exit code when trying to update workspace file"
+  fi
+fi
 
 #if the email address was set earlier send the completed workflow message
 if [ "$EMAIL_ADDR" != "" ] ; then
