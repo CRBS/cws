@@ -189,6 +189,8 @@ public class App {
     
     public static final String WORKSPACE_FILE_FAILED_ARG="workspacefilefailed";
     
+    public static final String ERROR_EMAIL_ARG="erroremail";
+    
     
 
     //public static final String LOAD_TEST = "loadtest";
@@ -254,6 +256,7 @@ public class App {
                     accepts(HELP_EMAIL_ARG,"Help and reply to email address Used with --"+SYNC_WITH_CLUSTER_ARG).withRequiredArg().ofType(String.class);
                     accepts(BCC_EMAIL_ARG,"Blind Carbon copy email address Used with --"+SYNC_WITH_CLUSTER_ARG).withRequiredArg().ofType(String.class);    
                     accepts(WORKSPACE_FILE_FAILED_ARG,"Denotes whether workspacefile failed (true) or not (false).  Used with --"+UPDATE_PATH_ARG).withRequiredArg().ofType(Boolean.class).describedAs("false = success and true = failed");
+                    accepts(ERROR_EMAIL_ARG,"Email to receive notifications if errors are encountered.  Used with --"+SYNC_WITH_CLUSTER_ARG).withRequiredArg().ofType(String.class);
                     accepts(HELP_ARG).forHelp();
                 }
             };
