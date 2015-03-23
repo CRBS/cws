@@ -136,6 +136,14 @@ public class JobCmdScriptCreatorImpl implements JobCmdScriptCreator, StringRepla
     public static final String REGISTER_OUTPUT_TO_WORKSPACE_TOKEN = "@@REGISTER_OUTPUT_TO_WORKSPACE@@";
     
     public static final String UPDATE_WORKSPACE_PATH_TOKEN = "@@UPDATE_WORKSPACE_PATH@@";
+    
+    public static final String RETRY_COUNT_TOKEN = "@@RETRY_COUNT@@";
+    
+    public static final String SLEEP_TOKEN = "@@SLEEP@@";
+    
+    public static final String UPDATE_WORKSPACE_RETRY_SLEEP_TIME_TOKEN = "@@UPDATE_WORKSPACE_RETRY_SLEEP_TIME@@";
+    
+    public static final String ERROR_EMAIL_TOKEN = "@@ERROR_EMAIL@@";
 
     public static final String REGISTER_WSF_OUTPUT = "registerworkspacefile.out";
 
@@ -183,6 +191,13 @@ public class JobCmdScriptCreatorImpl implements JobCmdScriptCreator, StringRepla
     
     private String _workflowName;
     
+    private String _sleep;
+    
+    private String _retryCount;
+    
+    private String _retrySleepTime;
+    
+    
     /**
      * Replaces occurrences of @@JOB_ARGS@@ @@KEPLER_SH@@ with correct values
      *
@@ -204,7 +219,11 @@ public class JobCmdScriptCreatorImpl implements JobCmdScriptCreator, StringRepla
                 replace(HELP_EMAIL_TOKEN,_emailNotifyData.getHelpEmail()).
                 replace(BCC_EMAIL_TOKEN,_emailNotifyData.getBccEmail()).
                 replace(WORKFLOW_NAME_TOKEN,_workflowName).
-                replace(JOB_ID_TOKEN,_jobId);
+                replace(JOB_ID_TOKEN,_jobId).
+                replace(RETRY_COUNT_TOKEN,_retryCount).
+                replace(SLEEP_TOKEN,_sleep).
+                replace(UPDATE_WORKSPACE_RETRY_SLEEP_TIME_TOKEN,_retrySleepTime).
+                replace(ERROR_EMAIL_TOKEN,_emailNotifyData.getErrorEmail());
                 
     }
 
@@ -221,6 +240,10 @@ public class JobCmdScriptCreatorImpl implements JobCmdScriptCreator, StringRepla
         _resToFile = new ResourceToExecutableScriptWriterImpl();
         _stringEscaper = new KeplerHtmlStringEscaper();
         _java = "java";
+        _sleep = "sleep";
+        _retryCount = "10";
+        _retrySleepTime = "10";
+        
     }
     
     public void setJavaBinaryPath(final String path){
