@@ -46,6 +46,7 @@ public class JobEmailNotificationData {
     private String _portalURL; 
     private  String _helpEmail;
     private String _bccEmail; 
+    private String _errorEmail;
 
     /**
      * Gets project name
@@ -129,5 +130,25 @@ public class JobEmailNotificationData {
     public void setBccEmail(String _bccEmail) {
         this._bccEmail = _bccEmail;
     }
+    
+    /**
+     * 
+     * @return Error email address
+     */
+    public String getErrorEmail() {
+        if (_errorEmail == null){
+            return "";
+        }
+        return _errorEmail;
+    }
+
+    /**
+     * Sets Error email address
+     * @param errorEmail 
+     */
+    public void setErrorEmail(String errorEmail) {
+        _errorEmail = errorEmail;
+    }
+
     
 }

@@ -81,25 +81,30 @@ public class TestJobEmailNotificationData {
         assertTrue(jend.getPortalName() == null);
         assertTrue(jend.getPortalURL() == null);
         assertTrue(jend.getProject() == null);
+        assertTrue(jend.getErrorEmail().equals(""));
         
         jend.setBccEmail("bcc");
         jend.setHelpEmail("help");
         jend.setPortalName("name");
         jend.setPortalURL("url");
         jend.setProject("proj");
+        jend.setErrorEmail("error");
         
         assertTrue(jend.getBccEmail().equals("bcc"));
         assertTrue(jend.getHelpEmail().equals("help"));
         assertTrue(jend.getPortalName().equals("name"));
         assertTrue(jend.getPortalURL().equals("url"));
         assertTrue(jend.getProject().equals("proj"));
+        assertTrue(jend.getErrorEmail().equals("error"));
 
         
         //bcc is empty string if set to null
         jend.setBccEmail(null);
         assertTrue(jend.getBccEmail().equals(""));
 
-        
+        //error email is empty string if set to null
+        jend.setErrorEmail(null);
+        assertTrue(jend.getErrorEmail().equals(""));
         
     }
 
