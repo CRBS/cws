@@ -58,6 +58,9 @@ export PATH="${PATH}:/usr/java/latest/bin:/usr/java/default/bin"
 # 
 EMAIL_ADDR="@@NOTIFY_EMAIL@@"
 
+# Sends email to this address if job fails
+ERROR_EMAIL_ADDR="@@ERROR_EMAIL@@"
+
 if [ "$EMAIL_ADDR" != "" ] ; then
   
   BCC_EMAIL="@@BCC_EMAIL@@"
@@ -149,17 +152,23 @@ fi
 #
 # cs-287 fix.  If update fails need to retry and if that fails need to
 # notify via email and fail the workflow.  The other option is to have
-# the workflow generate failed file and just wait for help ?
+# the workflow generate failed file and just wait for help?
 #
-@@JAVA@@ @@UPDATE_WORKSPACE_PATH@@
-
-if [ $? != 0 ] ; then
-  echo "Update of workspace path failed.  Sleeping 30 seconds and retrying"
-  sleep 30
+let cntr=0
+exitCode="-1"
+while [ $cntr -lt @@RETRY_COUNT@@ ] ; do
   @@JAVA@@ @@UPDATE_WORKSPACE_PATH@@
-  if [ $? != 0 ] ; then
-    writeWorkflowFailedFile "Unable to update WorkspaceFile" "Received non zero exit code when trying to update workspace file"
+  exitCode=$?
+  if [ $exitCode == 0 ] ; then
+    break
   fi
+  let cntr++
+  echo "Update of workspace path try $cntr of @@RETRY_COUNT@@ failed.  Sleeping @@UPDATE_WORKSPACE_RETRY_SLEEP_TIME@@ seconds and retrying"
+  @@SLEEP@@ @@UPDATE_WORKSPACE_RETRY_SLEEP_TIME@@
+done
+
+if [ $exitCode != 0 ] ; then
+  writeWorkflowFailedFile "Unable to update WorkspaceFile" "Received non zero exit code ($exitCode) when trying to update workspace file"
 fi
 
 #if the email address was set earlier send the completed workflow message
@@ -170,34 +179,47 @@ if [ "$EMAIL_ADDR" != "" ] ; then
   else
     echo ""
   fi
-
-  declare finishedMessage="finished"
-
-  OUTEMAIL="Dear @@USER@@,\\n\\n"
-  OUTEMAIL="${OUTEMAIL}Your @@WORKFLOW_NAME@@ job: @@JOB_NAME@@ (@@JOB_ID@@) "
-
-  if [ -s "$workflowFailedTxt" ] ; then
-    declare simpleError=`egrep "^simple.error.message=" $workflowFailedTxt | sed "s/^.*=//" | sed "s/\"/ /g"`
-    declare detailedError=`egrep "^simple.error.message=" $workflowFailedTxt | sed "s/^.*=//" | sed "s/\"/ /g"`
-    finishedMessage="failed"
-    OUTEMAIL="${OUTEMAIL}has failed.\\n  Error from ${workflowFailedTxt}: $simpleError\\n\\n$detailedError\\n"
-  else 
-    OUTEMAIL="${OUTEMAIL}has finished running.\\n"
-  fi
-
-  OUTEMAIL="${OUTEMAIL}Please login to the @@PORTAL_NAME@@\\n"
-  OUTEMAIL="${OUTEMAIL}(@@PORTAL_URL@@) to check completion status.\\n\\n"
-  OUTEMAIL="${OUTEMAIL}Contact @@PROJECT@@ support at @@HELP_EMAIL@@ if you have any questions\\n"
-  OUTEMAIL="${OUTEMAIL}regarding your job.\\n\\n"
-  OUTEMAIL="${OUTEMAIL}Sincerely,\\n\\n"
-  OUTEMAIL="${OUTEMAIL}The @@PROJECT@@ Team\\n"
-  OUTEMAIL="${OUTEMAIL}@@HELP_EMAIL@@\\n"
-
-  echo -e "${OUTEMAIL}" | /bin/mail -s "@@PROJECT@@ Workflow @@WORKFLOW_NAME@@ - @@JOB_NAME@@ has $finishedMessage" -r "@@HELP_EMAIL@@" $BCC_EMAIL_FLAG $EMAIL_ADDR
-  sleep 10
 fi
 
+declare finishedMessage="finished"
 
+OUTEMAIL="Dear @@USER@@,\\n\\n"
+OUTEMAIL="${OUTEMAIL}Your @@WORKFLOW_NAME@@ job: @@JOB_NAME@@ (@@JOB_ID@@) "
+
+if [ -s "$workflowFailedTxt" ] ; then
+  declare simpleError=`egrep "^simple.error.message=" $workflowFailedTxt | sed "s/^.*=//" | sed "s/\"/ /g"`
+  declare detailedError=`egrep "^simple.error.message=" $workflowFailedTxt | sed "s/^.*=//" | sed "s/\"/ /g"`
+  finishedMessage="failed"
+  OUTEMAIL="${OUTEMAIL}has failed.\\n  Error from ${workflowFailedTxt}: $simpleError\\n\\n$detailedError\\n"
+  if [ "$EMAIL_ADDR" == "" ] ; then
+    EMAIL_ADDR=$ERROR_EMAIL_ADDR
+  else
+    if [ "$BCC_EMAIL_FLAG" == "" ] ; then
+      if [ "$ERROR_EMAIL_ADDR" != "" ] ; then
+        BCC_EMAIL_FLAG="-b $ERROR_EMAIL_ADDR"  
+      fi
+    else
+      if [ "$ERROR_EMAIL_ADDR" != "" ] ; then
+        BCC_EMAIL_FLAG="${BCC_EMAIL_FLAG},$ERROR_EMAIL_ADDR"  
+      fi
+    fi
+  fi
+else 
+  OUTEMAIL="${OUTEMAIL}has finished running.\\n"
+fi
+
+OUTEMAIL="${OUTEMAIL}Please login to the @@PORTAL_NAME@@\\n"
+OUTEMAIL="${OUTEMAIL}(@@PORTAL_URL@@) to check completion status.\\n\\n"
+OUTEMAIL="${OUTEMAIL}Contact @@PROJECT@@ support at @@HELP_EMAIL@@ if you have any questions\\n"
+OUTEMAIL="${OUTEMAIL}regarding your job.\\n\\n"
+OUTEMAIL="${OUTEMAIL}Sincerely,\\n\\n"
+OUTEMAIL="${OUTEMAIL}The @@PROJECT@@ Team\\n"
+OUTEMAIL="${OUTEMAIL}@@HELP_EMAIL@@\\n"
+
+if [ "$EMAIL_ADDR" != "" ] ; then
+  echo -e "${OUTEMAIL}" | /bin/mail -s "@@PROJECT@@ Workflow @@WORKFLOW_NAME@@ - @@JOB_NAME@@ has $finishedMessage" -r "@@HELP_EMAIL@@" $BCC_EMAIL_FLAG $EMAIL_ADDR
+  sleep @@POST_EMAIL_SLEEP@@
+fi
 
 exit $jobExitCode
 
