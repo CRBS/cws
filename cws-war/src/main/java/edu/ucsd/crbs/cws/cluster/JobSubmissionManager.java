@@ -154,7 +154,8 @@ public class JobSubmissionManager {
         String error = null;
         String detailedError = null;
         if (jobs != null) {
-            _log.log(Level.INFO, "Found {0} job(s) need to be submitted", jobs.size());
+            _log.log(Level.INFO, "Found {0} job(s) need to be submitted", 
+                    jobs.size());
             for (Job j : jobs) {
 
                 try {
@@ -166,7 +167,8 @@ public class JobSubmissionManager {
                         boolean submittedToScheduler = false;
                         if (!j.getStatus().equals(status.getSuggestedJobStatus())) {
                             _log.log(Level.INFO,"\tUpdating status for job {0} to {1}",
-                                     new Object[]{j.getId(),status.getSuggestedJobStatus()});
+                                     new Object[]{generateJobLogMessage(j),
+                                         status.getSuggestedJobStatus()});
                             
                             
                             error = null;
@@ -189,18 +191,20 @@ public class JobSubmissionManager {
                                     null,null,error,detailedError);
                         }
                         if (submittedToScheduler == true){
-                            _log.log(Level.INFO,"\tAbandoning submission of Job ({0}) {1} : {2}",
-                                    new Object[]{j.getId(),j.getName(),status.getReason()});
+                            _log.log(Level.INFO,"\tAbandoning submission of Job {0} : {1}",
+                                    new Object[]{generateJobLogMessage(j),
+                                        status.getReason()});
                         }
                         else {
-                            _log.log(Level.INFO,"\tTemporarily skipping submission of Job ({0}) {1} : {2}",
-                                    new Object[]{j.getId(),j.getName(),status.getReason()});
+                            _log.log(Level.INFO,"\tTemporarily skipping submission of Job {0} : {1}",
+                                    new Object[]{generateJobLogMessage(j),
+                                        j.getName(),status.getReason()});
                         }
                         continue;
                     }
 
-                    _log.log(Level.INFO, "\tSubmitting Job: ({0}) {1}",
-                            new Object[]{j.getId(), j.getName()});
+                    _log.log(Level.INFO, "\tSubmitting Job: {0}",
+                            new Object[]{generateJobLogMessage(j)});
 
                     submitJob(j);
 
@@ -209,13 +213,37 @@ public class JobSubmissionManager {
                             j.getSchedulerJobId(),null,null,null);
                 } catch (Exception ex) {
                     _log.log(Level.SEVERE,
-                            "\tProblems submitting job: ({0}) {1} -- {2}.  Skipping...",
-                            new Object[]{j.getId(),j.getName(), ex.getMessage()});
+                            "\tProblems submitting job: {0} -- {1}.  Skipping...",
+                            new Object[]{generateJobLogMessage(j),
+                                j.getName(), ex.getMessage()});
                 }
             }
         } else {
             _log.log(Level.INFO, "No jobs need to be submitted");
         }
+    }
+    
+    /**
+     * Takes a {@link Job} <b>j</b> and generates a String to identify the job.
+     * @param j
+     * @return ( job id - job name, workflow name) or (Null job) if job is null
+     */
+    private String generateJobLogMessage(Job j){
+        if (j == null){
+            return "(Null Job)";
+        }
+        
+        StringBuilder sb = new StringBuilder();
+        
+        sb.append("(").
+           append(j.getId().toString());
+        if (j.getName() != null){
+            sb.append(" - ").append(j.getName());
+        }
+        if (j.getWorkflow() != null && j.getWorkflow().getName() != null){
+            sb.append(" ").append(j.getWorkflow().getName());
+        }
+        return sb.append(")").toString();
     }
     
     /**
@@ -250,12 +278,14 @@ public class JobSubmissionManager {
     private Long getJobsWorkspaceId(Job j) throws Exception {
         List<WorkspaceFile> wsfList = _workspaceFileDAO.getWorkspaceFilesBySourceJobId(j.getId());
         if (wsfList == null){
-            throw new Exception("No WorkspaceFile for job "+j.getId()+" "+j.getName());
+            throw new Exception("No WorkspaceFile for job "+
+                    generateJobLogMessage(j));
         }
         
         if (wsfList.size() != 1){
-            throw new Exception("\tExpected 1 WorkspaceFile for job"+j.getId()+" "+
-                    j.getName()+", but got: "+wsfList.size());
+            throw new Exception("\tExpected 1 WorkspaceFile for job"+
+                    generateJobLogMessage(j)+
+                    ", but got: "+wsfList.size());
         }
         return wsfList.get(0).getId();
     }
