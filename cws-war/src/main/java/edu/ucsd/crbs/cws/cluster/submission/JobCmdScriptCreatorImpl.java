@@ -33,11 +33,12 @@
 
 package edu.ucsd.crbs.cws.cluster.submission;
 
+import edu.ucsd.crbs.cws.cluster.JobBinaries;
 import edu.ucsd.crbs.cws.cluster.JobEmailNotificationData;
-import edu.ucsd.crbs.cws.io.StringEscaper;
 import edu.ucsd.crbs.cws.io.KeplerHtmlStringEscaper;
 import edu.ucsd.crbs.cws.io.ResourceToExecutableScriptWriter;
 import edu.ucsd.crbs.cws.io.ResourceToExecutableScriptWriterImpl;
+import edu.ucsd.crbs.cws.io.StringEscaper;
 import edu.ucsd.crbs.cws.io.StringReplacer;
 import edu.ucsd.crbs.cws.rest.Constants;
 import edu.ucsd.crbs.cws.workflow.Job;
@@ -54,6 +55,7 @@ public class JobCmdScriptCreatorImpl implements JobCmdScriptCreator, StringRepla
     public static final String HYPHEN = "-";
     public static final String SPACE = " ";
 
+    public static final String UNKNOWN = "Unknown";
     /**
      * Name of script that will run the Workflow Job
      */
@@ -144,6 +146,16 @@ public class JobCmdScriptCreatorImpl implements JobCmdScriptCreator, StringRepla
     public static final String UPDATE_WORKSPACE_RETRY_SLEEP_TIME_TOKEN = "@@UPDATE_WORKSPACE_RETRY_SLEEP_TIME@@";
     
     public static final String ERROR_EMAIL_TOKEN = "@@ERROR_EMAIL@@";
+    
+    public static final String ECHO_TOKEN = "@@ECHO@@";
+    
+    public static final String RM_TOKEN = "@@RM@@";
+    
+    public static final String KILL_TOKEN = "@@KILL@@";
+    
+    public static final String MAIL_TOKEN = "@@MAIL@@";
+    
+    public static final String POST_EMAIL_SLEEP_TOKEN = "@@POST_EMAIL_SLEEP@@";
 
     public static final String REGISTER_WSF_OUTPUT = "registerworkspacefile.out";
 
@@ -153,11 +165,6 @@ public class JobCmdScriptCreatorImpl implements JobCmdScriptCreator, StringRepla
      * Base directory under which the Workflow kar files reside
      */
     private final String _workflowsDir;
-    
-    /**
-     * Path to Kepler script
-     */
-    private final String _keplerScript;
     
     /**
      * Arguments to pass to Kepler script
@@ -170,8 +177,6 @@ public class JobCmdScriptCreatorImpl implements JobCmdScriptCreator, StringRepla
     private String _workingDir;
     
     private String _updateOutputWorkspaceFilePath;
-
-    private String _registerUpdateJar;
     
     private String _jobId;
     
@@ -187,15 +192,10 @@ public class JobCmdScriptCreatorImpl implements JobCmdScriptCreator, StringRepla
 
     private StringEscaper _stringEscaper;
 
-    private String _java;
-    
     private String _workflowName;
     
-    private String _sleep;
     
-    private String _retryCount;
-    
-    private String _retrySleepTime;
+    private JobBinaries _jobBinaries;
     
     
     /**
@@ -206,9 +206,9 @@ public class JobCmdScriptCreatorImpl implements JobCmdScriptCreator, StringRepla
      */
     @Override
     public String replace(String line) {
-        return line.replace(KEPLER_SH_TOKEN, _keplerScript).
+        return line.replace(KEPLER_SH_TOKEN, _jobBinaries.getKeplerScript()).
                 replace(JOB_ARGS_TOKEN, _jobArgs).
-                replace(JAVA_TOKEN,_java).
+                replace(JAVA_TOKEN,_jobBinaries.getJavaCommand()).
                 replace(UPDATE_WORKSPACE_PATH_TOKEN,_updateOutputWorkspaceFilePath).
                 replace(JOB_NAME_TOKEN,_jobName).
                 replace(USER_TOKEN,_user).
@@ -220,34 +220,60 @@ public class JobCmdScriptCreatorImpl implements JobCmdScriptCreator, StringRepla
                 replace(BCC_EMAIL_TOKEN,_emailNotifyData.getBccEmail()).
                 replace(WORKFLOW_NAME_TOKEN,_workflowName).
                 replace(JOB_ID_TOKEN,_jobId).
-                replace(RETRY_COUNT_TOKEN,_retryCount).
-                replace(SLEEP_TOKEN,_sleep).
-                replace(UPDATE_WORKSPACE_RETRY_SLEEP_TIME_TOKEN,_retrySleepTime).
-                replace(ERROR_EMAIL_TOKEN,_emailNotifyData.getErrorEmail());
+                replace(RETRY_COUNT_TOKEN,Integer.toString(_jobBinaries.getRetryCount())).
+                replace(SLEEP_TOKEN,_jobBinaries.getSleepCommand()).
+                replace(UPDATE_WORKSPACE_RETRY_SLEEP_TIME_TOKEN,Integer.toString(_jobBinaries.getWorkspaceUpdateRetrySleepTimeInSeconds())).
+                replace(ERROR_EMAIL_TOKEN,_emailNotifyData.getErrorEmail()).
+                replace(ECHO_TOKEN,_jobBinaries.getEchoCommand()).
+                replace(RM_TOKEN,_jobBinaries.getRmCommand()).
+                replace(KILL_TOKEN,_jobBinaries.getKillCommand()).
+                replace(MAIL_TOKEN,_jobBinaries.getMailCommand()).
+                replace(POST_EMAIL_SLEEP_TOKEN,Integer.toString(_jobBinaries.getPostEmailSleepTimeInSeconds()));
                 
     }
 
+    
+    public JobCmdScriptCreatorImpl(final String workflowsDir,JobBinaries jobBinaries,
+            JobEmailNotificationData emailNotifyData){
+        _workflowsDir = workflowsDir;
+        _jobBinaries = jobBinaries;
+        _emailNotifyData = emailNotifyData;
+        _resToFile = new ResourceToExecutableScriptWriterImpl();
+        _stringEscaper = new KeplerHtmlStringEscaper();
+    }
+    
+    
+    /**
+     * 
+     * @param workflowsDir
+     * @param keplerScript
+     * @param registerUpdateJar
+     * @param emailNotifyData 
+     * @deprecated Use other constructor
+     */
     public JobCmdScriptCreatorImpl(final String workflowsDir, final String keplerScript,
             final String registerUpdateJar,
             JobEmailNotificationData emailNotifyData) {
-       
-        _emailNotifyData = emailNotifyData;
-        
-        _workflowsDir = workflowsDir;
-        _keplerScript = keplerScript;
-        _registerUpdateJar = registerUpdateJar;
-        
-        _resToFile = new ResourceToExecutableScriptWriterImpl();
-        _stringEscaper = new KeplerHtmlStringEscaper();
-        _java = "java";
-        _sleep = "sleep";
-        _retryCount = "10";
-        _retrySleepTime = "10";
-        
+       this(workflowsDir,createJobBinaries(keplerScript,registerUpdateJar),emailNotifyData);
+    }
+    
+    /**
+     * Creates {@link JobBinaries} object
+     * @param keplerScript
+     * @param registerUpdateJar
+     * @return 
+     */
+    private static JobBinaries createJobBinaries(final String keplerScript,
+            final String registerUpdateJar){
+        JobBinaries jobBinaries = new JobBinaries();
+        jobBinaries.setRetryCount(3);
+        jobBinaries.setKeplerScript(keplerScript);
+        jobBinaries.setRegisterUpdateJar(registerUpdateJar);
+        return jobBinaries;
     }
     
     public void setJavaBinaryPath(final String path){
-        _java = path;
+        _jobBinaries.setJavaCommand(path);
     }
     
     public void setResourceToExecutableScriptWriter(ResourceToExecutableScriptWriter scriptWriter){
@@ -296,33 +322,34 @@ public class JobCmdScriptCreatorImpl implements JobCmdScriptCreator, StringRepla
             _user = j.getOwner().replace("\""," ");
         }
         else {
-            _user = "Unknown";
+            _user = UNKNOWN;
         }
         
         if (j.getId() != null){
             _jobId = j.getId().toString();
         }
         else {
-            _jobId = "Unknown";
+            _jobId = UNKNOWN;
         }
         
         if (j.getName() != null){
             _jobName = j.getName().replace("\""," ");
         }
         else {
-            _jobName = "Unknown";
+            _jobName = UNKNOWN;
         }
         
         if (j.getWorkflow().getName() != null){
             _workflowName = j.getWorkflow().getName();
         }
         else {
-            _workflowName = "Unknown";
+            _workflowName = UNKNOWN;
         }
         
         setUserEmail(j);
         
-        _updateOutputWorkspaceFilePath = " -jar "+_registerUpdateJar+
+        _updateOutputWorkspaceFilePath = " -jar "+
+                _jobBinaries.getRegisterUpdateJar()+
                 " --updatepath \""+workspaceFileId.toString()+"\""+
                 " --path \""+_workingDir+"\""+
                 " --size `du "+_workingDir+
