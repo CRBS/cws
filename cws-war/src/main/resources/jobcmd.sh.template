@@ -8,29 +8,29 @@ declare workflowFailedTxt="WORKFLOW.FAILED.txt"
 # case where job fails to even start cs-244
 #
 if [ -e "$workflowFailedTxt" ] ; then
-  /bin/rm -f "$workflowFailedTxt"
+  @@RM@@ -f "$workflowFailedTxt"
 fi
 
 
 writeWorkflowFailedFile(){
-  echo -e "simple.error.message=${1}\\ndetailed.error.message=${2}\\n" > $workflowFailedTxt
+  @@ECHO@@ -e "simple.error.message=${1}\\ndetailed.error.message=${2}\\n" > $workflowFailedTxt
 }
 
 #
 # function called when USR2 signal is caught
 #
 on_usr2() {
- echo "Caught USR2 signal killing children processes"
+ @@ECHO@@ "Caught USR2 signal killing children processes"
  for Y in `ps -o pid,cmd --ppid $$ | grep "java" | grep -v "grep" | sed "s/^ //" | sed "s/ .*//"` ; do
-    echo "Killing $Y"
-    kill $Y
+    @@ECHO@@ "Killing $Y"
+    @@KILL@@ $Y
  done
- echo "endtime: $endTime" >> $jobLogFile 2>&1
- echo "exitcode: 100"  >> $jobLogFile 2>&1
+ @@ECHO@@ "endtime: $endTime" >> $jobLogFile 2>&1
+ @@ECHO@@ "exitcode: 100"  >> $jobLogFile 2>&1
  if [ -s "$workflowFailedTxt" ] ; then
-   echo -n " Job received USR2 signal which in SGE meant it is about to be killed" >> $workflowFailedTxt
+   @@ECHO@@ -n " Job received USR2 signal which in SGE meant it is about to be killed" >> $workflowFailedTxt
  else
-   echo -e "simple.error.message=Job killed by scheduler\\ndetailed.error.message=Job received USR2 signal which is the signal to exit\\n" > $workflowFailedTxt
+   @@ECHO@@ -e "simple.error.message=Job killed by scheduler\\ndetailed.error.message=Job received USR2 signal which is the signal to exit\\n" > $workflowFailedTxt
  fi
  exit 100
 }
@@ -47,11 +47,11 @@ fi
 
 declare startTime=`date +%s 2>&1`
 
-echo "sgejobid: $JOB_ID" >> $jobLogFile 2>&1
-echo "sgejobname: $JOB_NAME" >> $jobLogFile 2>&1
-echo "sgetaskid: $SGE_TASK_ID" >> $jobLogFile 2>&1
-echo "starttime: $startTime" >> $jobLogFile 2>&1
-echo "Arguments: @@JOB_ARGS@@" >> $jobLogFile 2>&1
+@@ECHO@@ "sgejobid: $JOB_ID" >> $jobLogFile 2>&1
+@@ECHO@@ "sgejobname: $JOB_NAME" >> $jobLogFile 2>&1
+@@ECHO@@ "sgetaskid: $SGE_TASK_ID" >> $jobLogFile 2>&1
+@@ECHO@@ "starttime: $startTime" >> $jobLogFile 2>&1
+@@ECHO@@ "Arguments: @@JOB_ARGS@@" >> $jobLogFile 2>&1
 
 export PATH="${PATH}:/usr/java/latest/bin:/usr/java/default/bin"
 
@@ -66,12 +66,12 @@ if [ "$EMAIL_ADDR" != "" ] ; then
   BCC_EMAIL="@@BCC_EMAIL@@"
   BCC_EMAIL_FLAG=""
 
-  echo -n "Sending start email for @@JOB_NAME@@ to user $EMAIL_ADDR"
+  @@ECHO@@ -n "Sending start email for @@JOB_NAME@@ to user $EMAIL_ADDR"
   if [ "$BCC_EMAIL" != "" ] ; then
-    echo " and bcc to $BCC_EMAIL"
+    @@ECHO@@ " and bcc to $BCC_EMAIL"
     BCC_EMAIL_FLAG="-b $BCC_EMAIL"
   else
-    echo ""
+    @@ECHO@@ ""
   fi
 
   OUTEMAIL="Dear @@USER@@,\\n\\n"
@@ -85,7 +85,7 @@ if [ "$EMAIL_ADDR" != "" ] ; then
   OUTEMAIL="${OUTEMAIL}The @@PROJECT@@ Team\\n"
   OUTEMAIL="${OUTEMAIL}@@HELP_EMAIL@@\\n"
 
-  echo -e "${OUTEMAIL}" | /bin/mail -s "@@PROJECT@@ Workflow @@WORKFLOW_NAME@@ - @@JOB_NAME@@ has started running" -r "@@HELP_EMAIL@@" $BCC_EMAIL_FLAG $EMAIL_ADDR
+  @@ECHO@@ -e "${OUTEMAIL}" | @@MAIL@@ -s "@@PROJECT@@ Workflow @@WORKFLOW_NAME@@ - @@JOB_NAME@@ has started running" -r "@@HELP_EMAIL@@" $BCC_EMAIL_FLAG $EMAIL_ADDR
 fi
 
 # TODO:  Need to switch from wait to a polling loop so script
@@ -133,9 +133,7 @@ if [ "$jobExitCode" == "0" ] ; then
 fi
 
 declare endTime=`date +%s 2>&1`
-
-echo "endtime: $endTime" >> $jobLogFile 2>&1
-echo "exitcode: $jobExitCode"  >> $jobLogFile 2>&1
+@@ECHO@@ "endtime: $endTime" >> $jobLogFile 2>&1
 
 # 
 # Updates the WorkspaceFile Path and whether the workspace file failed
@@ -146,8 +144,6 @@ declare workspaceStatusFlag="--workspacefilefailed false"
 if [ -s "$workflowFailedTxt" ] ; then
   workspaceStatusFlag="--workspacefilefailed true"
 fi
-
-
 
 #
 # cs-287 fix.  If update fails need to retry and if that fails need to
@@ -163,21 +159,25 @@ while [ $cntr -lt @@RETRY_COUNT@@ ] ; do
     break
   fi
   let cntr++
-  echo "Update of workspace path try $cntr of @@RETRY_COUNT@@ failed.  Sleeping @@UPDATE_WORKSPACE_RETRY_SLEEP_TIME@@ seconds and retrying"
+  @@ECHO@@ "Update of workspace path try $cntr of @@RETRY_COUNT@@ failed.  Sleeping @@UPDATE_WORKSPACE_RETRY_SLEEP_TIME@@ seconds and retrying"
   @@SLEEP@@ @@UPDATE_WORKSPACE_RETRY_SLEEP_TIME@@
 done
 
 if [ $exitCode != 0 ] ; then
-  writeWorkflowFailedFile "Unable to update WorkspaceFile" "Received non zero exit code ($exitCode) when trying to update workspace file"
+  writeWorkflowFailedFile "Unable to update WorkspaceFile" "Received non zero exit code ($exitCode) when trying to update WorkspaceFile"
+  jobExitCode="102"
 fi
+
+@@ECHO@@ "exitcode: $jobExitCode"  >> $jobLogFile 2>&1
+
 
 #if the email address was set earlier send the completed workflow message
 if [ "$EMAIL_ADDR" != "" ] ; then
-  echo -n "Sending done email for @@JOB_NAME@@ to user $EMAIL_ADDR"
+  @@ECHO@@ -n "Sending done email for @@JOB_NAME@@ to user $EMAIL_ADDR"
   if [ "$BCC_EMAIL" != "" ] ; then
-    echo " and bcc to $BCC_EMAIL"
+    @@ECHO@@ " and bcc to $BCC_EMAIL"
   else
-    echo ""
+    @@ECHO@@ ""
   fi
 fi
 
@@ -217,8 +217,8 @@ OUTEMAIL="${OUTEMAIL}The @@PROJECT@@ Team\\n"
 OUTEMAIL="${OUTEMAIL}@@HELP_EMAIL@@\\n"
 
 if [ "$EMAIL_ADDR" != "" ] ; then
-  echo -e "${OUTEMAIL}" | /bin/mail -s "@@PROJECT@@ Workflow @@WORKFLOW_NAME@@ - @@JOB_NAME@@ has $finishedMessage" -r "@@HELP_EMAIL@@" $BCC_EMAIL_FLAG $EMAIL_ADDR
-  sleep @@POST_EMAIL_SLEEP@@
+  @@ECHO@@ -e "${OUTEMAIL}" | @@MAIL@@ -s "@@PROJECT@@ Workflow @@WORKFLOW_NAME@@ - @@JOB_NAME@@ has $finishedMessage" -r "@@HELP_EMAIL@@" $BCC_EMAIL_FLAG $EMAIL_ADDR
+  @@SLEEP@@ @@POST_EMAIL_SLEEP@@
 fi
 
 exit $jobExitCode
