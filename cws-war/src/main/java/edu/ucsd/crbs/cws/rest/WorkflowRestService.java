@@ -93,6 +93,26 @@ public class WorkflowRestService {
     static WorkflowDAO _workflowDAO = new WorkflowObjectifyDAOImpl((JobDAO)new JobObjectifyDAOImpl(new InputWorkspaceFileLinkObjectifyDAOImpl()));
 
     /**
+     * Sets a new {@link Authenticator}
+     * @param auth 
+     */
+    void setAuthenticator(Authenticator auth){
+        _authenticator = auth;
+    }
+    
+    void setEventBuilder(EventBuilder eb){
+        _eventBuilder = eb;
+    }
+    
+    void setEventDAO(EventDAO ed){
+        _eventDAO = ed;
+    }
+    
+    void setWorkflowDAO(WorkflowDAO wd){
+        _workflowDAO = wd;
+    }
+    
+    /**
      * URL path to workflow file servlet
      */
     public static final String WORKFLOW_FILE_SERVLET_PATH = "/workflowfile";
