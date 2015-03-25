@@ -36,9 +36,9 @@ package edu.ucsd.crbs.cws.cluster;
 import edu.ucsd.crbs.cws.App;
 import edu.ucsd.crbs.cws.dao.JobDAO;
 import edu.ucsd.crbs.cws.io.WorkflowFailedParser;
+import edu.ucsd.crbs.cws.log.LogUtil;
 import edu.ucsd.crbs.cws.rest.Constants;
 import edu.ucsd.crbs.cws.workflow.Job;
-import java.io.File;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -99,8 +99,8 @@ public class JobStatusUpdater {
                     String returnedStatus = jobStatusMap.get(j.getSchedulerJobId());
                     if (!returnedStatus.equals(j.getStatus())) {
                         _log.log(Level.INFO, 
-                                "\tJob: ({0}) {1} old status: {2} new status: {3}", 
-                                new Object[]{j.getId(), j.getName(), 
+                                "\tJob: {0} old status: {1} new status: {2}", 
+                                new Object[]{LogUtil.generateJobLogMessage(j), 
                                     j.getStatus(), returnedStatus});
                         
                         j.setStatus(returnedStatus);
@@ -124,7 +124,8 @@ public class JobStatusUpdater {
                                 _log.log(Level.INFO,
                                         "{0} found for job {1}"+
                                         " setting status of job to error",
-                                        new Object[]{Constants.WORKFLOW_FAILED_FILE,j.getId()});
+                                        new Object[]{Constants.WORKFLOW_FAILED_FILE,
+                                            LogUtil.generateJobLogMessage(j)});
                                 error = _workflowFailedParser.getError();
                                 detailedError = _workflowFailedParser.getDetailedError();
                                 j.setStatus(Job.ERROR_STATUS);
@@ -140,7 +141,7 @@ public class JobStatusUpdater {
                         catch(Exception ex){
                            _log.log(Level.SEVERE,
                                    "There was a problem updating job: {0} Skipping...",
-                                   j.getId());
+                                   LogUtil.generateJobLogMessage(j));
                         }
                     }
                 }
