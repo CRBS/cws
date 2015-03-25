@@ -54,10 +54,7 @@ import edu.ucsd.crbs.cws.cluster.JobPathImpl;
 import edu.ucsd.crbs.cws.cluster.JobStatusUpdater;
 import edu.ucsd.crbs.cws.cluster.JobSubmissionManager;
 import edu.ucsd.crbs.cws.cluster.MapOfJobStatusFactoryImpl;
-import edu.ucsd.crbs.cws.cluster.OutputWorkspaceFileUtil;
-import edu.ucsd.crbs.cws.cluster.OutputWorkspaceFileUtilImpl;
 import edu.ucsd.crbs.cws.cluster.WorkspaceFilePathSetterImpl;
-import edu.ucsd.crbs.cws.dao.WorkflowDAO;
 import edu.ucsd.crbs.cws.dao.rest.JobRestDAOImpl;
 import edu.ucsd.crbs.cws.dao.rest.WorkflowRestDAOImpl;
 import edu.ucsd.crbs.cws.dao.rest.WorkspaceFileRestDAOImpl;
@@ -764,6 +761,9 @@ public class App {
         
         if (optionSet.has(BCC_EMAIL_ARG)){
             emailNotifyData.setBccEmail((String)optionSet.valueOf(BCC_EMAIL_ARG));
+        }
+        if (optionSet.has(ERROR_EMAIL_ARG)){
+            emailNotifyData.setErrorEmail((String)optionSet.valueOf(ERROR_EMAIL_ARG));
         }
         return emailNotifyData;
         
