@@ -267,6 +267,8 @@ public class JobCmdScriptCreatorImpl implements JobCmdScriptCreator, StringRepla
             final String registerUpdateJar){
         JobBinaries jobBinaries = new JobBinaries();
         jobBinaries.setRetryCount(3);
+        jobBinaries.setPostEmailSleepTimeInSeconds(10);
+        jobBinaries.setWorkspaceUpdateRetrySleepTimeInSeconds(60);
         jobBinaries.setKeplerScript(keplerScript);
         jobBinaries.setRegisterUpdateJar(registerUpdateJar);
         return jobBinaries;
