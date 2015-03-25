@@ -32,17 +32,18 @@
  */
 package edu.ucsd.crbs.cws.cluster;
 
-import edu.ucsd.crbs.cws.cluster.submission.JobDirectoryCreatorImpl;
-import edu.ucsd.crbs.cws.cluster.submission.JobDirectoryCreator;
-import edu.ucsd.crbs.cws.cluster.submission.JobCmdScriptSubmitterImpl;
-import edu.ucsd.crbs.cws.cluster.submission.JobCmdScriptSubmitter;
+import edu.ucsd.crbs.cws.auth.User;
 import edu.ucsd.crbs.cws.cluster.submission.JobCmdScriptCreator;
 import edu.ucsd.crbs.cws.cluster.submission.JobCmdScriptCreatorImpl;
-import edu.ucsd.crbs.cws.auth.User;
+import edu.ucsd.crbs.cws.cluster.submission.JobCmdScriptSubmitter;
+import edu.ucsd.crbs.cws.cluster.submission.JobCmdScriptSubmitterImpl;
+import edu.ucsd.crbs.cws.cluster.submission.JobDirectoryCreator;
+import edu.ucsd.crbs.cws.cluster.submission.JobDirectoryCreatorImpl;
 import edu.ucsd.crbs.cws.dao.JobDAO;
 import edu.ucsd.crbs.cws.dao.WorkspaceFileDAO;
 import edu.ucsd.crbs.cws.io.WorkflowFailedWriter;
 import edu.ucsd.crbs.cws.io.WorkflowFailedWriterImpl;
+import edu.ucsd.crbs.cws.log.LogUtil;
 import edu.ucsd.crbs.cws.rest.Constants;
 import edu.ucsd.crbs.cws.workflow.Job;
 import edu.ucsd.crbs.cws.workflow.Workflow;
@@ -167,7 +168,7 @@ public class JobSubmissionManager {
                         boolean submittedToScheduler = false;
                         if (!j.getStatus().equals(status.getSuggestedJobStatus())) {
                             _log.log(Level.INFO,"\tUpdating status for job {0} to {1}",
-                                     new Object[]{generateJobLogMessage(j),
+                                     new Object[]{LogUtil.generateJobLogMessage(j),
                                          status.getSuggestedJobStatus()});
                             
                             
@@ -192,19 +193,19 @@ public class JobSubmissionManager {
                         }
                         if (submittedToScheduler == true){
                             _log.log(Level.INFO,"\tAbandoning submission of Job {0} : {1}",
-                                    new Object[]{generateJobLogMessage(j),
+                                    new Object[]{LogUtil.generateJobLogMessage(j),
                                         status.getReason()});
                         }
                         else {
                             _log.log(Level.INFO,"\tTemporarily skipping submission of Job {0} : {1}",
-                                    new Object[]{generateJobLogMessage(j),
+                                    new Object[]{LogUtil.generateJobLogMessage(j),
                                         j.getName(),status.getReason()});
                         }
                         continue;
                     }
 
                     _log.log(Level.INFO, "\tSubmitting Job: {0}",
-                            new Object[]{generateJobLogMessage(j)});
+                            new Object[]{LogUtil.generateJobLogMessage(j)});
 
                     submitJob(j);
 
@@ -214,36 +215,13 @@ public class JobSubmissionManager {
                 } catch (Exception ex) {
                     _log.log(Level.SEVERE,
                             "\tProblems submitting job: {0} -- {1}.  Skipping...",
-                            new Object[]{generateJobLogMessage(j),
+                            new Object[]{LogUtil.generateJobLogMessage(j),
                                 j.getName(), ex.getMessage()});
                 }
             }
         } else {
             _log.log(Level.INFO, "No jobs need to be submitted");
         }
-    }
-    
-    /**
-     * Takes a {@link Job} <b>j</b> and generates a String to identify the job.
-     * @param j
-     * @return ( job id - job name, workflow name) or (Null job) if job is null
-     */
-    private String generateJobLogMessage(Job j){
-        if (j == null){
-            return "(Null Job)";
-        }
-        
-        StringBuilder sb = new StringBuilder();
-        
-        sb.append("(").
-           append(j.getId().toString());
-        if (j.getName() != null){
-            sb.append(" - ").append(j.getName());
-        }
-        if (j.getWorkflow() != null && j.getWorkflow().getName() != null){
-            sb.append(" ").append(j.getWorkflow().getName());
-        }
-        return sb.append(")").toString();
     }
     
     /**
@@ -279,12 +257,12 @@ public class JobSubmissionManager {
         List<WorkspaceFile> wsfList = _workspaceFileDAO.getWorkspaceFilesBySourceJobId(j.getId());
         if (wsfList == null){
             throw new Exception("No WorkspaceFile for job "+
-                    generateJobLogMessage(j));
+                    LogUtil.generateJobLogMessage(j));
         }
         
         if (wsfList.size() != 1){
             throw new Exception("\tExpected 1 WorkspaceFile for job"+
-                    generateJobLogMessage(j)+
+                    LogUtil.generateJobLogMessage(j)+
                     ", but got: "+wsfList.size());
         }
         return wsfList.get(0).getId();
