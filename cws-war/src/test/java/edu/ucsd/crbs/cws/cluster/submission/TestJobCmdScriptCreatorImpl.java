@@ -347,7 +347,6 @@ public class TestJobCmdScriptCreatorImpl {
         boolean emailFound = false;
         boolean errorEmailFound = false;
         for (String line : lines){
-           System.out.println(line);
             if (line.startsWith("EMAIL_ADDR=")){
                 assertTrue(line.equals("EMAIL_ADDR=\"bob@bob.com\""));
                 emailFound = true;
