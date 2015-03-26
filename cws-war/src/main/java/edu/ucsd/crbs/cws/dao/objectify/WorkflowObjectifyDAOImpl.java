@@ -211,8 +211,10 @@ public class WorkflowObjectifyDAOImpl implements WorkflowDAO {
             return null;
         }
         
-        for (WorkflowParameter param : w.getParameters()){
-            _dropDownFetcher.fetchAndUpdate(param,user);
+        if (w.getParameters() != null){
+            for (WorkflowParameter param : w.getParameters()){
+                _dropDownFetcher.fetchAndUpdate(param,user);
+            }
         }
         return w;
     }
@@ -332,6 +334,11 @@ public class WorkflowObjectifyDAOImpl implements WorkflowDAO {
      if (permanentlyDelete != null && permanentlyDelete == true){
          //need to load workflow and get its blobkey if any
          Workflow w = getWorkflowById(Long.toString(workflowId), null);
+         if (w == null){
+             dwr.setSuccessful(false);
+             dwr.setReason("No workflow found");
+             return dwr;
+         }
          if (w.getBlobKey() != null){
              _log.log(Level.INFO,"Blob key found {0}  Deleting from blobstore",
                      w.getBlobKey());
