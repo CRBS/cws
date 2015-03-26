@@ -138,6 +138,7 @@ public class TestWorkflowRestService {
         
         DeleteWorkflowReport dwr = wrs.deleteWorkflow(1L, null, null, null, null, null);
         assertTrue(dwr != null);
+        assertTrue(dwr.getId() == 1L);
         assertTrue(dwr.getReason().equals("Workflow (1) not found"));
         assertFalse(dwr.isSuccessful());
         
@@ -168,6 +169,7 @@ public class TestWorkflowRestService {
         
         DeleteWorkflowReport dwr = wrs.deleteWorkflow(1L, null, null, null, null, null);
         assertTrue(dwr != null);
+        assertTrue(dwr.getId() == 1L);
         assertTrue(dwr.getReason().equals("Workflow (1) does not have owner"));
         assertFalse(dwr.isSuccessful());
     }
@@ -198,6 +200,7 @@ public class TestWorkflowRestService {
         
         DeleteWorkflowReport dwr = wrs.deleteWorkflow(1L, null, null, null, null, null);
         assertTrue(dwr != null);
+        assertTrue(dwr.getId() == 1L);
         assertTrue(dwr.getReason().equals("bob does not have permission to delete Workflow (1)"));
         assertFalse(dwr.isSuccessful());
         
@@ -228,6 +231,7 @@ public class TestWorkflowRestService {
         
         DeleteWorkflowReport dwr = wrs.deleteWorkflow(1L, null, null, null, null, null);
         assertTrue(dwr != null);
+        assertTrue(dwr.getId() == 1L);
         assertTrue(dwr.getReason().equals("Workflow (1) not found"));
         assertFalse(dwr.isSuccessful());
     }
@@ -252,12 +256,14 @@ public class TestWorkflowRestService {
         Workflow w = new Workflow();
         when(workflowDAO.getWorkflowById("1", u)).thenReturn(w);
         DeleteWorkflowReport deleteResp = new DeleteWorkflowReport();
+        deleteResp.setId(1L);
         deleteResp.setSuccessful(true);
         when(workflowDAO.delete(1L, null)).thenReturn(deleteResp);
         when(auth.authenticate(null)).thenReturn(u);
         
         DeleteWorkflowReport dwr = wrs.deleteWorkflow(1L, null, null, null, null, null);
         assertTrue(dwr != null);
+        assertTrue(dwr.getId() == 1L);
         assertTrue(dwr.getReason() == null);
         assertTrue(dwr.isSuccessful());
         
@@ -286,16 +292,18 @@ public class TestWorkflowRestService {
         when(workflowDAO.getWorkflowById("1", u)).thenReturn(w);
         DeleteWorkflowReport deleteResp = new DeleteWorkflowReport();
         deleteResp.setSuccessful(true);
+        deleteResp.setId(1L);
         when(workflowDAO.delete(1L, Boolean.FALSE)).thenReturn(deleteResp);
         when(auth.authenticate(null)).thenReturn(u);
         
-                EventDAO eventDAO = mock(EventDAO.class);
+        EventDAO eventDAO = mock(EventDAO.class);
         wrs.setEventDAO(eventDAO);
         when(eventBuilder.setAsLogicalDeleteWorkflowEvent(event, w)).thenReturn(event);
 
         
         DeleteWorkflowReport dwr = wrs.deleteWorkflow(1L, Boolean.FALSE, null, null, null, null);
         assertTrue(dwr != null);
+        assertTrue(dwr.getId() == 1L);
         assertTrue(dwr.getReason() == null);
         assertTrue(dwr.isSuccessful());
         
@@ -328,6 +336,7 @@ public class TestWorkflowRestService {
         
         DeleteWorkflowReport deleteResp = new DeleteWorkflowReport();
         deleteResp.setSuccessful(true);
+        deleteResp.setId(1L);
         when(workflowDAO.delete(1L, Boolean.TRUE)).thenReturn(deleteResp);
         
         when(auth.authenticate(null)).thenReturn(u);
@@ -338,6 +347,7 @@ public class TestWorkflowRestService {
         
         DeleteWorkflowReport dwr = wrs.deleteWorkflow(1L, Boolean.TRUE, null, null, null, null);
         assertTrue(dwr != null);
+        assertTrue(dwr.getId() == 1L);
         assertTrue(dwr.getReason(),dwr.getReason() == null);
         assertTrue(dwr.isSuccessful());
         
