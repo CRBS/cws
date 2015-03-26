@@ -347,11 +347,10 @@ public class WorkflowObjectifyDAOImpl implements WorkflowDAO {
              if (bInfo == null){
                  _log.log(Level.WARNING,"No BlobInfo found");
              }
-             else {
-                  
-                 _log.log(Level.INFO,"Found file {0}",bInfo.getFilename());
+             else {      
+                 _log.log(Level.INFO,"Found file {0}, attempting to delete",bInfo.getFilename());
+                 BlobstoreServiceFactory.getBlobstoreService().delete(bk);
              }
-             BlobstoreServiceFactory.getBlobstoreService().delete(bk);
          }
          ofy().delete().type(Workflow.class).id(workflowId).now();
      }
