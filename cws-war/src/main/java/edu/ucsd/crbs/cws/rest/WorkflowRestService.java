@@ -305,6 +305,7 @@ public class WorkflowRestService {
             _log.info(event.getStringOfLocationData());
             Workflow w = null;
             DeleteWorkflowReport dwr = new DeleteWorkflowReport();
+            dwr.setId(workflowId);
             dwr.setSuccessful(false);
             
             if (!user.isAuthorizedTo(Permission.DELETE_ALL_WORKFLOWS)){
@@ -340,6 +341,7 @@ public class WorkflowRestService {
             dwr = _workflowDAO.delete(workflowId,permanentlyDelete);
             if (dwr == null){
                 dwr = new DeleteWorkflowReport();
+                dwr.setId(workflowId);
                 dwr.setSuccessful(false);
                 dwr.setReason("Unknown");
             }
