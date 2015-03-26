@@ -324,7 +324,7 @@ public class WorkflowObjectifyDAOImpl implements WorkflowDAO {
      //if found add to DeleteWorkflowReport and return
      if (numAssociatedJobs > 0){
         dwr.setReason("Cannot delete "+numAssociatedJobs+
-                " jobs have been run under workflow");
+                " job(s) have been run under workflow");
         return dwr;
      }
 
