@@ -33,9 +33,14 @@
 
 package edu.ucsd.crbs.cws.dao.objectify;
 
+import com.google.appengine.api.datastore.dev.LocalDatastoreService;
+import com.google.appengine.tools.development.testing.LocalBlobstoreServiceTestConfig;
 import com.google.appengine.tools.development.testing.LocalDatastoreServiceTestConfig;
 import com.google.appengine.tools.development.testing.LocalServiceTestHelper;
+import static edu.ucsd.crbs.cws.dao.objectify.OfyService.ofy;
+
 import edu.ucsd.crbs.cws.dao.JobDAO;
+import edu.ucsd.crbs.cws.workflow.Workflow;
 import edu.ucsd.crbs.cws.workflow.report.DeleteWorkflowReport;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -43,6 +48,7 @@ import org.junit.After;
 import org.junit.AfterClass;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -60,7 +66,8 @@ import static org.mockito.Mockito.*;
 public class TestWorkflowObjectifyDAOImpl {
 
       private final LocalServiceTestHelper _helper =
-        new LocalServiceTestHelper(new LocalDatastoreServiceTestConfig());
+        new LocalServiceTestHelper(new LocalDatastoreServiceTestConfig(),
+        new LocalBlobstoreServiceTestConfig());
 
     
     public TestWorkflowObjectifyDAOImpl() {
@@ -78,15 +85,17 @@ public class TestWorkflowObjectifyDAOImpl {
     @Before
     public void setUp() {
         _helper.setUp();
+        ofy().clear();
     }
 
     @After
     public void tearDown() {
         _helper.tearDown();
+        
     }
 
     @Test
-    public void testWorkflowHasJobsRunWithIt() throws Exception{
+    public void testDeleteWhereWorkflowHasJobsRunWithIt() throws Exception{
         JobDAO jobDAO = mock(JobDAO.class);
         when(jobDAO.getJobsWithWorkflowIdCount(1L)).thenReturn(1);
         WorkflowObjectifyDAOImpl workflowDAO = new WorkflowObjectifyDAOImpl(jobDAO);
@@ -97,4 +106,140 @@ public class TestWorkflowObjectifyDAOImpl {
         verify(jobDAO).getJobsWithWorkflowIdCount(1L);
     }
 
+    @Test
+    public void testDeleteLogicalWhereUpdateThrowsException() throws Exception {
+        JobDAO jobDAO = mock(JobDAO.class);
+        when(jobDAO.getJobsWithWorkflowIdCount(1L)).thenReturn(0);
+        WorkflowObjectifyDAOImpl workflowDAO = new WorkflowObjectifyDAOImpl(jobDAO);
+        
+        try {
+            DeleteWorkflowReport dwr = workflowDAO.delete(1L, null);
+            fail("Expected exception");
+        }
+        catch(Exception ex){
+            assertTrue(ex.getMessage().equals("There was a problem updating the workflow"));
+        }
+    }
+    
+    private void deleteLogicalCheck(Boolean deleteParam) throws Exception {
+        JobDAO jobDAO = mock(JobDAO.class);
+        WorkflowObjectifyDAOImpl workflowDAO = new WorkflowObjectifyDAOImpl(jobDAO);
+        
+        Workflow w = new Workflow();
+        w.setName("workflow");
+        w.setOwner("bob");
+        w = workflowDAO.insert(w);
+        assertTrue(w.isDeleted() == false);
+        
+        when(jobDAO.getJobsWithWorkflowIdCount(w.getId())).thenReturn(0);
+        
+        DeleteWorkflowReport dwr = workflowDAO.delete(w.getId(), deleteParam);
+        assertTrue(dwr != null);
+        assertTrue(dwr.isSuccessful());
+        assertTrue(dwr.getReason() == null);
+        
+        w = workflowDAO.getWorkflowById(w.getId().toString(), null);
+        assertTrue(w.isDeleted());
+    }
+    
+    @Test
+    public void testDeleteLogicalWithNullForDeleteParam() throws Exception {
+        deleteLogicalCheck(null);
+    }
+    
+    @Test
+    public void testDeleteLogicalWithFalseForDeleteParam() throws Exception {
+        deleteLogicalCheck(Boolean.FALSE);
+    }
+    
+    @Test
+    public void testDeleteWhereWorkflowIsNotFound() throws Exception {
+        JobDAO jobDAO = mock(JobDAO.class);
+        WorkflowObjectifyDAOImpl workflowDAO = new WorkflowObjectifyDAOImpl(jobDAO);
+        when(jobDAO.getJobsWithWorkflowIdCount(1L)).thenReturn(0);
+        
+        Workflow w = workflowDAO.getWorkflowById(Long.toString(1), null);
+        assertTrue(w == null);
+        
+        DeleteWorkflowReport dwr = workflowDAO.delete(1L,Boolean.TRUE);
+        assertTrue(dwr != null);
+        assertTrue(dwr.isSuccessful() == false);
+        assertTrue(dwr.getReason().equals("No workflow found"));
+        
+    }
+    
+    @Test
+    public void testDeleteWhereBlobKeyIsNull() throws Exception {
+        JobDAO jobDAO = mock(JobDAO.class);
+        WorkflowObjectifyDAOImpl workflowDAO = new WorkflowObjectifyDAOImpl(jobDAO);
+        
+        Workflow w = new Workflow();
+        w.setName("workflow");
+        w.setOwner("bob");
+        w = workflowDAO.insert(w);
+        assertTrue(w.isDeleted() == false);
+        
+        when(jobDAO.getJobsWithWorkflowIdCount(w.getId())).thenReturn(0);
+        
+        DeleteWorkflowReport dwr = workflowDAO.delete(w.getId(),Boolean.TRUE);
+        assertTrue(dwr != null);
+        assertTrue(dwr.isSuccessful());
+        assertTrue(dwr.getReason() == null);
+        
+        w = workflowDAO.getWorkflowById(w.getId().toString(), null);
+        assertTrue(w == null);
+    }
+    
+
+    @Test
+    public void testDeleteWhereBlobKeyExistsButNoEntryNotFoundInBlobStore() throws Exception {
+        JobDAO jobDAO = mock(JobDAO.class);
+        WorkflowObjectifyDAOImpl workflowDAO = new WorkflowObjectifyDAOImpl(jobDAO);
+        
+        Workflow w = new Workflow();
+        w.setName("workflow");
+        w.setOwner("bob");
+        w.setBlobKey("asdfasdf");
+        w = workflowDAO.insert(w);
+        assertTrue(w.isDeleted() == false);
+        
+        when(jobDAO.getJobsWithWorkflowIdCount(w.getId())).thenReturn(0);
+        
+        DeleteWorkflowReport dwr = workflowDAO.delete(w.getId(),Boolean.TRUE);
+        assertTrue(dwr != null);
+        assertTrue(dwr.isSuccessful());
+        assertTrue(dwr.getReason() == null);
+        
+        w = workflowDAO.getWorkflowById(w.getId().toString(), null);
+        assertTrue(w == null);
+    }
+
+    
+    
+    @Test
+    public void testUpdateDeleted() throws Exception {
+        WorkflowObjectifyDAOImpl workflowDAO = new WorkflowObjectifyDAOImpl(null);
+        
+        try {
+            assertTrue(workflowDAO.updateDeleted(1L, true) == null);
+            fail("Expected exception");
+        }
+        catch(Exception ex){
+            assertTrue(ex.getMessage().equals("There was a problem updating the workflow"));
+        }
+        
+        Workflow w = new Workflow();
+        w.setName("workflow");
+        w.setOwner("bob");
+        
+        w = workflowDAO.insert(w);
+        assertTrue(w.isDeleted() == false);
+        
+        w = workflowDAO.updateDeleted(w.getId(), true);
+        assertTrue(w.isDeleted() == true);
+        
+        w = workflowDAO.updateDeleted(w.getId(), false);
+        assertTrue(w.isDeleted() == false);
+    }
+    
 }
