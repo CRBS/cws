@@ -102,6 +102,7 @@ public class TestWorkflowObjectifyDAOImpl {
         
         DeleteWorkflowReport dwr = workflowDAO.delete(1L, null);
         assertFalse(dwr.isSuccessful());
+        assertTrue(dwr.getId() == 1L);
         assertTrue(dwr.getReason().equals("Cannot delete 1 job(s) have been run under workflow"));
         verify(jobDAO).getJobsWithWorkflowIdCount(1L);
     }
@@ -135,6 +136,7 @@ public class TestWorkflowObjectifyDAOImpl {
         
         DeleteWorkflowReport dwr = workflowDAO.delete(w.getId(), deleteParam);
         assertTrue(dwr != null);
+        assertTrue(dwr.getId() == w.getId());
         assertTrue(dwr.isSuccessful());
         assertTrue(dwr.getReason() == null);
         
@@ -163,6 +165,7 @@ public class TestWorkflowObjectifyDAOImpl {
         
         DeleteWorkflowReport dwr = workflowDAO.delete(1L,Boolean.TRUE);
         assertTrue(dwr != null);
+        assertTrue(dwr.getId() == 1L);
         assertTrue(dwr.isSuccessful() == false);
         assertTrue(dwr.getReason().equals("No workflow found"));
         
@@ -185,6 +188,7 @@ public class TestWorkflowObjectifyDAOImpl {
         assertTrue(dwr != null);
         assertTrue(dwr.isSuccessful());
         assertTrue(dwr.getReason() == null);
+        assertTrue(dwr.getId() == w.getId());
         
         w = workflowDAO.getWorkflowById(w.getId().toString(), null);
         assertTrue(w == null);
@@ -209,6 +213,8 @@ public class TestWorkflowObjectifyDAOImpl {
         assertTrue(dwr != null);
         assertTrue(dwr.isSuccessful());
         assertTrue(dwr.getReason() == null);
+        assertTrue(dwr.getId() == w.getId());
+
         
         w = workflowDAO.getWorkflowById(w.getId().toString(), null);
         assertTrue(w == null);
