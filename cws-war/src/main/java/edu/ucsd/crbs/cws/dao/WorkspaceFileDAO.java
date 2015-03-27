@@ -34,7 +34,10 @@
 package edu.ucsd.crbs.cws.dao;
 
 import edu.ucsd.crbs.cws.auth.User;
+import edu.ucsd.crbs.cws.workflow.Job;
+import edu.ucsd.crbs.cws.workflow.Workflow;
 import edu.ucsd.crbs.cws.workflow.WorkspaceFile;
+import edu.ucsd.crbs.cws.workflow.report.DeleteWorkspaceFileReport;
 import java.util.List;
 
 /**
@@ -117,4 +120,16 @@ public interface WorkspaceFileDAO {
      * @throws Exception 
      */
     public WorkspaceFile resave(long workspaceFileId) throws Exception;
+    
+    
+    /**
+     * Deletes {@link WorkflowspaceFile} either logically or for real depending on 
+     * parameter passed in.  In either case {@link WorkspaceFile} can only be deleted
+     * if no {@link Job}s are associated with it.
+     * @param workflowId
+     * @param permanentlyDelete
+     */
+    public DeleteWorkspaceFileReport delete(long workspaceFileId,
+            Boolean permanentlyDelete,
+            boolean ignoreParentJob) throws Exception;
 }

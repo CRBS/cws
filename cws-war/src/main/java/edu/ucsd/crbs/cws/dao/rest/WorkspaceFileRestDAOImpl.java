@@ -51,6 +51,7 @@ import edu.ucsd.crbs.cws.jerseyclient.MultivaluedMapFactoryImpl;
 import edu.ucsd.crbs.cws.jerseyclient.MultivaluedMapFactory;
 import edu.ucsd.crbs.cws.rest.Constants;
 import edu.ucsd.crbs.cws.workflow.WorkspaceFile;
+import edu.ucsd.crbs.cws.workflow.report.DeleteWorkspaceFileReport;
 import java.util.List;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
@@ -290,6 +291,12 @@ public class WorkspaceFileRestDAOImpl implements WorkspaceFileDAO {
         return mapper.readValue(json, new TypeReference<List<WorkspaceFile>>() {
         });
     }
-    
+
+    @Override
+    public DeleteWorkspaceFileReport delete(long workspaceFileId, 
+            Boolean permanentlyDelete,
+            boolean ignoreParentJob) throws Exception {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
     
 }

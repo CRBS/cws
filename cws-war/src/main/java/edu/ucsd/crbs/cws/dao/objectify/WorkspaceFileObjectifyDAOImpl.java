@@ -32,19 +32,26 @@
  */
 package edu.ucsd.crbs.cws.dao.objectify;
 
+import com.google.appengine.api.blobstore.BlobInfo;
+import com.google.appengine.api.blobstore.BlobInfoFactory;
+import com.google.appengine.api.blobstore.BlobKey;
+import com.google.appengine.api.blobstore.BlobstoreServiceFactory;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Work;
 import com.googlecode.objectify.cmd.Query;
 import edu.ucsd.crbs.cws.auth.User;
+import edu.ucsd.crbs.cws.dao.InputWorkspaceFileLinkDAO;
+import edu.ucsd.crbs.cws.dao.JobDAO;
 import edu.ucsd.crbs.cws.dao.WorkspaceFileDAO;
 import static edu.ucsd.crbs.cws.dao.objectify.OfyService.ofy;
+import edu.ucsd.crbs.cws.workflow.Job;
 import edu.ucsd.crbs.cws.workflow.WorkspaceFile;
+import edu.ucsd.crbs.cws.workflow.report.DeleteWorkspaceFileReport;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -57,6 +64,17 @@ public class WorkspaceFileObjectifyDAOImpl implements WorkspaceFileDAO {
 
     private static final Logger _log
             = Logger.getLogger(WorkspaceFileObjectifyDAOImpl.class.getName());
+    
+    private JobDAO _jobDAO = null;
+    private InputWorkspaceFileLinkDAO _inputWorkspaceFileLinkDAO = null;
+    
+    /*
+    public WorkspaceFileObjectifyDAOImpl(JobDAO jobDAO){
+        _jobDAO = jobDAO;
+    }
+    */
+    
+    
 
     @Override
     public WorkspaceFile resave(final long workspaceFileId) throws Exception {
@@ -257,4 +275,68 @@ public class WorkspaceFileObjectifyDAOImpl implements WorkspaceFileDAO {
 
         return q.list();
     }
+    
+    @Override
+    public DeleteWorkspaceFileReport delete(long workspaceFileId, Boolean permanentlyDelete,
+            boolean ignoreParentJob) throws Exception {
+        DeleteWorkspaceFileReport dwr = new DeleteWorkspaceFileReport();
+        dwr.setId(workspaceFileId);
+        dwr.setSuccessful(false);
+        dwr.setReason("Unknown");
+        
+        //load workspace file
+        WorkspaceFile wsf = this.getWorkspaceFileById(Long.toString(workspaceFileId), null);
+        if (wsf == null){
+            dwr.setReason("WorkspaceFile not found");
+            return dwr;
+        }
+        
+        _log.log(Level.INFO,"Checking if its possible to delete WorkspaceFile {0} ",
+                workspaceFileId);
+        
+        if (ignoreParentJob == false){
+            //see if WorkspaceFile is output of existing Job
+            if (wsf.getSourceJobId() != null){
+                Job j = _jobDAO.getJobById(wsf.getSourceJobId().toString());
+                if (j != null){
+                    dwr.setReason("Cannot delete WorkspaceFile it is output of job ("+
+                            j.getId()+" "+j.getName());
+                    return dwr;
+                }
+            }
+        }
+        
+        //see if WorkspaceFile was used as input for any Job
+        int numLinkedWorkspaceFiles = _inputWorkspaceFileLinkDAO.getByWorkspaceFileIdCount(wsf.getId(), 
+                null);
+        if (numLinkedWorkspaceFiles > 0){
+            dwr.setReason("Found WorkspaceFile is linked to "+
+                    numLinkedWorkspaceFiles+" Job(s)");
+            return dwr;
+        }
+        
+        //if permanentlyDelete is not null and true then run real delete
+        if (permanentlyDelete != null && permanentlyDelete == true) {
+            if (wsf.getBlobKey() != null) {
+                _log.log(Level.INFO, "Blob key found {0}  Deleting from blobstore",
+                        wsf.getBlobKey());
+                BlobKey bk = new BlobKey(wsf.getBlobKey());
+                BlobInfo bInfo = new BlobInfoFactory().loadBlobInfo(bk);
+                if (bInfo == null) {
+                    _log.log(Level.WARNING, "No BlobInfo found");
+                } else {
+                    _log.log(Level.INFO, "Found file {0}, attempting to delete", bInfo.getFilename());
+                    BlobstoreServiceFactory.getBlobstoreService().delete(bk);
+                }
+            }
+            ofy().delete().type(WorkspaceFile.class).id(wsf.getId()).now();
+        }
+        else {
+            update(wsf, true,null,null);
+        }
+        dwr.setSuccessful(true);
+        dwr.setReason(null);
+        return dwr;
+    }
+
 }
