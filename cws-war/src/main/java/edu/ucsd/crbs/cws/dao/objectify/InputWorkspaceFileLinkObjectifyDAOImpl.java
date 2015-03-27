@@ -71,9 +71,9 @@ public class InputWorkspaceFileLinkObjectifyDAOImpl implements InputWorkspaceFil
         }
         return q.list();
     }
-
-    @Override
-    public List<InputWorkspaceFileLink> getByWorkspaceFileId(Long workspaceFileId, Boolean showDeleted) throws Exception {
+    
+    private Query<InputWorkspaceFileLink> getByWorkspaceFileIdQuery(Long workspaceFileId, 
+            Boolean showDeleted) throws Exception {
         Query<InputWorkspaceFileLink> q = ofy().load().type(InputWorkspaceFileLink.class);
         
         q = q.filter("_workspaceFileId ==",workspaceFileId);
@@ -81,7 +81,21 @@ public class InputWorkspaceFileLinkObjectifyDAOImpl implements InputWorkspaceFil
         if (showDeleted == null || showDeleted == false){
             q = q.filter("_deleted",false);
         }
+        return q;
+    }
+
+    @Override
+    public List<InputWorkspaceFileLink> getByWorkspaceFileId(Long workspaceFileId, Boolean showDeleted) throws Exception {
+        Query<InputWorkspaceFileLink> q = getByWorkspaceFileIdQuery(workspaceFileId,
+                showDeleted);
         return q.list();
+    }
+
+    @Override
+    public int getByWorkspaceFileIdCount(Long workspaceFileId, Boolean showDeleted) throws Exception {
+        Query<InputWorkspaceFileLink> q = getByWorkspaceFileIdQuery(workspaceFileId,
+                showDeleted);
+        return q.count();
     }
 
     @Override

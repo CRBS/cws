@@ -80,6 +80,16 @@ public interface InputWorkspaceFileLinkDAO {
     public List<InputWorkspaceFileLink> getByWorkspaceFileId(Long workspaceFileId,Boolean showDeleted) throws Exception;
     
     /**
+     * Gets count of {@link InputWorkspaceFileLink} objects whose {@link InputWorkspaceFileLink#getWorkspaceFileId() } matches <b>workspaceFileId</b>
+     * @param workspaceFileId
+     * @param showDeleted
+     * @return
+     * @throws Exception 
+     */
+    public int getByWorkspaceFileIdCount(Long workspaceFileId,Boolean showDeleted) throws Exception;
+    
+    
+    /**
      * Gets {@link InputWorkspaceFileLink} object whose {@link InputWorkspaceFileLink#getId()} matches <b>inputWorkspaceFileLinkId</b>
      * @param inputWorkspaceFileLinkId
      * @return
