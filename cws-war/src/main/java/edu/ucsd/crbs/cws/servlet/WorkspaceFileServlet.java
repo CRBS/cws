@@ -62,7 +62,7 @@ public class WorkspaceFileServlet extends HttpServlet  {
     
     Authenticator _authenticator = new AuthenticatorImpl();
     
-    WorkspaceFileDAO _workspaceFileDAO = new WorkspaceFileObjectifyDAOImpl();
+    WorkspaceFileDAO _workspaceFileDAO = new WorkspaceFileObjectifyDAOImpl(null,null);
     
     Downloader _downloader = new WorkspaceFileDownloader();
     

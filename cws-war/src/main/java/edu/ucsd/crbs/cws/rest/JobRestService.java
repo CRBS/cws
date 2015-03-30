@@ -94,7 +94,7 @@ public class JobRestService {
     
     static JobValidator _validator = new JobValidatorImpl();
     
-    static WorkspaceFileDAO _workspaceFileDAO = new WorkspaceFileObjectifyDAOImpl();
+    static WorkspaceFileDAO _workspaceFileDAO = new WorkspaceFileObjectifyDAOImpl(_jobDAO,_inputWorkspaceFileLinkDAO);
     
     static OutputWorkspaceFileUtil _workspaceFileUtil = new OutputWorkspaceFileUtilImpl(_workspaceFileDAO);
 

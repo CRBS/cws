@@ -50,7 +50,7 @@ public class WorkspaceFileDownloader implements Downloader {
 
     private static final Logger _log = Logger.getLogger(WorkspaceFileDownloader.class.getName());
     
-        WorkspaceFileDAO _workspaceFileDAO = new WorkspaceFileObjectifyDAOImpl();
+        WorkspaceFileDAO _workspaceFileDAO = new WorkspaceFileObjectifyDAOImpl(null,null);
 
     
     @Override
