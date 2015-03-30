@@ -39,7 +39,10 @@ import com.googlecode.objectify.cmd.Query;
 import edu.ucsd.crbs.cws.dao.InputWorkspaceFileLinkDAO;
 import static edu.ucsd.crbs.cws.dao.objectify.OfyService.ofy;
 import edu.ucsd.crbs.cws.workflow.InputWorkspaceFileLink;
+import edu.ucsd.crbs.cws.workflow.Job;
+import edu.ucsd.crbs.cws.workflow.WorkspaceFile;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -60,11 +63,12 @@ public class InputWorkspaceFileLinkObjectifyDAOImpl implements InputWorkspaceFil
         return workspaceFileLink;
     }
 
+    
     @Override
     public List<InputWorkspaceFileLink> getByJobId(Long jobId, Boolean showDeleted) throws Exception {
         Query<InputWorkspaceFileLink> q = ofy().load().type(InputWorkspaceFileLink.class);
-        
-        q = q.filter("_jobId ==",jobId);
+        Key<Job> jobKey = Key.create(Job.class, jobId);
+        q = q.filter("_job",jobKey);
         
         if (showDeleted == null || showDeleted == false){
             q = q.filter("_deleted",false);
@@ -72,11 +76,14 @@ public class InputWorkspaceFileLinkObjectifyDAOImpl implements InputWorkspaceFil
         return q.list();
     }
     
+    
     private Query<InputWorkspaceFileLink> getByWorkspaceFileIdQuery(Long workspaceFileId, 
             Boolean showDeleted) throws Exception {
         Query<InputWorkspaceFileLink> q = ofy().load().type(InputWorkspaceFileLink.class);
         
-        q = q.filter("_workspaceFileId ==",workspaceFileId);
+        Key<WorkspaceFile> workspaceFileKey = Key.create(WorkspaceFile.class, workspaceFileId);
+        
+        q = q.filter("_workspaceFile",workspaceFileKey);
         
         if (showDeleted == null || showDeleted == false){
             q = q.filter("_deleted",false);
@@ -84,6 +91,16 @@ public class InputWorkspaceFileLinkObjectifyDAOImpl implements InputWorkspaceFil
         return q;
     }
 
+    /**
+     * Gets list of {@link InputWorkspaceFileLink} that are linked to
+     * {@link WorkspaceFile} with following id: <b>workspaceFileId</b>
+     * @param workspaceFileId
+     * @param showDeleted if <b>true</b> deleted {@link InputWorkspaceFileLink} 
+     *                    are returned <b>false</b> or <b>null</b> do NOT return 
+     * @return {@link InputWorkspaceFileLink} objects linked to 
+     *         {@link InputWorkspaceFileLink}
+     * @throws Exception 
+     */
     @Override
     public List<InputWorkspaceFileLink> getByWorkspaceFileId(Long workspaceFileId, Boolean showDeleted) throws Exception {
         Query<InputWorkspaceFileLink> q = getByWorkspaceFileIdQuery(workspaceFileId,
@@ -98,6 +115,12 @@ public class InputWorkspaceFileLinkObjectifyDAOImpl implements InputWorkspaceFil
         return q.count();
     }
 
+    /**
+     * Gets {@link InputWorkspaceFileLink} by id
+     * @param inputWorkspaceFileLinkId
+     * @return
+     * @throws Exception 
+     */
     @Override
     public InputWorkspaceFileLink getById(Long inputWorkspaceFileLinkId) throws Exception {
         return ofy().load().type(InputWorkspaceFileLink.class).id(inputWorkspaceFileLinkId).now();
@@ -119,9 +142,16 @@ public class InputWorkspaceFileLinkObjectifyDAOImpl implements InputWorkspaceFil
                 try {
                     link = getById(inputWorkspaceFileLinkId);
                 } catch(Exception ex){
+                    _log.log(Level.WARNING, "Caught exception attempting to "+
+                            "load InputWorkspaceFileLink ("+
+                            inputWorkspaceFileLinkId+") by id: "+
+                            ex.getMessage());
+                    
                     return null;
                 }
                 if (link == null){
+                    _log.log(Level.INFO,"No InputWorkspaceFileLink with id "+
+                            inputWorkspaceFileLinkId+" found");
                     return null;
                 }
                 Key<InputWorkspaceFileLink> tLink = ofy().save().entity(link).now();
