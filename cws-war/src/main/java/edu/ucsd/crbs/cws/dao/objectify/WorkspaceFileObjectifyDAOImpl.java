@@ -68,13 +68,12 @@ public class WorkspaceFileObjectifyDAOImpl implements WorkspaceFileDAO {
     private JobDAO _jobDAO = null;
     private InputWorkspaceFileLinkDAO _inputWorkspaceFileLinkDAO = null;
     
-    /*
-    public WorkspaceFileObjectifyDAOImpl(JobDAO jobDAO){
+    
+    public WorkspaceFileObjectifyDAOImpl(JobDAO jobDAO,
+            InputWorkspaceFileLinkDAO inputWorkspaceFileLinkDAO){
         _jobDAO = jobDAO;
+        _inputWorkspaceFileLinkDAO = inputWorkspaceFileLinkDAO;
     }
-    */
-    
-    
 
     @Override
     public WorkspaceFile resave(final long workspaceFileId) throws Exception {
