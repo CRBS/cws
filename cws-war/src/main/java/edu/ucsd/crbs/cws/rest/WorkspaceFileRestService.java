@@ -39,8 +39,12 @@ import com.google.appengine.api.blobstore.UploadOptions;
 import edu.ucsd.crbs.cws.auth.Permission;
 import edu.ucsd.crbs.cws.auth.User;
 import edu.ucsd.crbs.cws.dao.EventDAO;
+import edu.ucsd.crbs.cws.dao.InputWorkspaceFileLinkDAO;
+import edu.ucsd.crbs.cws.dao.JobDAO;
 import edu.ucsd.crbs.cws.dao.WorkspaceFileDAO;
 import edu.ucsd.crbs.cws.dao.objectify.EventObjectifyDAOImpl;
+import edu.ucsd.crbs.cws.dao.objectify.InputWorkspaceFileLinkObjectifyDAOImpl;
+import edu.ucsd.crbs.cws.dao.objectify.JobObjectifyDAOImpl;
 import edu.ucsd.crbs.cws.dao.objectify.WorkspaceFileObjectifyDAOImpl;
 import edu.ucsd.crbs.cws.log.Event;
 import edu.ucsd.crbs.cws.log.EventBuilder;
@@ -74,7 +78,12 @@ public class WorkspaceFileRestService {
     private static final Logger _log
             = Logger.getLogger(WorkspaceFileRestService.class.getName());
 
-    static WorkspaceFileDAO _workspaceFileDAO = new WorkspaceFileObjectifyDAOImpl();
+    static InputWorkspaceFileLinkDAO _inputWorkspaceFileLinkDAO = new InputWorkspaceFileLinkObjectifyDAOImpl();
+    
+    static JobDAO _jobDAO = new JobObjectifyDAOImpl(_inputWorkspaceFileLinkDAO);
+    
+    static WorkspaceFileDAO _workspaceFileDAO = new WorkspaceFileObjectifyDAOImpl(_jobDAO,
+            _inputWorkspaceFileLinkDAO);
 
     static EventBuilder _eventBuilder = new EventBuilderImpl();
     static EventDAO _eventDAO = new EventObjectifyDAOImpl();
