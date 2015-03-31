@@ -154,5 +154,49 @@ public class TestWorkspaceFileObjectifyDAOImpl {
         assertTrue(dwr.getReason().equals("Found WorkspaceFile is linked to 1 Job(s)"));
     }
     
+    @Test
+    public void testDelete() throws Exception {
+        JobObjectifyDAOImpl jobDAO = new JobObjectifyDAOImpl(null);
+        InputWorkspaceFileLinkObjectifyDAOImpl inputWorkspaceDAO = new InputWorkspaceFileLinkObjectifyDAOImpl();
+        
+        WorkspaceFileObjectifyDAOImpl workspaceFileDAO = new WorkspaceFileObjectifyDAOImpl(jobDAO,
+                inputWorkspaceDAO);
+        WorkspaceFile wsf = new WorkspaceFile();
+        
+        wsf.setName("foo");
+        wsf = workspaceFileDAO.insert(wsf, true);
+        DeleteWorkspaceFileReport dwr = workspaceFileDAO.delete(wsf.getId(), 
+                null, false);
+        assertTrue(dwr != null);
+        assertTrue(dwr.getReason(),dwr.isSuccessful() == true);
+        assertTrue(dwr.getReason() == null);
+        
+        wsf = workspaceFileDAO.getWorkspaceFileById(wsf.getId().toString(), 
+                null);
+        assertTrue(wsf != null);
+        assertTrue(wsf.getDeleted() == true);
+        
+        dwr = workspaceFileDAO.delete(wsf.getId(), 
+                Boolean.FALSE, false);
+        assertTrue(dwr != null);
+        assertTrue(dwr.getReason(),dwr.isSuccessful() == true);
+        assertTrue(dwr.getReason() == null);
+
+                wsf = workspaceFileDAO.getWorkspaceFileById(wsf.getId().toString(), 
+                null);
+        assertTrue(wsf != null);
+        assertTrue(wsf.getDeleted() == true);
+
+        dwr = workspaceFileDAO.delete(wsf.getId(), 
+                Boolean.TRUE, false);
+        assertTrue(dwr != null);
+        assertTrue(dwr.getReason(),dwr.isSuccessful() == true);
+        assertTrue(dwr.getReason() == null);
+
+        wsf = workspaceFileDAO.getWorkspaceFileById(wsf.getId().toString(), 
+                null);
+        assertTrue(wsf == null);
+    }
+    
 
 }
