@@ -307,6 +307,7 @@ public class WorkflowRestService {
             DeleteWorkflowReport dwr = new DeleteWorkflowReport();
             dwr.setId(workflowId);
             dwr.setSuccessful(false);
+            dwr.setReason("Unknown");
             
             if (!user.isAuthorizedTo(Permission.DELETE_ALL_WORKFLOWS)){
                 if (!user.isAuthorizedTo(Permission.DELETE_THEIR_WORKFLOWS)){
