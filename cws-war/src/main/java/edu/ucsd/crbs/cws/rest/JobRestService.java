@@ -82,9 +82,20 @@ public class JobRestService {
     private static final Logger _log
             = Logger.getLogger(JobRestService.class.getName());
     
-    static InputWorkspaceFileLinkDAO _inputWorkspaceFileLinkDAO = new InputWorkspaceFileLinkObjectifyDAOImpl();
     
-    static JobDAO _jobDAO = new JobObjectifyDAOImpl(_inputWorkspaceFileLinkDAO);
+    /** @TODO code smell, need factory and singleton for these guys */
+    static InputWorkspaceFileLinkDAO _inputWorkspaceFileLinkDAO;
+    static JobDAO _jobDAO;
+    static WorkspaceFileDAO _workspaceFileDAO;
+    
+    static {
+        _inputWorkspaceFileLinkDAO = new InputWorkspaceFileLinkObjectifyDAOImpl();
+    
+        _jobDAO = new JobObjectifyDAOImpl(_inputWorkspaceFileLinkDAO);
+    
+        _workspaceFileDAO = new WorkspaceFileObjectifyDAOImpl(_jobDAO,
+                _inputWorkspaceFileLinkDAO);
+    }
     
     static EventDAO _eventDAO = new EventObjectifyDAOImpl();
 
@@ -93,8 +104,6 @@ public class JobRestService {
     static EventBuilder _eventBuilder = new EventBuilderImpl();
     
     static JobValidator _validator = new JobValidatorImpl();
-    
-    static WorkspaceFileDAO _workspaceFileDAO = new WorkspaceFileObjectifyDAOImpl(_jobDAO,_inputWorkspaceFileLinkDAO);
     
     static OutputWorkspaceFileUtil _workspaceFileUtil = new OutputWorkspaceFileUtilImpl(_workspaceFileDAO);
 
