@@ -94,6 +94,24 @@ public class EventBuilderImpl implements EventBuilder {
     private static final Logger _log
             = Logger.getLogger(EventBuilderImpl.class.getName());
 
+    
+    /**
+     * @param val
+     * @return returns string "null" if <b>val</b> is null otherwise returns <b>val</b>
+     */
+    private String nullSafeString(final String val){
+        if (val == null){
+            return "null";
+        }
+        return val;
+    }
+    
+    private String nullSafeDateString(final Date date){
+        if (date == null){
+            return "null";
+        }
+        return date.toString();
+    }
     /**
      * Creates a new Event by parsing parameters out of HttpServletRequest and User
      * objects passed in.  
@@ -249,25 +267,60 @@ public class EventBuilderImpl implements EventBuilder {
         StringBuilder sb = new StringBuilder();
         
         sb.append("Name=");
-        if (workflow.getName() != null){
-           sb.append(workflow.getName());
-        }
-        else {
-           sb.append("null");
-        }
+        sb.append(nullSafeString(workflow.getName()));
+        
         sb.append(",Version=");
         sb.append(Integer.toString(workflow.getVersion()));
+        
         sb.append(",CreateDate=");
-        if (workflow.getCreateDate() != null){
-            sb.append(workflow.getCreateDate().toString());
-        }
-        else {
-            sb.append("null");
-        }
+        sb.append(nullSafeDateString(workflow.getCreateDate()));
+        
         event.setMessage(sb.toString());
        
         return event;
     }
+
+    @Override
+    public Event setAsLogicalDeleteWorkspaceFileEvent(Event event, WorkspaceFile wsf) {
+        if (anyOfTheseObjectsNull(event,wsf) == true){
+            _log.log(Level.WARNING,"One or more parameters passed in is null.  Unable to log event.");
+            return null;
+        }
+
+        event.setWorkspaceFileId(wsf.getId());
+        event.setEventType(Event.LOGICAL_DELETE_WORKSPACEFILE_EVENT_TYPE);
+        event.setDate(new Date());
+        
+        return event;
+    }
+
+    @Override
+    public Event setAsDeleteWorkspaceFileEvent(Event event, WorkspaceFile wsf) {
+        if (anyOfTheseObjectsNull(event,wsf) == true){
+            _log.log(Level.WARNING,"One or more parameters passed in is null.  Unable to log event.");
+            return null;
+        }
+         
+        event.setWorkspaceFileId(wsf.getId());
+        event.setEventType(Event.DELETE_WORKSPACEFILE_EVENT_TYPE);
+        event.setDate(new Date());
+        
+        StringBuilder sb = new StringBuilder();
+        sb.append("Name=");
+        sb.append(nullSafeString(wsf.getName()));
+        
+        sb.append(",CreateDate=");
+        sb.append(nullSafeDateString(wsf.getCreateDate()));
+        
+        sb.append(",Path=");
+        sb.append(nullSafeString(wsf.getPath()));
+        
+        event.setMessage(sb.toString());
+        return event;
+    }
+    
+    
+    
     
     
 }

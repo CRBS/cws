@@ -317,4 +317,63 @@ public class TestEventBuilderImpl {
         
     }
 
+    
+    @Test
+    public void testSetAsLogicalDeleteWorkspaceFileEvent(){
+        EventBuilderImpl builder = new EventBuilderImpl();
+        assertTrue(builder.setAsLogicalDeleteWorkspaceFileEvent(null, null) == null);
+        
+        Event e = new Event();
+        assertTrue(builder.setAsLogicalDeleteWorkspaceFileEvent(e, null) == null);
+
+        WorkspaceFile wsf = new WorkspaceFile();
+        assertTrue(builder.setAsLogicalDeleteWorkspaceFileEvent(null, wsf) == null);
+        
+        Event resEvent = builder.setAsLogicalDeleteWorkspaceFileEvent(e, wsf);
+        assertTrue(resEvent != null);
+        assertTrue(resEvent.getEventType().equals(Event.LOGICAL_DELETE_WORKSPACEFILE_EVENT_TYPE));
+        assertTrue(resEvent.getDate() != null);
+        assertTrue(resEvent.getWorkspaceFileId() == null);
+        
+        wsf.setId(2L);
+        resEvent = builder.setAsLogicalDeleteWorkspaceFileEvent(e, wsf);
+        assertTrue(resEvent != null);
+        assertTrue(resEvent.getEventType().equals(Event.LOGICAL_DELETE_WORKSPACEFILE_EVENT_TYPE));
+        assertTrue(resEvent.getDate() != null);
+        assertTrue(resEvent.getWorkspaceFileId() == 2L);
+    }
+    
+    @Test
+    public void testSetAsDeleteWorkspaceFileEvent(){
+        EventBuilderImpl builder = new EventBuilderImpl();
+        assertTrue(builder.setAsDeleteWorkspaceFileEvent(null, null) == null);
+        
+        Event e = new Event();
+        assertTrue(builder.setAsDeleteWorkspaceFileEvent(e, null) == null);
+
+        WorkspaceFile wsf = new WorkspaceFile();
+        assertTrue(builder.setAsDeleteWorkspaceFileEvent(null, wsf) == null);
+        
+        Event resEvent = builder.setAsDeleteWorkspaceFileEvent(e, wsf);
+        assertTrue(resEvent != null);
+        assertTrue(resEvent.getEventType().equals(Event.DELETE_WORKSPACEFILE_EVENT_TYPE));
+        assertTrue(resEvent.getDate() != null);
+        assertTrue(resEvent.getWorkspaceFileId() == null);
+        assertTrue(resEvent.getMessage().equals("Name=null,CreateDate=null,Path=null"));
+        
+        wsf.setId(2L);
+        Date curDate = new Date();
+        wsf.setCreateDate(curDate);
+        wsf.setName("bob");
+        wsf.setPath("thepath");
+        
+        resEvent = builder.setAsDeleteWorkspaceFileEvent(e, wsf);
+        assertTrue(resEvent != null);
+        assertTrue(resEvent.getEventType().equals(Event.DELETE_WORKSPACEFILE_EVENT_TYPE));
+        assertTrue(resEvent.getDate() != null);
+        assertTrue(resEvent.getWorkspaceFileId() == 2L);
+        assertTrue(resEvent.getMessage().equals("Name=bob,CreateDate="+
+                curDate.toString()+",Path=thepath"));
+    }
+    
 }

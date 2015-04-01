@@ -110,6 +110,24 @@ public interface EventBuilder {
      */
     public Event setAsDeleteWorkflowEvent(Event event,Workflow workflow);
     
+    /**
+     * Converts {@link Event} into what is known as Logical Delete WorkspaceFile
+     * Event
+     * @param event
+     * @param wsf
+     * @return Modified {@link Event} object passed in unless there was a problem in which case null is returned
+     */
+    public Event setAsLogicalDeleteWorkspaceFileEvent(Event event, WorkspaceFile wsf);
+    
+    
+    /**
+     * Converts {@link Event} into what is known as Delete WorkspaceFile
+     * Event
+     * @param event
+     * @param wsf
+     * @return Modified {@link Event} object passed in unless there was a problem in which case null is returned
+     */
+    public Event setAsDeleteWorkspaceFileEvent(Event event, WorkspaceFile wsf);
     
     
 }
