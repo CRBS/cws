@@ -36,6 +36,8 @@ import com.google.appengine.api.appidentity.AppIdentityServiceFactory;
 import com.google.appengine.api.blobstore.BlobstoreService;
 import com.google.appengine.api.blobstore.BlobstoreServiceFactory;
 import com.google.appengine.api.blobstore.UploadOptions;
+import edu.ucsd.crbs.cws.auth.Authenticator;
+import edu.ucsd.crbs.cws.auth.AuthenticatorImpl;
 import edu.ucsd.crbs.cws.auth.Permission;
 import edu.ucsd.crbs.cws.auth.User;
 import edu.ucsd.crbs.cws.dao.EventDAO;
@@ -49,14 +51,15 @@ import edu.ucsd.crbs.cws.dao.objectify.WorkspaceFileObjectifyDAOImpl;
 import edu.ucsd.crbs.cws.log.Event;
 import edu.ucsd.crbs.cws.log.EventBuilder;
 import edu.ucsd.crbs.cws.log.EventBuilderImpl;
-import static edu.ucsd.crbs.cws.rest.JobRestService._authenticator;
 import edu.ucsd.crbs.cws.workflow.WorkspaceFile;
+import edu.ucsd.crbs.cws.workflow.report.DeleteWorkspaceFileReport;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -78,17 +81,28 @@ public class WorkspaceFileRestService {
     private static final Logger _log
             = Logger.getLogger(WorkspaceFileRestService.class.getName());
 
-    static InputWorkspaceFileLinkDAO _inputWorkspaceFileLinkDAO = new InputWorkspaceFileLinkObjectifyDAOImpl();
     
-    static JobDAO _jobDAO = new JobObjectifyDAOImpl(_inputWorkspaceFileLinkDAO);
+    /** @TODO code smell, need factory and singleton for these guys */
+    static InputWorkspaceFileLinkDAO _inputWorkspaceFileLinkDAO;
+    static JobDAO _jobDAO;
+    static WorkspaceFileDAO _workspaceFileDAO;
     
-    static WorkspaceFileDAO _workspaceFileDAO = new WorkspaceFileObjectifyDAOImpl(_jobDAO,
-            _inputWorkspaceFileLinkDAO);
+    static {
+        _inputWorkspaceFileLinkDAO = new InputWorkspaceFileLinkObjectifyDAOImpl();
+    
+        _jobDAO = new JobObjectifyDAOImpl(_inputWorkspaceFileLinkDAO);
+    
+        _workspaceFileDAO = new WorkspaceFileObjectifyDAOImpl(_jobDAO,
+                _inputWorkspaceFileLinkDAO);
+    }
 
+    static Authenticator _authenticator = new AuthenticatorImpl();
     static EventBuilder _eventBuilder = new EventBuilderImpl();
     static EventDAO _eventDAO = new EventObjectifyDAOImpl();
 
     public static final String WORKSPACEFILE_SERVLET_PATH = "/workspacefile";
+    
+    
     
     /**
      * Gets a list of {@link WorkspaceFile} objects
@@ -389,6 +403,100 @@ public class WorkspaceFileRestService {
             throw wae;
         } catch (Exception ex) {
             _log.log(Level.SEVERE,"Caught Exception",ex);
+            throw new WebApplicationException(ex);
+        }
+    }
+    
+    /**
+     * Deletes a {@link WorkspaceFile} as long as no other 
+     * {@link edu.ucsd.crbs.cws.workflow.Job} uses it 
+     * for input and the {@link WorkspaceFile} does not have a parent 
+     * ie {@link WorkspaceFile#getSourceJobId()} is <b>null</b>
+     * @param workspaceFileId
+     * @param permanentlyDelete Set to <b>true</b> to delete,null or false will
+     *        result in a logically deletion.
+     * @param userLogin
+     * @param userToken
+     * @param userLoginToRunAs
+     * @param request
+     * @return 
+     */
+    @DELETE
+    @Path(Constants.WORKSPACEFILE_ID_REST_PATH)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public DeleteWorkspaceFileReport deleteWorkspaceFile(@PathParam(Constants.WORKSPACEFILE_ID_PATH_PARAM)final Long workspaceFileId,
+            @QueryParam(Constants.PERMANENTLY_DELETE_PARAM)final Boolean permanentlyDelete,
+            @QueryParam(Constants.USER_LOGIN_PARAM) final String userLogin,
+            @QueryParam(Constants.USER_TOKEN_PARAM) final String userToken,
+            @QueryParam(Constants.USER_LOGIN_TO_RUN_AS_PARAM) final String userLoginToRunAs,
+            @Context HttpServletRequest request){
+        try {
+            User user = _authenticator.authenticate(request);
+            Event event = _eventBuilder.createEvent(request, user);
+            _log.info(event.getStringOfLocationData());
+            
+            DeleteWorkspaceFileReport dwr = new DeleteWorkspaceFileReport();
+            dwr.setId(workspaceFileId);
+            dwr.setSuccessful(false);
+            dwr.setReason("Unknown");
+            WorkspaceFile wsf = null;
+            if (!user.isAuthorizedTo(Permission.DELETE_ALL_WORKSPACEFILES)){
+                if (!user.isAuthorizedTo(Permission.DELETE_THEIR_WORKSPACEFILES)){
+                    throw new WebApplicationException(HttpServletResponse.SC_UNAUTHORIZED);
+                }
+                else {
+                    wsf = _workspaceFileDAO.getWorkspaceFileById(workspaceFileId.toString(), 
+                            user);
+                    if (wsf == null){
+                        dwr.setReason("WorkspaceFile ("+workspaceFileId+
+                                ") not found");
+                        return dwr;
+                    }
+                    if (wsf.getOwner() == null){
+                        dwr.setReason("WorkspaceFile ("+workspaceFileId+
+                                ") does not have an owner");
+                        return dwr;
+                    }
+                    if (!user.getLoginToRunJobAs().equals(wsf.getOwner())){
+                         dwr.setReason(user.getLoginToRunJobAs()+
+                                " does not have permission to delete "+
+                                 "WorkspaceFile ("+workspaceFileId+")");
+                        return dwr;
+                    }
+                }
+            }
+            else {
+                wsf = _workspaceFileDAO.getWorkspaceFileById(workspaceFileId.toString(), 
+                            user);
+                    if (wsf == null){
+                        dwr.setReason("WorkspaceFile ("+workspaceFileId+
+                                ") not found");
+                        return dwr;
+                    }
+            }
+            
+            DeleteWorkspaceFileReport realdwr = null;
+            realdwr = _workspaceFileDAO.delete(workspaceFileId, 
+                    permanentlyDelete, 
+                    false);
+            if (realdwr == null){
+                return dwr;
+            }
+            if (realdwr.isSuccessful()){
+                if (permanentlyDelete == null || permanentlyDelete == false){
+                     _eventDAO.neverComplainInsert(_eventBuilder.setAsLogicalDeleteWorkspaceFileEvent(event, wsf));
+                }
+                else {
+                     _eventDAO.neverComplainInsert(_eventBuilder.setAsDeleteWorkspaceFileEvent(event, wsf));
+                }
+            }
+            return realdwr;
+        }catch(WebApplicationException wae){
+            _log.log(Level.SEVERE,"Caught WebApplicationException",wae);
+            throw wae;
+        } catch(Exception ex){
+             _log.log(Level.SEVERE,"Caught Exception",ex);
             throw new WebApplicationException(ex);
         }
     }
