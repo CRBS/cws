@@ -50,6 +50,7 @@ declare startTime=`date +%s 2>&1`
 @@ECHO@@ "sgejobid: $JOB_ID" >> $jobLogFile 2>&1
 @@ECHO@@ "sgejobname: $JOB_NAME" >> $jobLogFile 2>&1
 @@ECHO@@ "sgetaskid: $SGE_TASK_ID" >> $jobLogFile 2>&1
+@@ECHO@@ "hostname: $HOSTNAME" >> $jobLogFile 2>&1
 @@ECHO@@ "starttime: $startTime" >> $jobLogFile 2>&1
 @@ECHO@@ "Arguments: @@JOB_ARGS@@" >> $jobLogFile 2>&1
 
