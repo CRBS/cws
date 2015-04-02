@@ -103,6 +103,22 @@ public class WorkspaceFileRestService {
     public static final String WORKSPACEFILE_SERVLET_PATH = "/workspacefile";
     
     
+    void setAuthenticator(Authenticator auth){
+        _authenticator = auth;
+    }
+    
+    void setEventBuilder(EventBuilder builder){
+        _eventBuilder = builder;
+    }
+    
+    void setWorkspaceFileDAO(WorkspaceFileDAO workspaceFileDAO){
+        _workspaceFileDAO = workspaceFileDAO;
+    }
+    
+    void setEventDAO(EventDAO eventDAO){
+        _eventDAO = eventDAO;
+    }
+    
     
     /**
      * Gets a list of {@link WorkspaceFile} objects
@@ -500,7 +516,6 @@ public class WorkspaceFileRestService {
             throw new WebApplicationException(ex);
         }
     }
-    
     
     /**
      * Generates and sets an upload url in <b>wsf</b> passed in
