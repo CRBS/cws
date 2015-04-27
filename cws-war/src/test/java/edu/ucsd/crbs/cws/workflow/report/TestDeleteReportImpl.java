@@ -1,7 +1,7 @@
 /*
  * COPYRIGHT AND LICENSE
  * 
- * Copyright 2014 The Regents of the University of California All Rights Reserved
+ * Copyright 2015 The Regents of the University of California All Rights Reserved
  * 
  * Permission to copy, modify and distribute any part of this CRBS Workflow 
  * Service for educational, research and non-profit purposes, without fee, and
@@ -33,53 +33,59 @@
 
 package edu.ucsd.crbs.cws.workflow.report;
 
-import edu.ucsd.crbs.cws.workflow.Job;
-import edu.ucsd.crbs.cws.workflow.Workflow;
-import java.util.List;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
+import static org.junit.Assert.*;
+import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
+import static org.mockito.Mockito.*;
+
+
 
 /**
- * Provides a summary of deletion of a {@link Workflow}
- * 
+ *
  * @author Christopher Churas <churas@ncmir.ucsd.edu>
  */
-public class DeleteWorkflowReport implements DeleteReport{
+@RunWith(JUnit4.class)
+public class TestDeleteReportImpl {
 
-    private Long _id;
-    private boolean _successful;
-    private String _reason;
-    
-    /**
-     * Set to {@link Workflow} Id
-     * @param id 
-     */
-    public void setId(Long id){
-        _id = id;
-    }
-    
-    /**
-     * Gets {@link Workflow} id
-     * @return Id of {@link Workflow}
-     */
-    @Override
-    public Long getId() {
-        return _id;
+    public TestDeleteReportImpl() {
     }
 
-    public void setSuccessful(boolean successful) {
-        _successful = successful;
-    }    
-    
-    @Override
-    public boolean isSuccessful() {
-        return _successful;
+    @BeforeClass
+    public static void setUpClass() {
     }
 
-    public void setReason(final String reason){
-        _reason = reason;
+    @AfterClass
+    public static void tearDownClass() {
     }
-    
-    @Override
-    public String getReason() {
-        return _reason;
+
+    @Before
+    public void setUp() {
     }
+
+    @After
+    public void tearDown() {
+    }
+
+    @Test
+    public void testGetterAndSetters() throws Exception {
+        DeleteReportImpl dwr = new DeleteReportImpl();
+        assertTrue(dwr.getId() == null);
+        assertTrue(dwr.isSuccessful() == false);
+        assertTrue(dwr.getReason() == null);
+        
+        dwr.setId(1L);
+        dwr.setSuccessful(true);
+        dwr.setReason("reason");
+        assertTrue(dwr.getId() == 1L);
+        assertTrue(dwr.isSuccessful() == true);
+        assertTrue(dwr.getReason().equals("reason"));
+        
+        
+    }
+
 }

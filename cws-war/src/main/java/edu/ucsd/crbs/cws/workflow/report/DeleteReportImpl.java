@@ -1,7 +1,7 @@
 /*
  * COPYRIGHT AND LICENSE
  * 
- * Copyright 2015 The Regents of the University of California All Rights Reserved
+ * Copyright 2014 The Regents of the University of California All Rights Reserved
  * 
  * Permission to copy, modify and distribute any part of this CRBS Workflow 
  * Service for educational, research and non-profit purposes, without fee, and
@@ -33,59 +33,49 @@
 
 package edu.ucsd.crbs.cws.workflow.report;
 
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import static org.junit.Assert.*;
-import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
-import static org.mockito.Mockito.*;
-
-
-
 /**
- *
+ * Provides a summary of deletion of a GAE data store object
+ * 
  * @author Christopher Churas <churas@ncmir.ucsd.edu>
  */
-@RunWith(JUnit4.class)
-public class TestDeleteWorkspaceFileReport {
+public class DeleteReportImpl implements DeleteReport{
 
-    public TestDeleteWorkspaceFileReport() {
+    private Long _id;
+    private boolean _successful;
+    private String _reason;
+    
+    /**
+     * Set Id
+     * @param id 
+     */
+    public void setId(Long id){
+        _id = id;
+    }
+    
+    /**
+     * Gets  id of object
+     * @return Id of object
+     */
+    @Override
+    public Long getId() {
+        return _id;
     }
 
-    @BeforeClass
-    public static void setUpClass() {
+    public void setSuccessful(boolean successful) {
+        _successful = successful;
+    }    
+    
+    @Override
+    public boolean isSuccessful() {
+        return _successful;
     }
 
-    @AfterClass
-    public static void tearDownClass() {
+    public void setReason(final String reason){
+        _reason = reason;
     }
-
-    @Before
-    public void setUp() {
+    
+    @Override
+    public String getReason() {
+        return _reason;
     }
-
-    @After
-    public void tearDown() {
-    }
-
-    @Test
-    public void testGetterAndSetters() throws Exception {
-        DeleteWorkspaceFileReport dwr = new DeleteWorkspaceFileReport();
-        assertTrue(dwr.getId() == null);
-        assertTrue(dwr.isSuccessful() == false);
-        assertTrue(dwr.getReason() == null);
-        
-        dwr.setId(1L);
-        dwr.setSuccessful(true);
-        dwr.setReason("reason");
-        assertTrue(dwr.getId() == 1L);
-        assertTrue(dwr.isSuccessful() == true);
-        assertTrue(dwr.getReason().equals("reason"));
-        
-        
-    }
-
 }
