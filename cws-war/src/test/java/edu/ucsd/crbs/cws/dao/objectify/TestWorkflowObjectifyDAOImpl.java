@@ -41,7 +41,7 @@ import static edu.ucsd.crbs.cws.dao.objectify.OfyService.ofy;
 
 import edu.ucsd.crbs.cws.dao.JobDAO;
 import edu.ucsd.crbs.cws.workflow.Workflow;
-import edu.ucsd.crbs.cws.workflow.report.DeleteWorkflowReport;
+import edu.ucsd.crbs.cws.workflow.report.DeleteReportImpl;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.junit.After;
@@ -100,7 +100,7 @@ public class TestWorkflowObjectifyDAOImpl {
         when(jobDAO.getJobsWithWorkflowIdCount(1L)).thenReturn(1);
         WorkflowObjectifyDAOImpl workflowDAO = new WorkflowObjectifyDAOImpl(jobDAO);
         
-        DeleteWorkflowReport dwr = workflowDAO.delete(1L, null);
+        DeleteReportImpl dwr = workflowDAO.delete(1L, null);
         assertFalse(dwr.isSuccessful());
         assertTrue(dwr.getId() == 1L);
         assertTrue(dwr.getReason().equals("Cannot delete 1 job(s) have been run under workflow"));
@@ -114,7 +114,7 @@ public class TestWorkflowObjectifyDAOImpl {
         WorkflowObjectifyDAOImpl workflowDAO = new WorkflowObjectifyDAOImpl(jobDAO);
         
         try {
-            DeleteWorkflowReport dwr = workflowDAO.delete(1L, null);
+            DeleteReportImpl dwr = workflowDAO.delete(1L, null);
             fail("Expected exception");
         }
         catch(Exception ex){
@@ -134,7 +134,7 @@ public class TestWorkflowObjectifyDAOImpl {
         
         when(jobDAO.getJobsWithWorkflowIdCount(w.getId())).thenReturn(0);
         
-        DeleteWorkflowReport dwr = workflowDAO.delete(w.getId(), deleteParam);
+        DeleteReportImpl dwr = workflowDAO.delete(w.getId(), deleteParam);
         assertTrue(dwr != null);
         assertTrue(dwr.getId() == w.getId());
         assertTrue(dwr.isSuccessful());
@@ -163,7 +163,7 @@ public class TestWorkflowObjectifyDAOImpl {
         Workflow w = workflowDAO.getWorkflowById(Long.toString(1), null);
         assertTrue(w == null);
         
-        DeleteWorkflowReport dwr = workflowDAO.delete(1L,Boolean.TRUE);
+        DeleteReportImpl dwr = workflowDAO.delete(1L,Boolean.TRUE);
         assertTrue(dwr != null);
         assertTrue(dwr.getId() == 1L);
         assertTrue(dwr.isSuccessful() == false);
@@ -184,7 +184,7 @@ public class TestWorkflowObjectifyDAOImpl {
         
         when(jobDAO.getJobsWithWorkflowIdCount(w.getId())).thenReturn(0);
         
-        DeleteWorkflowReport dwr = workflowDAO.delete(w.getId(),Boolean.TRUE);
+        DeleteReportImpl dwr = workflowDAO.delete(w.getId(),Boolean.TRUE);
         assertTrue(dwr != null);
         assertTrue(dwr.isSuccessful());
         assertTrue(dwr.getReason() == null);
@@ -209,7 +209,7 @@ public class TestWorkflowObjectifyDAOImpl {
         
         when(jobDAO.getJobsWithWorkflowIdCount(w.getId())).thenReturn(0);
         
-        DeleteWorkflowReport dwr = workflowDAO.delete(w.getId(),Boolean.TRUE);
+        DeleteReportImpl dwr = workflowDAO.delete(w.getId(),Boolean.TRUE);
         assertTrue(dwr != null);
         assertTrue(dwr.isSuccessful());
         assertTrue(dwr.getReason() == null);

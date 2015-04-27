@@ -49,7 +49,7 @@ import edu.ucsd.crbs.cws.gae.URLFetcherImpl;
 import edu.ucsd.crbs.cws.workflow.Job;
 import edu.ucsd.crbs.cws.workflow.Workflow;
 import edu.ucsd.crbs.cws.workflow.WorkflowParameter;
-import edu.ucsd.crbs.cws.workflow.report.DeleteWorkflowReport;
+import edu.ucsd.crbs.cws.workflow.report.DeleteReportImpl;
 import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
@@ -299,7 +299,7 @@ public class WorkflowObjectifyDAOImpl implements WorkflowDAO {
      * for real depending on value of <b>permanentlyDelete</b> parameter.<p/>
      * 
      * This method first sees if any {@link Job}s have been run on {@link Workflow}
-     * if yes then {@link DeleteWorkflowReport}'s {@link DeleteWorkflowReport#isSuccessful()}
+     * if yes then {@link DeleteReportImpl}'s {@link DeleteWorkflowReport#isSuccessful()}
      * will be set to <b><code>false</b></code> and {@link DeleteWorkflowReport#getReason()}
      * will be set to the following:<p/>
      * 
@@ -307,13 +307,13 @@ public class WorkflowObjectifyDAOImpl implements WorkflowDAO {
      * 
      * @param workflowId
      * @param permanentlyDelete
-     * @return {@link DeleteWorkflowReport} denoting success or failure
+     * @return {@link DeleteReportImpl} denoting success or failure
      * @throws Exception If there was an error querying the datastore
      */
     @Override
-    public DeleteWorkflowReport delete(long workflowId, Boolean permanentlyDelete) throws Exception {
+    public DeleteReportImpl delete(long workflowId, Boolean permanentlyDelete) throws Exception {
 
-        DeleteWorkflowReport dwr = new DeleteWorkflowReport();
+        DeleteReportImpl dwr = new DeleteReportImpl();
         dwr.setId(workflowId);
         dwr.setSuccessful(false);
         dwr.setReason("Unknown");
@@ -323,7 +323,7 @@ public class WorkflowObjectifyDAOImpl implements WorkflowDAO {
      //look for any jobs associated with workflow
      int numAssociatedJobs = _jobDAO.getJobsWithWorkflowIdCount(workflowId);
      
-     //if found add to DeleteWorkflowReport and return
+     //if found add to DeleteReportImpl and return
      if (numAssociatedJobs > 0){
         dwr.setReason("Cannot delete "+numAssociatedJobs+
                 " job(s) have been run under workflow");

@@ -54,7 +54,7 @@ import edu.ucsd.crbs.cws.log.EventBuilderImpl;
 import edu.ucsd.crbs.cws.servlet.ServletUtil;
 import edu.ucsd.crbs.cws.workflow.Workflow;
 import edu.ucsd.crbs.cws.workflow.WorkflowParameter;
-import edu.ucsd.crbs.cws.workflow.report.DeleteWorkflowReport;
+import edu.ucsd.crbs.cws.workflow.report.DeleteReportImpl;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -293,7 +293,7 @@ public class WorkflowRestService {
     @Path(Constants.WORKFLOW_ID_REST_PATH)
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public DeleteWorkflowReport deleteWorkflow(@PathParam(Constants.WORKFLOW_ID_PATH_PARAM)final Long workflowId,
+    public DeleteReportImpl deleteWorkflow(@PathParam(Constants.WORKFLOW_ID_PATH_PARAM)final Long workflowId,
             @QueryParam(Constants.PERMANENTLY_DELETE_PARAM)final Boolean permanentlyDelete,
             @QueryParam(Constants.USER_LOGIN_PARAM) final String userLogin,
             @QueryParam(Constants.USER_TOKEN_PARAM) final String userToken,
@@ -304,7 +304,7 @@ public class WorkflowRestService {
             Event event = _eventBuilder.createEvent(request, user);
             _log.info(event.getStringOfLocationData());
             Workflow w = null;
-            DeleteWorkflowReport dwr = new DeleteWorkflowReport();
+            DeleteReportImpl dwr = new DeleteReportImpl();
             dwr.setId(workflowId);
             dwr.setSuccessful(false);
             dwr.setReason("Unknown");
@@ -341,7 +341,7 @@ public class WorkflowRestService {
             // delete workflow
             dwr = _workflowDAO.delete(workflowId,permanentlyDelete);
             if (dwr == null){
-                dwr = new DeleteWorkflowReport();
+                dwr = new DeleteReportImpl();
                 dwr.setId(workflowId);
                 dwr.setSuccessful(false);
                 dwr.setReason("Unknown");

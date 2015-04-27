@@ -41,7 +41,8 @@ import edu.ucsd.crbs.cws.dao.WorkspaceFileDAO;
 import edu.ucsd.crbs.cws.log.Event;
 import edu.ucsd.crbs.cws.log.EventBuilder;
 import edu.ucsd.crbs.cws.workflow.WorkspaceFile;
-import edu.ucsd.crbs.cws.workflow.report.DeleteWorkspaceFileReport;
+import edu.ucsd.crbs.cws.workflow.report.DeleteReport;
+import edu.ucsd.crbs.cws.workflow.report.DeleteReportImpl;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletResponse;
@@ -133,7 +134,7 @@ public class TestWorkspaceFileRestService {
         
         when(auth.authenticate(null)).thenReturn(u);
         
-        DeleteWorkspaceFileReport dwr = wrs.deleteWorkspaceFile(1L, null, null, 
+        DeleteReport dwr = wrs.deleteWorkspaceFile(1L, null, null, 
                 null, null, null);
         assertTrue(dwr != null);
         assertTrue(dwr.getId() == 1L);
@@ -165,7 +166,7 @@ public class TestWorkspaceFileRestService {
         
         when(auth.authenticate(null)).thenReturn(u);
         
-        DeleteWorkspaceFileReport dwr = wrs.deleteWorkspaceFile(1L, null, null, 
+        DeleteReport dwr = wrs.deleteWorkspaceFile(1L, null, null, 
                 null, null, null);
         assertTrue(dwr != null);
         assertTrue(dwr.getId() == 1L);
@@ -198,7 +199,7 @@ public class TestWorkspaceFileRestService {
         
         when(auth.authenticate(null)).thenReturn(u);
         
-        DeleteWorkspaceFileReport dwr = wrs.deleteWorkspaceFile(1L, null, null, 
+        DeleteReport dwr = wrs.deleteWorkspaceFile(1L, null, null, 
                 null, null, null);
         assertTrue(dwr != null);
         assertTrue(dwr.getId() == 1L);
@@ -229,7 +230,7 @@ public class TestWorkspaceFileRestService {
         
         when(auth.authenticate(null)).thenReturn(u);
         
-        DeleteWorkspaceFileReport dwr = wrs.deleteWorkspaceFile(1L, null, null, 
+        DeleteReport dwr = wrs.deleteWorkspaceFile(1L, null, null, 
                 null, null, null);
         assertTrue(dwr != null);
         assertTrue(dwr.getId() == 1L);
@@ -267,12 +268,12 @@ public class TestWorkspaceFileRestService {
         
         when(auth.authenticate(null)).thenReturn(u);
 
-        DeleteWorkspaceFileReport setDwr = new DeleteWorkspaceFileReport();
+        DeleteReportImpl setDwr = new DeleteReportImpl();
         setDwr.setId(1L);
         setDwr.setSuccessful(true);
         when(workspaceFileDAO.delete(1L, null,false)).thenReturn(setDwr);
         
-        DeleteWorkspaceFileReport dwr = wrs.deleteWorkspaceFile(1L, null, null, 
+        DeleteReport dwr = wrs.deleteWorkspaceFile(1L, null, null, 
                 null, null, null);
         assertTrue(dwr != null);
         assertTrue(dwr.getId() == 1L);
@@ -314,12 +315,12 @@ public class TestWorkspaceFileRestService {
         
         when(auth.authenticate(null)).thenReturn(u);
 
-        DeleteWorkspaceFileReport setDwr = new DeleteWorkspaceFileReport();
+        DeleteReportImpl setDwr = new DeleteReportImpl();
         setDwr.setId(1L);
         setDwr.setSuccessful(true);
         when(workspaceFileDAO.delete(1L, Boolean.FALSE,false)).thenReturn(setDwr);
         
-        DeleteWorkspaceFileReport dwr = wrs.deleteWorkspaceFile(1L, Boolean.FALSE, null, 
+        DeleteReport dwr = wrs.deleteWorkspaceFile(1L, Boolean.FALSE, null, 
                 null, null, null);
         assertTrue(dwr != null);
         assertTrue(dwr.getId() == 1L);
@@ -360,12 +361,12 @@ public class TestWorkspaceFileRestService {
         
         when(auth.authenticate(null)).thenReturn(u);
 
-        DeleteWorkspaceFileReport setDwr = new DeleteWorkspaceFileReport();
+        DeleteReportImpl setDwr = new DeleteReportImpl();
         setDwr.setId(1L);
         setDwr.setSuccessful(true);
         when(workspaceFileDAO.delete(1L, Boolean.TRUE,false)).thenReturn(setDwr);
         
-        DeleteWorkspaceFileReport dwr = wrs.deleteWorkspaceFile(1L, Boolean.TRUE, null, 
+        DeleteReport dwr = wrs.deleteWorkspaceFile(1L, Boolean.TRUE, null, 
                 null, null, null);
         assertTrue(dwr != null);
         assertTrue(dwr.getId() == 1L);

@@ -35,9 +35,8 @@ package edu.ucsd.crbs.cws.dao;
 
 import edu.ucsd.crbs.cws.auth.User;
 import edu.ucsd.crbs.cws.workflow.Job;
-import edu.ucsd.crbs.cws.workflow.Workflow;
 import edu.ucsd.crbs.cws.workflow.WorkspaceFile;
-import edu.ucsd.crbs.cws.workflow.report.DeleteWorkspaceFileReport;
+import edu.ucsd.crbs.cws.workflow.report.DeleteReport;
 import java.util.List;
 
 /**
@@ -129,7 +128,7 @@ public interface WorkspaceFileDAO {
      * @param workflowId
      * @param permanentlyDelete
      */
-    public DeleteWorkspaceFileReport delete(long workspaceFileId,
+    public DeleteReport delete(long workspaceFileId,
             Boolean permanentlyDelete,
             boolean ignoreParentJob) throws Exception;
 }

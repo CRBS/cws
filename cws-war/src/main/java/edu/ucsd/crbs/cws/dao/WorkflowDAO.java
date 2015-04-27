@@ -36,7 +36,7 @@ package edu.ucsd.crbs.cws.dao;
 import edu.ucsd.crbs.cws.auth.User;
 import edu.ucsd.crbs.cws.workflow.Job;
 import edu.ucsd.crbs.cws.workflow.Workflow;
-import edu.ucsd.crbs.cws.workflow.report.DeleteWorkflowReport;
+import edu.ucsd.crbs.cws.workflow.report.DeleteReportImpl;
 import java.util.List;
 
 /**
@@ -120,6 +120,6 @@ public interface WorkflowDAO {
      * if no {@link Job}s are associated with the {@link Workflow}
      */
     
-    public DeleteWorkflowReport delete(long workflowId,Boolean permanentlyDelete) throws Exception;
+    public DeleteReportImpl delete(long workflowId,Boolean permanentlyDelete) throws Exception;
     
 }

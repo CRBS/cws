@@ -41,7 +41,7 @@ import edu.ucsd.crbs.cws.dao.WorkflowDAO;
 import edu.ucsd.crbs.cws.log.Event;
 import edu.ucsd.crbs.cws.log.EventBuilder;
 import edu.ucsd.crbs.cws.workflow.Workflow;
-import edu.ucsd.crbs.cws.workflow.report.DeleteWorkflowReport;
+import edu.ucsd.crbs.cws.workflow.report.DeleteReportImpl;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletResponse;
@@ -136,7 +136,7 @@ public class TestWorkflowRestService {
         when(auth.authenticate(null)).thenReturn(u);
         
         
-        DeleteWorkflowReport dwr = wrs.deleteWorkflow(1L, null, null, null, null, null);
+        DeleteReportImpl dwr = wrs.deleteWorkflow(1L, null, null, null, null, null);
         assertTrue(dwr != null);
         assertTrue(dwr.getId() == 1L);
         assertTrue(dwr.getReason().equals("Workflow (1) not found"));
@@ -167,7 +167,7 @@ public class TestWorkflowRestService {
         when(auth.authenticate(null)).thenReturn(u);
         
         
-        DeleteWorkflowReport dwr = wrs.deleteWorkflow(1L, null, null, null, null, null);
+        DeleteReportImpl dwr = wrs.deleteWorkflow(1L, null, null, null, null, null);
         assertTrue(dwr != null);
         assertTrue(dwr.getId() == 1L);
         assertTrue(dwr.getReason().equals("Workflow (1) does not have owner"));
@@ -198,7 +198,7 @@ public class TestWorkflowRestService {
         when(auth.authenticate(null)).thenReturn(u);
         
         
-        DeleteWorkflowReport dwr = wrs.deleteWorkflow(1L, null, null, null, null, null);
+        DeleteReportImpl dwr = wrs.deleteWorkflow(1L, null, null, null, null, null);
         assertTrue(dwr != null);
         assertTrue(dwr.getId() == 1L);
         assertTrue(dwr.getReason().equals("bob does not have permission to delete Workflow (1)"));
@@ -229,7 +229,7 @@ public class TestWorkflowRestService {
         when(auth.authenticate(null)).thenReturn(u);
         
         
-        DeleteWorkflowReport dwr = wrs.deleteWorkflow(1L, null, null, null, null, null);
+        DeleteReportImpl dwr = wrs.deleteWorkflow(1L, null, null, null, null, null);
         assertTrue(dwr != null);
         assertTrue(dwr.getId() == 1L);
         assertTrue(dwr.getReason().equals("Workflow (1) not found"));
@@ -255,13 +255,13 @@ public class TestWorkflowRestService {
         wrs.setWorkflowDAO(workflowDAO);
         Workflow w = new Workflow();
         when(workflowDAO.getWorkflowById("1", u)).thenReturn(w);
-        DeleteWorkflowReport deleteResp = new DeleteWorkflowReport();
+        DeleteReportImpl deleteResp = new DeleteReportImpl();
         deleteResp.setId(1L);
         deleteResp.setSuccessful(true);
         when(workflowDAO.delete(1L, null)).thenReturn(deleteResp);
         when(auth.authenticate(null)).thenReturn(u);
         
-        DeleteWorkflowReport dwr = wrs.deleteWorkflow(1L, null, null, null, null, null);
+        DeleteReportImpl dwr = wrs.deleteWorkflow(1L, null, null, null, null, null);
         assertTrue(dwr != null);
         assertTrue(dwr.getId() == 1L);
         assertTrue(dwr.getReason() == null);
@@ -290,7 +290,7 @@ public class TestWorkflowRestService {
         wrs.setWorkflowDAO(workflowDAO);
         Workflow w = new Workflow();
         when(workflowDAO.getWorkflowById("1", u)).thenReturn(w);
-        DeleteWorkflowReport deleteResp = new DeleteWorkflowReport();
+        DeleteReportImpl deleteResp = new DeleteReportImpl();
         deleteResp.setSuccessful(true);
         deleteResp.setId(1L);
         when(workflowDAO.delete(1L, Boolean.FALSE)).thenReturn(deleteResp);
@@ -301,7 +301,7 @@ public class TestWorkflowRestService {
         when(eventBuilder.setAsLogicalDeleteWorkflowEvent(event, w)).thenReturn(event);
 
         
-        DeleteWorkflowReport dwr = wrs.deleteWorkflow(1L, Boolean.FALSE, null, null, null, null);
+        DeleteReportImpl dwr = wrs.deleteWorkflow(1L, Boolean.FALSE, null, null, null, null);
         assertTrue(dwr != null);
         assertTrue(dwr.getId() == 1L);
         assertTrue(dwr.getReason() == null);
@@ -334,7 +334,7 @@ public class TestWorkflowRestService {
         Workflow w = new Workflow();
         when(workflowDAO.getWorkflowById("1", u)).thenReturn(w);
         
-        DeleteWorkflowReport deleteResp = new DeleteWorkflowReport();
+        DeleteReportImpl deleteResp = new DeleteReportImpl();
         deleteResp.setSuccessful(true);
         deleteResp.setId(1L);
         when(workflowDAO.delete(1L, Boolean.TRUE)).thenReturn(deleteResp);
@@ -345,7 +345,7 @@ public class TestWorkflowRestService {
         wrs.setEventDAO(eventDAO);
         when(eventBuilder.setAsDeleteWorkflowEvent(event, w)).thenReturn(event);
         
-        DeleteWorkflowReport dwr = wrs.deleteWorkflow(1L, Boolean.TRUE, null, null, null, null);
+        DeleteReportImpl dwr = wrs.deleteWorkflow(1L, Boolean.TRUE, null, null, null, null);
         assertTrue(dwr != null);
         assertTrue(dwr.getId() == 1L);
         assertTrue(dwr.getReason(),dwr.getReason() == null);

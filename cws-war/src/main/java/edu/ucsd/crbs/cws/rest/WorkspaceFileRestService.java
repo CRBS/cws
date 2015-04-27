@@ -52,7 +52,8 @@ import edu.ucsd.crbs.cws.log.Event;
 import edu.ucsd.crbs.cws.log.EventBuilder;
 import edu.ucsd.crbs.cws.log.EventBuilderImpl;
 import edu.ucsd.crbs.cws.workflow.WorkspaceFile;
-import edu.ucsd.crbs.cws.workflow.report.DeleteWorkspaceFileReport;
+import edu.ucsd.crbs.cws.workflow.report.DeleteReport;
+import edu.ucsd.crbs.cws.workflow.report.DeleteReportImpl;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -441,7 +442,7 @@ public class WorkspaceFileRestService {
     @Path(Constants.WORKSPACEFILE_ID_REST_PATH)
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public DeleteWorkspaceFileReport deleteWorkspaceFile(@PathParam(Constants.WORKSPACEFILE_ID_PATH_PARAM)final Long workspaceFileId,
+    public DeleteReport deleteWorkspaceFile(@PathParam(Constants.WORKSPACEFILE_ID_PATH_PARAM)final Long workspaceFileId,
             @QueryParam(Constants.PERMANENTLY_DELETE_PARAM)final Boolean permanentlyDelete,
             @QueryParam(Constants.USER_LOGIN_PARAM) final String userLogin,
             @QueryParam(Constants.USER_TOKEN_PARAM) final String userToken,
@@ -452,7 +453,7 @@ public class WorkspaceFileRestService {
             Event event = _eventBuilder.createEvent(request, user);
             _log.info(event.getStringOfLocationData());
             
-            DeleteWorkspaceFileReport dwr = new DeleteWorkspaceFileReport();
+            DeleteReportImpl dwr = new DeleteReportImpl();
             dwr.setId(workspaceFileId);
             dwr.setSuccessful(false);
             dwr.setReason("Unknown");
@@ -492,7 +493,7 @@ public class WorkspaceFileRestService {
                     }
             }
             
-            DeleteWorkspaceFileReport realdwr = null;
+            DeleteReport realdwr = null;
             realdwr = _workspaceFileDAO.delete(workspaceFileId, 
                     permanentlyDelete, 
                     false);

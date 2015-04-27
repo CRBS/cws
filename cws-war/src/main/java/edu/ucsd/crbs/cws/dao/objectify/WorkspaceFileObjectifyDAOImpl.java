@@ -46,7 +46,8 @@ import edu.ucsd.crbs.cws.dao.WorkspaceFileDAO;
 import static edu.ucsd.crbs.cws.dao.objectify.OfyService.ofy;
 import edu.ucsd.crbs.cws.workflow.Job;
 import edu.ucsd.crbs.cws.workflow.WorkspaceFile;
-import edu.ucsd.crbs.cws.workflow.report.DeleteWorkspaceFileReport;
+import edu.ucsd.crbs.cws.workflow.report.DeleteReport;
+import edu.ucsd.crbs.cws.workflow.report.DeleteReportImpl;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -276,9 +277,9 @@ public class WorkspaceFileObjectifyDAOImpl implements WorkspaceFileDAO {
     }
     
     @Override
-    public DeleteWorkspaceFileReport delete(long workspaceFileId, Boolean permanentlyDelete,
+    public DeleteReport delete(long workspaceFileId, Boolean permanentlyDelete,
             boolean ignoreParentJob) throws Exception {
-        DeleteWorkspaceFileReport dwr = new DeleteWorkspaceFileReport();
+        DeleteReportImpl dwr = new DeleteReportImpl();
         dwr.setId(workspaceFileId);
         dwr.setSuccessful(false);
         dwr.setReason("Unknown");

@@ -43,7 +43,6 @@ import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
 import com.sun.jersey.api.json.JSONConfiguration;
 import com.sun.jersey.core.impl.provider.entity.StringProvider;
-import com.sun.jersey.core.util.MultivaluedMapImpl;
 import com.sun.jersey.multipart.impl.MultiPartWriter;
 import edu.ucsd.crbs.cws.auth.User;
 import edu.ucsd.crbs.cws.dao.WorkspaceFileDAO;
@@ -51,7 +50,7 @@ import edu.ucsd.crbs.cws.jerseyclient.MultivaluedMapFactoryImpl;
 import edu.ucsd.crbs.cws.jerseyclient.MultivaluedMapFactory;
 import edu.ucsd.crbs.cws.rest.Constants;
 import edu.ucsd.crbs.cws.workflow.WorkspaceFile;
-import edu.ucsd.crbs.cws.workflow.report.DeleteWorkspaceFileReport;
+import edu.ucsd.crbs.cws.workflow.report.DeleteReport;
 import java.util.List;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
@@ -293,7 +292,7 @@ public class WorkspaceFileRestDAOImpl implements WorkspaceFileDAO {
     }
 
     @Override
-    public DeleteWorkspaceFileReport delete(long workspaceFileId, 
+    public DeleteReport delete(long workspaceFileId, 
             Boolean permanentlyDelete,
             boolean ignoreParentJob) throws Exception {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.

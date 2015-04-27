@@ -40,7 +40,7 @@ import static edu.ucsd.crbs.cws.dao.objectify.OfyService.ofy;
 import edu.ucsd.crbs.cws.workflow.InputWorkspaceFileLink;
 import edu.ucsd.crbs.cws.workflow.Job;
 import edu.ucsd.crbs.cws.workflow.WorkspaceFile;
-import edu.ucsd.crbs.cws.workflow.report.DeleteWorkspaceFileReport;
+import edu.ucsd.crbs.cws.workflow.report.DeleteReport;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.junit.After;
@@ -93,7 +93,7 @@ public class TestWorkspaceFileObjectifyDAOImpl {
     public void testDeleteWhereWorkspaceFileNotFound() throws Exception {
         WorkspaceFileObjectifyDAOImpl workspaceFileDAO = new WorkspaceFileObjectifyDAOImpl(null,null);
         
-        DeleteWorkspaceFileReport dwr = workspaceFileDAO.delete(1L, null, false);
+        DeleteReport dwr = workspaceFileDAO.delete(1L, null, false);
         assertTrue(dwr != null);
         assertTrue(dwr.isSuccessful() == false);
         assertTrue(dwr.getReason().equals("WorkspaceFile not found"));
@@ -112,7 +112,7 @@ public class TestWorkspaceFileObjectifyDAOImpl {
         wsf.setName("foo");
         wsf.setSourceJobId(j.getId());
         wsf = workspaceFileDAO.insert(wsf, false);
-        DeleteWorkspaceFileReport dwr = workspaceFileDAO.delete(wsf.getId(), 
+        DeleteReport dwr = workspaceFileDAO.delete(wsf.getId(), 
                 null, false);
         assertTrue(dwr != null);
         assertTrue(dwr.isSuccessful() == false);
@@ -146,7 +146,7 @@ public class TestWorkspaceFileObjectifyDAOImpl {
         
         assertTrue("grrr",inputWorkspaceDAO.getByWorkspaceFileIdCount(wsf.getId(),null) == 1);
         
-        DeleteWorkspaceFileReport dwr = workspaceFileDAO.delete(wsf.getId(), 
+        DeleteReport dwr = workspaceFileDAO.delete(wsf.getId(), 
                 null, true);
         
         assertTrue(dwr != null);
@@ -165,7 +165,7 @@ public class TestWorkspaceFileObjectifyDAOImpl {
         
         wsf.setName("foo");
         wsf = workspaceFileDAO.insert(wsf, true);
-        DeleteWorkspaceFileReport dwr = workspaceFileDAO.delete(wsf.getId(), 
+        DeleteReport dwr = workspaceFileDAO.delete(wsf.getId(), 
                 null, false);
         assertTrue(dwr != null);
         assertTrue(dwr.getReason(),dwr.isSuccessful() == true);
