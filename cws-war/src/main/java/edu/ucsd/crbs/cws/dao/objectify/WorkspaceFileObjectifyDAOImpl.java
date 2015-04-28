@@ -182,6 +182,15 @@ public class WorkspaceFileObjectifyDAOImpl implements WorkspaceFileDAO {
         return ofy().load().type(WorkspaceFile.class).id(wspId).now();
     }
 
+    /**
+     * Inserts a new {@link WorkspaceFile} <b>wsp</b> setting the
+     * {@link WorkspaceFile#getCreateDate()} to current time if 
+     * <code>null</code>
+     * @param wsp
+     * @param generateUploadURL
+     * @return {@link WorkspaceFile} with {@link WorkspaceFile#getId() } set
+     * @throws Exception 
+     */
     @Override
     public WorkspaceFile insert(WorkspaceFile wsp,boolean generateUploadURL) throws Exception {
         if (wsp == null) {
@@ -236,6 +245,18 @@ public class WorkspaceFileObjectifyDAOImpl implements WorkspaceFileDAO {
         return update(tempWsp,null,isFailed,null);
     }
 
+    /**
+     * Updates {@link WorkspaceFile} <b>wsp</b> with any changes and for the
+     * booleans the parameters <b>isDeleted,isFailed,isDir</b> are set if they
+     * are <b>NON</b> <code>null</code>
+     * @param wsp
+     * @param isDeleted
+     * @param isFailed
+     * @param isDir
+     * @deprecated Use {@link #update(edu.ucsd.crbs.cws.workflow.WorkspaceFile)}
+     * @return
+     * @throws Exception 
+     */
     @Override
     public WorkspaceFile update(final WorkspaceFile wsp,final Boolean isDeleted, 
             final Boolean isFailed,final Boolean isDir) throws Exception {
@@ -267,6 +288,18 @@ public class WorkspaceFileObjectifyDAOImpl implements WorkspaceFileDAO {
         return resWsp;
     }
 
+    @Override
+    public WorkspaceFile update(WorkspaceFile wsp) throws Exception {
+        if (wsp == null) {
+            throw new Exception("WorkspaceFile passed in is null");
+        }
+        if (wsp.getId() == null){
+            throw new Exception("WorkspaceFile Id is null");
+        }
+        
+        ofy().save().entity(wsp).now();
+        return wsp;
+    }
     
     @Override
     public List<WorkspaceFile> getWorkspaceFilesBySourceJobId(long sourceJobId) throws Exception {
@@ -332,8 +365,10 @@ public class WorkspaceFileObjectifyDAOImpl implements WorkspaceFileDAO {
             ofy().delete().type(WorkspaceFile.class).id(wsf.getId()).now();
         }
         else {
-            update(wsf, true,null,null);
+            wsf.setDeleted(true);
+            update(wsf);
         }
+        
         dwr.setSuccessful(true);
         dwr.setReason(null);
         return dwr;
