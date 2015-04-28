@@ -276,6 +276,27 @@ public class JobObjectifyDAOImpl implements JobDAO {
         return job;
     }
 
+    /**
+     * Updates {@link Job} with id <b>jobId</b>
+     * @param jobId
+     * @param status
+     * @param estCpu
+     * @param estRunTime
+     * @param estDisk
+     * @param submitDate
+     * @param startDate
+     * @param finishDate
+     * @param submittedToScheduler
+     * @param schedulerJobId
+     * @param deleted
+     * @param error
+     * @param detailedError
+     * @return
+     * @deprecated Please use {@link #update(edu.ucsd.crbs.cws.workflow.Job, 
+     * java.lang.Boolean, java.lang.Boolean, java.lang.Long, java.lang.Long,
+     * java.lang.Long) }
+     * @throws Exception 
+     */
     @Override
     public Job update(final long jobId, final String status, final Long estCpu,
             final Long estRunTime, final Long estDisk, final Long submitDate,
@@ -286,83 +307,37 @@ public class JobObjectifyDAOImpl implements JobDAO {
             final String error,
             final String detailedError) throws Exception {
 
-        Job resJob;
-        resJob = ofy().transact(new Work<Job>() {
-            @Override
-            public Job run() {
-
-                Job job = ofy().load().type(Job.class).id(jobId).now();
-
-                if (job == null) {
-                    return null;
-                }
-                boolean jobNeedsToBeSaved = false;
-                if (status != null && status.isEmpty() == false) {
-                    job.setStatus(status);
-                    jobNeedsToBeSaved = true;
-                }
-                if (estCpu != null && job.getEstimatedCpuInSeconds() != estCpu) {
-                    job.setEstimatedCpuInSeconds(estCpu);
-                    jobNeedsToBeSaved = true;
-                }
-                if (estRunTime != null && job.getEstimatedRunTime() != estRunTime) {
-                    job.setEstimatedRunTime(estRunTime);
-                    jobNeedsToBeSaved = true;
-                }
-                if (estDisk != null && job.getEstimatedDiskInBytes() != estDisk) {
-                    job.setEstimatedDiskInBytes(estDisk);
-                    jobNeedsToBeSaved = true;
-                }
-
-                if (submitDate != null) {
-                    job.setSubmitDate(new Date(submitDate));
-                    jobNeedsToBeSaved = true;
-                }
-                if (startDate != null) {
-                    job.setStartDate(new Date(startDate));
-                    jobNeedsToBeSaved = true;
-                }
-                if (finishDate != null) {
-                    job.setFinishDate(new Date(finishDate));
-                    jobNeedsToBeSaved = true;
-                }
-                if (deleted != null){
-                    job.setDeleted(deleted);
-                    jobNeedsToBeSaved = true;
-                }
-                if (error != null){
-                    job.setError(error);
-                    jobNeedsToBeSaved = true;
-                }
-                if (detailedError != null){
-                    job.setDetailedError(detailedError);
-                    jobNeedsToBeSaved = true;
-                }
-
-                if (submittedToScheduler != null && submittedToScheduler != job.getHasJobBeenSubmittedToScheduler()) {
-                    job.setHasJobBeenSubmittedToScheduler(submittedToScheduler);
-                    jobNeedsToBeSaved = true;
-                }
-                
-                if (schedulerJobId != null) {
-                    if (job.getSchedulerJobId() == null || !job.getSchedulerJobId().equals(schedulerJobId)) {
-                        job.setSchedulerJobId(schedulerJobId);
-                        jobNeedsToBeSaved = true;
-                    }
-                }
-
-                if (jobNeedsToBeSaved == true) {
-                    Key<Job> jKey = ofy().save().entity(job).now();
-                }
-                return job;
-            }
-        });
-        if (resJob == null) {
-            throw new Exception("There was a problem updating the Job");
+        Job tempJob = new Job();
+        tempJob.setId(jobId);
+        tempJob.setStatus(status);
+        if (submitDate != null){
+            tempJob.setSubmitDate(new Date(submitDate));
         }
-        return resJob;
+        if (startDate != null){
+            tempJob.setStartDate(new Date(startDate));
+        }
+        if (finishDate != null){
+            tempJob.setFinishDate(new Date(finishDate));
+        }
+        tempJob.setSchedulerJobId(schedulerJobId);
+        tempJob.setError(error);
+        tempJob.setDetailedError(detailedError);
+        
+        return update(tempJob);
     }
 
+    @Override
+    public Job update(final Job job) throws Exception {
+        if (job == null){
+            throw new IllegalArgumentException("Job cannot be null");
+        }
+        if (job.getId() == null){
+            throw new Exception("Id must be set");
+        }
+        ofy().save().entity(job).now();
+        return job;
+    }
+    
     /**
      * Gets {@link Job}s that were run from the <b>workflowId</b> passed in
      * @param workflowId id of {@link Workflow} that {@link Job} was run from
@@ -411,7 +386,7 @@ public class JobObjectifyDAOImpl implements JobDAO {
         if (wsfList != null && !wsfList.isEmpty()){
             if (wsfList.size() != 1){
                 dwr.setReason("Found "+wsfList.size()+
-                        " WorkspaceFiles as output for Job");
+                        " WorkspaceFiles as output for Job, but expected 1");
                 return dwr;
             }
             
@@ -427,11 +402,13 @@ public class JobObjectifyDAOImpl implements JobDAO {
             ofy().delete().type(Job.class).id(job.getId()).now();
         }
         else {
-            
+            job.setDeleted(true);
+            update(job);
         }
+        dwr.setSuccessful(true);
+        dwr.setReason(null);
         
-        
-        return null;
+        return dwr;
     }
     
     
