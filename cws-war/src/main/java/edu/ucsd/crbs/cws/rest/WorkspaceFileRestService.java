@@ -63,6 +63,7 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -376,6 +377,10 @@ public class WorkspaceFileRestService {
      * @param userLoginToRunAs
      * @param resave
      * @param request
+     * @deprecated Use {@link #update(java.lang.Long, 
+     * edu.ucsd.crbs.cws.workflow.WorkspaceFile, java.lang.String, 
+     * java.lang.String, java.lang.String, java.lang.String, 
+     * javax.servlet.http.HttpServletRequest) }
      * @return 
      */
     @POST
@@ -412,6 +417,50 @@ public class WorkspaceFileRestService {
                 }
                 
                 WorkspaceFile resWorkspaceFile = _workspaceFileDAO.update(updatedWsp, isDeleted, isFailed,null);
+                return resWorkspaceFile;
+            }
+            throw new WebApplicationException(HttpServletResponse.SC_UNAUTHORIZED);
+        }catch(WebApplicationException wae){
+            _log.log(Level.SEVERE,"Caught WebApplicationException",wae);
+            throw wae;
+        } catch (Exception ex) {
+            _log.log(Level.SEVERE,"Caught Exception",ex);
+            throw new WebApplicationException(ex);
+        }
+    }
+    
+    @PUT
+    @Path(Constants.WORKSPACEFILE_ID_REST_PATH)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public WorkspaceFile update(@PathParam(Constants.WORKSPACEFILE_ID_PATH_PARAM)final Long workspaceFileId,
+            WorkspaceFile wsf,
+            @QueryParam(Constants.USER_LOGIN_PARAM) final String userLogin,
+            @QueryParam(Constants.USER_TOKEN_PARAM) final String userToken,
+            @QueryParam(Constants.USER_LOGIN_TO_RUN_AS_PARAM) final String userLoginToRunAs,
+            @QueryParam(Constants.RESAVE_QUERY_PARAM) final String resave,
+            @Context HttpServletRequest request) {
+    
+         try {
+            User user = _authenticator.authenticate(request);
+            Event event = _eventBuilder.createEvent(request, user);
+            _log.info(event.getStringOfLocationData());
+            
+            if (user.isAuthorizedTo(Permission.UPDATE_ALL_WORKSPACEFILES)) {
+                if (resave != null && resave.equalsIgnoreCase("true")){
+                    return _workspaceFileDAO.resave(workspaceFileId);
+                }
+                if (wsf.getId() == null){
+                    _log.log(Level.INFO,"WorkspaceFile did not have id set, "
+                            +"using path param value of {0}", workspaceFileId);
+                    wsf.setId(workspaceFileId);
+                }
+                if (workspaceFileId != wsf.getId().longValue()){
+                    throw new Exception("WorkspaceFile id in path "+
+                            workspaceFileId+" does not match value in json "+
+                            wsf.getId());
+                }
+                WorkspaceFile resWorkspaceFile = _workspaceFileDAO.update(wsf);
                 return resWorkspaceFile;
             }
             throw new WebApplicationException(HttpServletResponse.SC_UNAUTHORIZED);
