@@ -33,6 +33,8 @@
 package edu.ucsd.crbs.cws.dao;
 
 import edu.ucsd.crbs.cws.workflow.Job;
+import edu.ucsd.crbs.cws.workflow.Workflow;
+import edu.ucsd.crbs.cws.workflow.report.DeleteReport;
 import java.util.List;
 
 /**
@@ -154,5 +156,17 @@ public interface JobDAO {
      * @throws Exception If there was an error querying the data store
      */
     public int getJobsWithWorkflowIdCount(long workflowId) throws Exception;
-   
+ 
+    /**
+     * Performs logical or real delete of {@link Job} with <b>id</b> of 
+     * <b>jobId</b>
+     * @param jobId Id of {@link Job}
+     * @param permanentlyDelete if non <b>null</b> and <b>true</b> really
+     * delete {@link Job}
+     * @return {@link DeleteReport} denoting whether delete succeeded.
+     * @throws Exception 
+     */
+    public DeleteReport delete(long jobId,
+            Boolean permanentlyDelete) throws Exception;
+    
 }

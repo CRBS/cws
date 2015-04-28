@@ -49,6 +49,7 @@ import edu.ucsd.crbs.cws.jerseyclient.MultivaluedMapFactory;
 import edu.ucsd.crbs.cws.jerseyclient.MultivaluedMapFactoryImpl;
 import edu.ucsd.crbs.cws.rest.Constants;
 import edu.ucsd.crbs.cws.workflow.Job;
+import edu.ucsd.crbs.cws.workflow.report.DeleteReport;
 import java.util.List;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
@@ -269,4 +270,10 @@ public class JobRestDAOImpl implements JobDAO {
     public int getJobsWithWorkflowIdCount(long workflowId) throws Exception {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
+    
+    @Override
+    public DeleteReport delete(long jobId, Boolean permanentlyDelete) throws Exception {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
 }

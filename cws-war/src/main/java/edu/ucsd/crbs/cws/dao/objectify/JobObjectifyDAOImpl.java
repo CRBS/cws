@@ -38,12 +38,15 @@ import com.googlecode.objectify.Work;
 import com.googlecode.objectify.cmd.Query;
 import edu.ucsd.crbs.cws.dao.InputWorkspaceFileLinkDAO;
 import edu.ucsd.crbs.cws.dao.JobDAO;
+import edu.ucsd.crbs.cws.dao.WorkspaceFileDAO;
 import static edu.ucsd.crbs.cws.dao.objectify.OfyService.ofy;
 import edu.ucsd.crbs.cws.workflow.InputWorkspaceFileLink;
 import edu.ucsd.crbs.cws.workflow.Job;
 import edu.ucsd.crbs.cws.workflow.Parameter;
 import edu.ucsd.crbs.cws.workflow.Workflow;
 import edu.ucsd.crbs.cws.workflow.WorkspaceFile;
+import edu.ucsd.crbs.cws.workflow.report.DeleteReport;
+import edu.ucsd.crbs.cws.workflow.report.DeleteReportImpl;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -63,10 +66,16 @@ public class JobObjectifyDAOImpl implements JobDAO {
     private static final String COMMA = ",";
 
     private InputWorkspaceFileLinkDAO _inputWorkspaceFileLinkDAO;
+    private WorkspaceFileDAO _workspaceFileDAO;
     
     
-    public JobObjectifyDAOImpl(InputWorkspaceFileLinkDAO inputWorkspaceFileLinkDAO){
+    public JobObjectifyDAOImpl(InputWorkspaceFileLinkDAO inputWorkspaceFileLinkDAO)
+            {
         _inputWorkspaceFileLinkDAO = inputWorkspaceFileLinkDAO;
+    }
+    
+    public void setWorkspaceFileDAO(WorkspaceFileDAO workspaceFileDAO){
+        _workspaceFileDAO = workspaceFileDAO;
     }
     
     /**
@@ -382,6 +391,51 @@ public class JobObjectifyDAOImpl implements JobDAO {
         w.setId(workflowId);
         return q.filter("_workflow", Key.create(w)).count();
     }
+
+    @Override
+    public DeleteReport delete(long jobId, Boolean permanentlyDelete) throws Exception {
+        DeleteReportImpl dwr = new DeleteReportImpl();
+        dwr.setId(jobId);
+        dwr.setSuccessful(false);
+        dwr.setReason("Unknown");
+        
+        Job job = this.getJobById(Long.toString(jobId));
+        if (job == null){
+            dwr.setReason("Job not found");
+            return dwr;
+        }
+        _log.log(Level.INFO,"Checking if its possible to delete Job {0}",
+                jobId);
+        
+        List<WorkspaceFile> wsfList = _workspaceFileDAO.getWorkspaceFilesBySourceJobId(jobId);
+        if (wsfList != null && !wsfList.isEmpty()){
+            if (wsfList.size() != 1){
+                dwr.setReason("Found "+wsfList.size()+
+                        " WorkspaceFiles as output for Job");
+                return dwr;
+            }
+            
+            DeleteReport dr = _workspaceFileDAO.delete(wsfList.get(0).getId(), 
+                        permanentlyDelete, true);
+            if (dr.isSuccessful() == false){
+                dwr.setReason("Unable to delete Workspace File ("+dr.getId()+
+                        ") : "+dr.getReason());
+                return dwr;
+            }
+        }
+        if (permanentlyDelete != null && permanentlyDelete == true){
+            ofy().delete().type(Job.class).id(job.getId()).now();
+        }
+        else {
+            
+        }
+        
+        
+        return null;
+    }
+    
+    
+    
     
     private List<String> generateListFromCommaSeparatedString(final String val) {
         return Arrays.asList(val.split(COMMA));
