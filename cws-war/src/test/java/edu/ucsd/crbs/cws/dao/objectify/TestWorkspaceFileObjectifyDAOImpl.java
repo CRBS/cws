@@ -41,11 +41,13 @@ import edu.ucsd.crbs.cws.workflow.InputWorkspaceFileLink;
 import edu.ucsd.crbs.cws.workflow.Job;
 import edu.ucsd.crbs.cws.workflow.WorkspaceFile;
 import edu.ucsd.crbs.cws.workflow.report.DeleteReport;
+import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.junit.After;
 import org.junit.AfterClass;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -88,6 +90,129 @@ public class TestWorkspaceFileObjectifyDAOImpl {
     public void tearDown() {
         _helper.tearDown();
     }
+    
+    @Test
+    public void testResaveOnNonExistantWorkspaceFile() throws Exception {
+        WorkspaceFileObjectifyDAOImpl workspaceFileDAO = new WorkspaceFileObjectifyDAOImpl(null,null);
+        WorkspaceFile wsf = workspaceFileDAO.resave(1L);
+        assertTrue(wsf == null);
+    }
+    
+    @Test
+    public void testResaveOnValidWorkspaceFile() throws Exception {
+        WorkspaceFileObjectifyDAOImpl workspaceFileDAO = new WorkspaceFileObjectifyDAOImpl(null,null);
+        WorkspaceFile mywsf = new WorkspaceFile();
+        mywsf.setName("hello");
+        workspaceFileDAO.insert(mywsf,false);
+        
+        WorkspaceFile wsf = workspaceFileDAO.resave(mywsf.getId());
+        assertTrue(wsf != null);
+        assertTrue(wsf.getName().equals("hello"));
+        assertTrue(wsf.getId().equals(mywsf.getId()));
+    }
+    
+    @Test
+    public void testUpdateOnNull() throws Exception {
+         WorkspaceFileObjectifyDAOImpl workspaceFileDAO = new WorkspaceFileObjectifyDAOImpl(null,null);
+        try {
+            workspaceFileDAO.update(null);
+            fail("Expected exception");
+        }
+        catch(Exception ex){
+            assertTrue(ex.getMessage().equals("WorkspaceFile passed in is null"));
+        }
+    }
+    
+    @Test
+    public void testUpdateOnNullId() throws Exception {
+         WorkspaceFileObjectifyDAOImpl workspaceFileDAO = new WorkspaceFileObjectifyDAOImpl(null,null);
+         WorkspaceFile wsf = new WorkspaceFile();
+        try {
+            workspaceFileDAO.update(wsf);
+            fail("Expected exception");
+        }
+        catch(Exception ex){
+            assertTrue(ex.getMessage().equals("WorkspaceFile Id is null"));
+        }
+    }
+    
+    @Test
+    public void testUpdateWithVariousChanges() throws Exception {
+        WorkspaceFileObjectifyDAOImpl workspaceFileDAO = new WorkspaceFileObjectifyDAOImpl(null,null);
+         WorkspaceFile mywsf = new WorkspaceFile();
+         
+         WorkspaceFile wsf = workspaceFileDAO.insert(mywsf,false);
+         assertTrue(wsf.getName() == null);
+        assertTrue(wsf.getType() == null);
+        assertTrue(wsf.getOwner() == null);
+        assertTrue(wsf.getDescription() == null);
+        assertTrue(wsf.getCreateDate() != null);
+        assertTrue(wsf.getSize() == null);
+        assertTrue(wsf.getOwner() == null);
+        assertTrue(wsf.getDeleted() == false);
+        assertTrue(wsf.getDir() == false);
+        assertTrue(wsf.getPath() == null);
+        assertTrue(wsf.getSourceJobId() == null);
+        assertTrue(wsf.getBlobKey() == null);
+        assertTrue(wsf.getUploadURL() == null);
+        assertTrue(wsf.isFailed() == false);
+        
+        wsf.setName("bob");
+        wsf.setType("type");
+        wsf.setOwner("owner");
+        wsf.setDescription("description");
+        Date aDate = new Date();
+        wsf.setCreateDate(aDate);
+        wsf.setSize(new Long(2));
+        wsf.setMd5("md5");
+        wsf.setDeleted(true);
+        wsf.setDir(true);
+        wsf.setPath("path");
+        wsf.setSourceJobId(new Long(3));
+        wsf.setBlobKey("blobkey");
+        wsf.setUploadURL("uploadurl");
+        wsf.setFailed(true);
+         
+         wsf = workspaceFileDAO.update(wsf);
+         
+         assertTrue(wsf.getDeleted() == true);
+         assertTrue(wsf.getName().equals("bob"));
+        assertTrue(wsf.getType().equals("type"));
+        assertTrue(wsf.getOwner().equals("owner"));
+        assertTrue(wsf.getDescription().equals("description"));
+        assertTrue(wsf.getCreateDate().equals(aDate));
+        assertTrue(wsf.getSize() == 2);
+        assertTrue(wsf.getMd5().equals("md5"));
+        assertTrue(wsf.getDeleted() == true);
+        assertTrue(wsf.getDir() == true);
+        assertTrue(wsf.getPath().equals("path"));
+        assertTrue(wsf.getSourceJobId() == 3);
+        assertTrue(wsf.getBlobKey().equals("blobkey"));
+        assertTrue(wsf.getUploadURL().equals("uploadurl"));
+        assertTrue(wsf.isFailed() == true);
+         
+        WorkspaceFile allNull = new WorkspaceFile();
+        allNull.setId(wsf.getId());
+         wsf = workspaceFileDAO.update(allNull);
+         
+          assertTrue(wsf.getName() == null);
+        assertTrue(wsf.getType() == null);
+        assertTrue(wsf.getOwner() == null);
+        assertTrue(wsf.getDescription() == null);
+        assertTrue(wsf.getCreateDate() == null);
+        assertTrue(wsf.getSize() == null);
+        assertTrue(wsf.getOwner() == null);
+        assertTrue(wsf.getDeleted() == false);
+        assertTrue(wsf.getDir() == false);
+        assertTrue(wsf.getPath() == null);
+        assertTrue(wsf.getSourceJobId() == null);
+        assertTrue(wsf.getBlobKey() == null);
+        assertTrue(wsf.getUploadURL() == null);
+        assertTrue(wsf.isFailed() == false);
+        
+        
+    }
+    
     
     @Test
     public void testDeleteWhereWorkspaceFileNotFound() throws Exception {
