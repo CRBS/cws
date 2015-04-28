@@ -247,7 +247,29 @@ public class WorkspaceFileRestDAOImpl implements WorkspaceFileDAO {
 
     @Override
     public WorkspaceFile update(WorkspaceFile wsp) throws Exception {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+          ObjectMapper om = new ObjectMapper();
+        ClientConfig cc = new DefaultClientConfig();
+        cc.getClasses().add(StringProvider.class);
+        cc.getClasses().add(MultiPartWriter.class);
+        Client client = Client.create(cc);
+        client.addFilter(new HTTPBasicAuthFilter(_user.getLogin(),
+                _user.getToken()));
+        client.setFollowRedirects(true);
+        WebResource resource = client.resource(_restURL).
+                path(Constants.REST_PATH).path(Constants.WORKSPACEFILES_PATH).
+                path(wsp.getId().toString());
+
+        String workspaceFileAsJson = om.writeValueAsString(wsp);
+
+        MultivaluedMap queryParams = _multivaluedMapFactory.getMultivaluedMap(_user);
+        
+        queryParams.add(Constants.ADD_UPLOAD_URL_PARAM, "false");
+
+        String response = resource.queryParams(queryParams).
+                type(MediaType.APPLICATION_JSON_TYPE)
+                .entity(workspaceFileAsJson)
+                .put(String.class);
+        return om.readValue(response, WorkspaceFile.class);
     }
     
 
