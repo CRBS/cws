@@ -62,6 +62,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -325,6 +326,10 @@ public class JobRestService {
      * @param resave
      * @param userLoginToRunAs
      * @param request
+     * @deprecated Use {@link #update(java.lang.Long, 
+     * edu.ucsd.crbs.cws.workflow.Job, java.lang.String,
+     * java.lang.String, java.lang.String, java.lang.String,
+     * javax.servlet.http.HttpServletRequest) }
      * @return
      */
     @POST
@@ -370,7 +375,8 @@ public class JobRestService {
                         schedulerJobId,deleted,error,detailedError);
             }
             if (user.isAuthorizedTo(Permission.UPDATE_THEIR_JOBS)){
-                Job job = _jobDAO.getJobByIdAndUser(jobId.toString(),user.getLoginToRunJobAs());
+                Job job = _jobDAO.getJobByIdAndUser(jobId.toString(),
+                        user.getLoginToRunJobAs());
                 if (job == null){
                     throw new Exception("Error retrieving Job or not authorized");
                 }
@@ -392,6 +398,59 @@ public class JobRestService {
         }
     }
 
+    
+    @PUT
+    @Path(Constants.JOB_ID_REST_PATH)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Job update(@PathParam(Constants.JOB_ID_PATH_PARAM) final Long jobId,
+            Job job,
+            @QueryParam(Constants.USER_LOGIN_PARAM) final String userLogin,
+            @QueryParam(Constants.USER_TOKEN_PARAM) final String userToken,
+            @QueryParam(Constants.USER_LOGIN_TO_RUN_AS_PARAM) final String userLoginToRunAs,
+            @QueryParam(Constants.RESAVE_QUERY_PARAM) final String resave,
+            @Context HttpServletRequest request) {
+
+        try {
+            User user = _authenticator.authenticate(request);
+            Event event = _eventBuilder.createEvent(request, user);
+            _log.info(event.getStringOfLocationData());
+            if (jobId != null) {
+                _log.log(Level.INFO, "Job id is: {0}", jobId.toString());
+            } else {
+                job.setId(jobId);
+                _log.log(Level.INFO,"Job id not set in Json settting to {0}",
+                        job.getId());
+            }
+
+            if (user.isAuthorizedTo(Permission.UPDATE_ALL_JOBS)) {
+                if (resave != null && resave.equalsIgnoreCase("true")){
+                    return _jobDAO.resave(jobId);
+                }
+                return _jobDAO.update(job);
+            }
+            if (user.isAuthorizedTo(Permission.UPDATE_THEIR_JOBS)){
+                Job checkJob = _jobDAO.getJobByIdAndUser(jobId.toString(),
+                        user.getLoginToRunJobAs());
+                if (checkJob == null){
+                    throw new Exception("Error retrieving Job or not authorized");
+                }
+                if (resave != null && resave.equalsIgnoreCase("true")){
+                    return _jobDAO.resave(jobId);
+                }
+                return _jobDAO.update(job);
+            }
+
+            throw new WebApplicationException(HttpServletResponse.SC_UNAUTHORIZED);
+        }catch(WebApplicationException wae){
+            _log.log(Level.SEVERE,"Caught WebApplicationException",wae);
+            throw wae;
+        } catch (Exception ex) {
+            _log.log(Level.SEVERE,"Caught Exception",ex);
+            throw new WebApplicationException(ex);
+        }
+    }
+    
     /**
      * Creates a new {@link Job} by consuming JSON version of {@link Job} object
      *
