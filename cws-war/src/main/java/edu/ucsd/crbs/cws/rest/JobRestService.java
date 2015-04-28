@@ -92,9 +92,10 @@ public class JobRestService {
         _inputWorkspaceFileLinkDAO = new InputWorkspaceFileLinkObjectifyDAOImpl();
     
         _jobDAO = new JobObjectifyDAOImpl(_inputWorkspaceFileLinkDAO);
-    
         _workspaceFileDAO = new WorkspaceFileObjectifyDAOImpl(_jobDAO,
                 _inputWorkspaceFileLinkDAO);
+        ((JobObjectifyDAOImpl)_jobDAO).setWorkspaceFileDAO(_workspaceFileDAO);
+
     }
     
     static EventDAO _eventDAO = new EventObjectifyDAOImpl();
