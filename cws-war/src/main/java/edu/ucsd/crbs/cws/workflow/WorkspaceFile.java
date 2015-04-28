@@ -321,7 +321,8 @@ public class WorkspaceFile {
      * </ul>
      * <p/>
      * 
-     * If any of the above fields are different then what is in <code>this</code><br/>
+     * If any of the above fields are <b>NOT</b> <code>null</code> and 
+     * different then what is in <code>this</code><br/>
      * {@link WorkspaceFile} then this {@link WorkspaceFile} is updated and 
      * this method returns <code>true</code><br/>
      * In addition, if any of these parameters <b>isDeleted, isFailed, or isDir</b> are 
