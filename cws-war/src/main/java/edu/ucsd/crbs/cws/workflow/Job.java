@@ -103,38 +103,54 @@ public class Job {
     public static class Everything {
     }
 
-    @Id
-    private Long _id;
-    @Index
-    @Load(Job.Everything.class)
-    private Ref<Workflow> _workflow;
-    @Ignore
-    private Workflow _rawWorkflow;
+    @Id private Long _id;
+    @Index @Load(Job.Everything.class) private Ref<Workflow> _workflow;
+    @Ignore private Workflow _rawWorkflow;
 
     private String _name;
-    @Index
-    private String _owner;
-    @Index
-    private String _status;
+    
+    @Index private String _owner;
+    @Index private String _status;
     @Index({IfFalse.class})
+    
     private boolean _hasJobBeenSubmittedToScheduler;
     private String _schedulerJobId;
+    
     private long _estimatedCpuInSeconds;
+    private String _estimatedCpuInSecondsHelp;
+    
     private long _estimatedRunTimeInSeconds;
+    private String _estimatedRunTimeInSecondsHelp;
+    
     private long _estimatedDiskInBytes;
-    @Index
-    private Date _createDate;
+    private String _estimatedDiskInBytesHelp;
+    
+    private long _estimatedWallTimeInSeconds;
+    private String _estimatedWallTimeInSecondsHelp;
+    
+    private long _diskSpaceInBytes;
+    private String _diskSpaceInBytesHelp;
+    
+    private String _cpuSecondsPerCluster;
+    private String _cpuSecondsPerClusterHelp;
+    
+    @Index private Date _createDate;
     private Date _submitDate;
     private Date _startDate;
     private Date _finishDate;
-    @Index
-    private boolean _deleted;
+    
+    @Index private boolean _deleted;
     private String _downloadURL;
     private List<Parameter> _parameters;
     private String _error;
     private String _detailedError;
-    @Ignore
-    private List<ParameterWithError> _parametersWithErrors;
+    
+    private String _phase;
+    private String _phaseHelp;
+    private String _phaseList;
+    private String _phaseListHelp;
+    
+    @Ignore private List<ParameterWithError> _parametersWithErrors;
 
     /**
      * This will eventually hold a summary of compute and disk consumed by this
@@ -213,14 +229,6 @@ public class Job {
 
     public long getEstimatedCpuInSeconds() {
         return _estimatedCpuInSeconds;
-    }
-
-    public void setEstimatedRunTime(long val) {
-        _estimatedRunTimeInSeconds = val;
-    }
-
-    public long getEstimatedRunTime() {
-        return _estimatedRunTimeInSeconds;
     }
 
     public void setEstimatedDiskInBytes(long val) {
@@ -337,6 +345,118 @@ public class Job {
         _detailedError = detailedError;
     }
 
+    public String getEstimatedCpuInSecondsHelp() {
+        return _estimatedCpuInSecondsHelp;
+    }
+
+    public void setEstimatedCpuInSecondsHelp(String _estimatedCpuInSecondsHelp) {
+        this._estimatedCpuInSecondsHelp = _estimatedCpuInSecondsHelp;
+    }
+
+    public long getEstimatedRunTimeInSeconds() {
+        return _estimatedRunTimeInSeconds;
+    }
+
+    public void setEstimatedRunTimeInSeconds(long _estimatedRunTimeInSeconds) {
+        this._estimatedRunTimeInSeconds = _estimatedRunTimeInSeconds;
+    }
+
+    public String getEstimatedRunTimeInSecondsHelp() {
+        return _estimatedRunTimeInSecondsHelp;
+    }
+
+    public void setEstimatedRunTimeInSecondsHelp(String _estimatedRunTimeInSecondsHelp) {
+        this._estimatedRunTimeInSecondsHelp = _estimatedRunTimeInSecondsHelp;
+    }
+
+    public String getEstimatedDiskInBytesHelp() {
+        return _estimatedDiskInBytesHelp;
+    }
+
+    public void setEstimatedDiskInBytesHelp(String _estimatedDiskInBytesHelp) {
+        this._estimatedDiskInBytesHelp = _estimatedDiskInBytesHelp;
+    }
+
+    public long getEstimatedWallTimeInSeconds() {
+        return _estimatedWallTimeInSeconds;
+    }
+
+    public void setEstimatedWallTimeInSeconds(long _estimatedWallTimeInSeconds) {
+        this._estimatedWallTimeInSeconds = _estimatedWallTimeInSeconds;
+    }
+
+    public String getEstimatedWallTimeInSecondsHelp() {
+        return _estimatedWallTimeInSecondsHelp;
+    }
+
+    public void setEstimatedWallTimeInSecondsHelp(String _estimatedWallTimeInSecondsHelp) {
+        this._estimatedWallTimeInSecondsHelp = _estimatedWallTimeInSecondsHelp;
+    }
+
+    public long getDiskSpaceInBytes() {
+        return _diskSpaceInBytes;
+    }
+
+    public void setDiskSpaceInBytes(long _diskSpaceInBytes) {
+        this._diskSpaceInBytes = _diskSpaceInBytes;
+    }
+
+    public String getDiskSpaceInBytesHelp() {
+        return _diskSpaceInBytesHelp;
+    }
+
+    public void setDiskSpaceInBytesHelp(String _diskSpaceInBytesHelp) {
+        this._diskSpaceInBytesHelp = _diskSpaceInBytesHelp;
+    }
+
+    public String getCpuSecondsPerCluster() {
+        return _cpuSecondsPerCluster;
+    }
+
+    public void setCpuSecondsPerCluster(String _cpuSecondsPerCluster) {
+        this._cpuSecondsPerCluster = _cpuSecondsPerCluster;
+    }
+
+    public String getCpuSecondsPerClusterHelp() {
+        return _cpuSecondsPerClusterHelp;
+    }
+
+    public void setCpuSecondsPerClusterHelp(String _cpuSecondsPerClusterHelp) {
+        this._cpuSecondsPerClusterHelp = _cpuSecondsPerClusterHelp;
+    }
+
+    public String getPhase() {
+        return _phase;
+    }
+
+    public void setPhase(String _phase) {
+        this._phase = _phase;
+    }
+
+    public String getPhaseHelp() {
+        return _phaseHelp;
+    }
+
+    public void setPhaseHelp(String _phaseHelp) {
+        this._phaseHelp = _phaseHelp;
+    }
+
+    public String getPhaseList() {
+        return _phaseList;
+    }
+
+    public void setPhaseList(String _phaseList) {
+        this._phaseList = _phaseList;
+    }
+
+    public String getPhaseListHelp() {
+        return _phaseListHelp;
+    }
+
+    public void setPhaseListHelp(String _phaseListHelp) {
+        this._phaseListHelp = _phaseListHelp;
+    }
+    
     /**
      * Adds a {@link ParameterWithError} to error list. If list is null a new
      * one is created
@@ -373,188 +493,4 @@ public class Job {
         }
         return sb.toString();
     }
-
-    /**
-     * Updates this {@link Job} with any changes found in <b>job</b> passed
-     * in.  This implementation examines the following fields and compares
-     * them if they are <b>NOT <code>null</code></b><br/>
-     * <ul>
-     * {@link #getCreateDate() }<br/>
-     * {@link #getDetailedError() }<br/>
-     * {@link #getDownloadURL() }<br/>
-     * {@link #getError() }<br/>
-     * {@link #getFinishDate() }<br/>
-     * {@link #getName() }<br/>
-     * {@link #getOwner() }<br/>
-     * {@link #getSchedulerJobId() }<br/>
-     * {@link #getStartDate() }<br/>
-     * {@link #getStatus() }<br/>
-     * {@link #getSubmitDate() }<br/>
-     * </ul>
-     * 
-     * If any of the above fields are <b>NOT</b> <code>null</code> and 
-     * different then what is in <code>this</code><br/>
-     * {@link Job} then <code>this</code> {@link Job} is updated and this method 
-     * returns <code>true</code><br/>
-     * In addition, if any of these parameters <b>isDeleted,
-     * hasJobBeenSubmittedToScheduler,estCpuInSeconds,estRunTimeInSeconds,
-     * estDiskInBytes</b> are <b>NOT <code>null</code></b><br/> and different
-     * then the value in <code>this</code> {@link Job}.  They they are used
-     *  to update {@link #isDeleted()},{@link #getHasJobBeenSubmittedToScheduler()},
-     * {@link #getEstimatedCpuInSeconds() }, {@link #getEstimatedRunTime() },
-     * {@link #getEstimatedDiskInBytes() } respectively
-     * @param job {@link Job} to pull changes from
-     * @param isDeleted updates {@link #isDeleted() } of <code>this</code> {@link Job} 
-     * if <b>NOT</b> <code>null</code> and different
-     * @param hasJobBeenSubmittedToScheduler updates 
-     * {@link #getHasJobBeenSubmittedToScheduler() } of <code>this</code> 
-     * {@link Job} 
-     * if <b>NOT</b> <code>null</code> and different
-     * @param estCpuInSeconds updates {@link #getEstimatedCpuInSeconds() } of 
-     * <code>this</code> {@link Job} 
-     * if <b>NOT</b> <code>null</code> and different
-     * @param estRunTimeInSeconds updates {@link #getEstimatedRunTime() } of 
-     * <code>this</code> {@link Job} 
-     * if <b>NOT</b> <code>null</code> and different
-     * @param estDiskInBytes updates {@link #getEstimatedDiskInBytes() } of 
-     * <code>this</code> {@link Job} 
-     * if <b>NOT</b> <code>null</code> and different
-     * @return <b><code>true</code></b> if <b><code>this</code></b> 
-     * object was updated with values from <b>job</b> passed in otherwise 
-     * <b><code>false</code></b>
-     */
-    @JsonIgnore
-    public boolean updateWithChanges(Job job, Boolean isDeleted,
-            Boolean hasJobBeenSubmittedToScheduler,
-            Long estCpuInSeconds, Long estRunTimeInSeconds,
-            Long estDiskInBytes) {
-        if (job == null) {
-            return false;
-        }
-
-        boolean updated = false;
-
-        if (isDeleted != null && isDeleted != isDeleted()) {
-            setDeleted(isDeleted);
-            updated = true;
-        }
-
-        if (hasJobBeenSubmittedToScheduler != null
-                && hasJobBeenSubmittedToScheduler != getHasJobBeenSubmittedToScheduler()) {
-            setHasJobBeenSubmittedToScheduler(hasJobBeenSubmittedToScheduler);
-            updated = true;
-        }
-
-        if (job.getName() != null) {
-            if (getName() == null
-                    || !getName().equals(job.getName())) {
-                setName(job.getName());
-                updated = true;
-            }
-        }
-
-        if (job.getStatus() != null) {
-            if (getStatus() == null
-                    || !getStatus().equals(job.getStatus())) {
-                setStatus(job.getStatus());
-                updated = true;
-            }
-        }
-
-        if (job.getOwner() != null) {
-            if (getOwner() == null
-                    || !getOwner().equals(job.getOwner())) {
-                setOwner(job.getOwner());
-                updated = true;
-            }
-        }
-
-        if (job.getSchedulerJobId() != null) {
-            if (getSchedulerJobId() == null
-                    || !getSchedulerJobId().equals(job.getSchedulerJobId())) {
-                setSchedulerJobId(job.getSchedulerJobId());
-                updated = true;
-            }
-        }
-
-        if (job.getCreateDate() != null) {
-            if (getCreateDate() == null
-                    || !getCreateDate().equals(job.getCreateDate())) {
-                setCreateDate(job.getCreateDate());
-                updated = true;
-            }
-        }
-
-        if (job.getStartDate() != null) {
-            if (getStartDate() == null
-                    || !getStartDate().equals(job.getStartDate())) {
-                setStartDate(job.getStartDate());
-                updated = true;
-            }
-        }
-
-        if (job.getSubmitDate() != null) {
-            if (getSubmitDate() == null
-                    || !getSubmitDate().equals(job.getSubmitDate())) {
-                setSubmitDate(job.getSubmitDate());
-                updated = true;
-            }
-        }
-
-        if (job.getFinishDate() != null) {
-            if (getFinishDate() == null
-                    || !getFinishDate().equals(job.getFinishDate())) {
-                setFinishDate(job.getFinishDate());
-                updated = true;
-            }
-        }
-
-        if (job.getDownloadURL() != null) {
-            if (getDownloadURL() == null
-                    || !getDownloadURL().equals(job.getDownloadURL())) {
-                setDownloadURL(job.getDownloadURL());
-                updated = true;
-            }
-        }
-
-        if (job.getError() != null) {
-            if (getError() == null
-                    || !getError().equals(job.getError())) {
-                setError(job.getError());
-                updated = true;
-            }
-        }
-
-        if (job.getDetailedError() != null) {
-            if (getDetailedError() == null
-                    || !getDetailedError().equals(job.getDetailedError())) {
-                setDetailedError(job.getDetailedError());
-                updated = true;
-            }
-        }
-
-        if (estCpuInSeconds != null) {
-            if (getEstimatedCpuInSeconds() != estCpuInSeconds) {
-                setEstimatedCpuInSeconds(estCpuInSeconds);
-                updated = true;
-            }
-        }
-
-        if (estRunTimeInSeconds != null) {
-            if (this.getEstimatedRunTime() != estRunTimeInSeconds) {
-                setEstimatedRunTime(estRunTimeInSeconds);
-                updated = true;
-            }
-        }
-
-        if (estDiskInBytes != null) {
-            if (getEstimatedDiskInBytes() != estDiskInBytes) {
-                setEstimatedDiskInBytes(estDiskInBytes);
-                updated = true;
-            }
-        }
-
-        return updated;
-    }
-
 }
