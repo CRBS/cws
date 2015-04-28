@@ -112,6 +112,15 @@ public interface WorkspaceFileDAO {
             Boolean isFailed,Boolean isDir) throws Exception;
     
     /**
+     * Updates {@link WorkspaceFile} <b>wsp</b> in data store.  
+     * {@link WorkspaceFile#getId()} must be set
+     * @param wsp Saves this {@link WorkspaceFile} in data store
+     * @return <b>wsp</b> after save
+     * @throws Exception 
+     */
+    public WorkspaceFile update(WorkspaceFile wsp) throws Exception;
+    
+    /**
      * Loads and resaves {@link WorkspaceFile} corresponding to <b>workspaceFileId</b>
      * passed in
      * @param workspaceFileId
