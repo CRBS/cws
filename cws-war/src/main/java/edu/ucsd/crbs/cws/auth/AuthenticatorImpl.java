@@ -103,8 +103,10 @@ public class AuthenticatorImpl implements Authenticator {
 
         String auth = request.getHeader(AUTHORIZATION_HEADER);
         if (auth == null) {
-            _log.log(Level.INFO,"No authentication information in header.  Will attempt to look at query parameters");
-            return authenticate(request, request.getParameter(Constants.USER_LOGIN_PARAM),
+            _log.log(Level.INFO,"No authentication information in header. "
+                    +" Will attempt to look at query parameters");
+            return authenticate(request,
+                    request.getParameter(Constants.USER_LOGIN_PARAM),
                     request.getParameter(Constants.USER_TOKEN_PARAM),
                     request.getParameter(Constants.USER_LOGIN_TO_RUN_AS_PARAM));
         }
@@ -132,11 +134,15 @@ public class AuthenticatorImpl implements Authenticator {
             return null;
         }
         
-        // @TODO REMOVE THIS AT SOME POINT and replace with Google's user services
-        // so that only users that logged into google can have this crazy privilege
+        // @TODO REMOVE THIS AT SOME POINT and replace with Google's user 
+        // services
+        // so that only users that logged into google can have this crazy 
+        // privilege
         // https://developers.google.com/appengine/docs/java/users/
-        if ((userLogin.equals("mikechiu") && userToken.equals("67cecab615914b2494830ef116a4580a")) ||
-             (userLogin.equals("chris") && userToken.equals("dc5902078cfa40b980229662c2e0c226"))){
+        if ((userLogin.equals("mikechiu") && 
+                userToken.equals("67cecab615914b2494830ef116a4580a")) ||
+             (userLogin.equals("chris") && 
+                userToken.equals("dc5902078cfa40b980229662c2e0c226"))){
             User user = new User();
             user.setLogin(userLogin);
             user.setToken(userToken);
@@ -153,8 +159,10 @@ public class AuthenticatorImpl implements Authenticator {
      * 
      *  Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ== <p/>
      * 
-     * and extracts login and password token from value to right of <b>Basic</b> above
-     * which should be in format of <b>login:pass</b> once decoded via {@link DatatypeConverter#parseBase64Binary(java.lang.String)}
+     * and extracts login and password token from value to right of <b>Basic</b> 
+     * above
+     * which should be in format of <b>login:pass</b> once decoded via 
+     * {@link DatatypeConverter#parseBase64Binary(java.lang.String)}
      * method
      * 
      * @param auth Basic Http Authentication string in format above
