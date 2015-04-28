@@ -235,6 +235,11 @@ public class JobRestDAOImpl implements JobDAO {
         return mapper.readValue(json, new TypeReference<Job>() {
         });
     }
+    
+    @Override
+    public Job update(Job job) throws Exception {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
 
     @Override
     public Job resave(long jobId) throws Exception {
