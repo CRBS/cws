@@ -129,6 +129,15 @@ public interface JobDAO {
             Boolean submittedToScheduler, final String schedulerJobId,
             final Boolean deleted, final String error, final String detailedError) throws Exception;
 
+    
+    /**
+     * Updates existing {@link Job} with values set in <b>job</b> 
+     * @param job
+     * @return
+     * @throws Exception 
+     */
+    public Job update(final Job job) throws Exception;
+    
     /**
      * Loads and resaves {@link Job} with given <b>jobId</b>
      *
