@@ -37,12 +37,15 @@ import com.google.appengine.tools.development.testing.LocalBlobstoreServiceTestC
 import com.google.appengine.tools.development.testing.LocalDatastoreServiceTestConfig;
 import com.google.appengine.tools.development.testing.LocalServiceTestHelper;
 import static edu.ucsd.crbs.cws.dao.objectify.OfyService.ofy;
+import edu.ucsd.crbs.cws.workflow.Job;
 import edu.ucsd.crbs.cws.workflow.report.DeleteReport;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.junit.After;
 import org.junit.AfterClass;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -96,5 +99,110 @@ public class TestJobObjectifyDAOImpl {
         assertTrue(dwr.getReason().equals("Job not found"));
     }
     
+    @Test
+    public void testResaveNonExistingJob() throws Exception {
+        JobObjectifyDAOImpl jobDAO = new JobObjectifyDAOImpl(null);
+        
+        try {
+            jobDAO.resave(1L);
+            fail("Expected exception");
+        }
+        catch(Exception ex){
+            assertTrue(ex.getMessage().equals("There was an error resaving job with id: 1"));
+        }
+    }
+    
+    @Test
+    public void testResaveOnValidJob() throws Exception {
+        JobObjectifyDAOImpl jobDAO = new JobObjectifyDAOImpl(null);
+        
+        Job j = new Job();
+        j.setName("bob");
+        Job resJob = jobDAO.insert(j, true);
+        Job resavedJob = jobDAO.resave(resJob.getId());
+        assertTrue(resavedJob.getName().equals("bob"));
+        assertTrue(resJob.getId() == resavedJob.getId().longValue());
+    }
+
+    @Test
+    public void testGetJobByIdWithNullId() throws Exception {
+        JobObjectifyDAOImpl jobDAO = new JobObjectifyDAOImpl(null);
+        try {
+            jobDAO.getJobById(null);
+            fail("Expected Exception");
+        }
+        catch(NullPointerException ex){
+            assertTrue(ex.getMessage(),
+                    ex.getMessage().equals("jobId cannot be null"));
+        }
+    }
+    
+    @Test
+    public void testGetJobByIdWithNonnumericId() throws Exception {
+        JobObjectifyDAOImpl jobDAO = new JobObjectifyDAOImpl(null);
+        try {
+            jobDAO.getJobById("foo");
+            fail("Expected Exception");
+        }
+        catch(Exception ex){
+            assertTrue(ex.getMessage(),
+                    ex.getMessage().equals("jobId must be numeric, error "
+                            + "received when parsing : For input string: "
+                            + "\"foo\""));
+        }
+    }
+    
+    @Test
+    public void testGetJobByIdAndUserWithNullValues() throws Exception {
+        JobObjectifyDAOImpl jobDAO = new JobObjectifyDAOImpl(null);
+        
+        try {
+            jobDAO.getJobByIdAndUser(null, null);
+            fail("expected exception");
+        }
+        catch(Exception ex){
+            assertTrue(ex.getMessage(),
+                    ex.getMessage().equals("User cannot be null"));
+        }
+        try {
+            jobDAO.getJobByIdAndUser(null,"bob");
+            fail("Expected Exception");
+        }
+        catch(Exception ex){
+            assertTrue(ex.getMessage(),
+                    ex.getMessage().equals("jobId cannot be null"));
+        }
+    }
+    
+    
+    @Test
+    public void testGetJobByIdAndUserNoJobFound() throws Exception {
+        JobObjectifyDAOImpl jobDAO = new JobObjectifyDAOImpl(null);
+        assertNull(jobDAO.getJobByIdAndUser("1","bob"));
+    }
+    
+    @Test
+    public void testGetJobByIdAndUserButUserDoesNotMatchAsItsNullOrDifferent() throws Exception {
+        JobObjectifyDAOImpl jobDAO = new JobObjectifyDAOImpl(null);
+        Job j = new Job();
+        Job resJob = jobDAO.insert(j, true);
+        assertNull(jobDAO.getJobByIdAndUser(resJob.getId().toString(),"bob"));
+        
+        resJob.setOwner("phil");
+        jobDAO.update(resJob);
+        assertNull(jobDAO.getJobByIdAndUser(resJob.getId().toString(),"bob"));
+    }
+    
+    @Test
+    public void testGetJobByIdAndUserWithMatch() throws Exception {
+        JobObjectifyDAOImpl jobDAO = new JobObjectifyDAOImpl(null);
+        Job j = new Job();
+        j.setOwner("bob");
+        Job resJob = jobDAO.insert(j, true);
+        Job gotIt = jobDAO.getJobByIdAndUser(resJob.getId().toString(),"bob");
+        assertTrue(gotIt != null);
+        assertTrue(gotIt.getId() == resJob.getId().longValue());
+        assertTrue(gotIt.getOwner().equals("bob"));
+    }
 
 }
