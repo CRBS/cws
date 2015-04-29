@@ -89,14 +89,12 @@ public interface JobDAO {
      * @param status If non null only Jobs with matching status will be returned
      * @param notSubmittedToScheduler If non null only Jobs matching submitted
      * to scheduler flag will be returned
-     * @param noParams True means to exclude Parameters in returned Jobs
-     * @param noWorkflowParams True means to exclude WorkflowParameters in
-     * {@link Workflow} objects returned with Jobs
      * @return
      * @throws Exception
      */
-    public int getJobsCount(final String owner, final String status, final Boolean notSubmittedToScheduler,
-            boolean noParams, boolean noWorkflowParams, final Boolean showDeleted) throws Exception;
+    public int getJobsCount(final String owner, final String status, 
+            final Boolean notSubmittedToScheduler,
+            final Boolean showDeleted) throws Exception;
     
     /**
      * Inserts a new {@link Job} into data store skipping {@link Workflow} Check
