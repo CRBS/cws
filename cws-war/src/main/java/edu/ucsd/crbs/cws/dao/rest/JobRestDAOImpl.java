@@ -155,7 +155,9 @@ public class JobRestDAOImpl implements JobDAO {
     }
 
     @Override
-    public int getJobsCount(String owner, String status, Boolean notSubmittedToScheduler, boolean noParams, boolean noWorkflowParams, Boolean showDeleted) throws Exception {
+    public int getJobsCount(String owner, String status, 
+            Boolean notSubmittedToScheduler, 
+            Boolean showDeleted) throws Exception {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
