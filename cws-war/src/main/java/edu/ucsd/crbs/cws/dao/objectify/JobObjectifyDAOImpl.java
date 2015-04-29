@@ -101,6 +101,7 @@ public class JobObjectifyDAOImpl implements JobDAO {
                     return null;
                 }
                 if (job == null) {
+                    _log.log(Level.WARNING,"Job {0} not found",jobId);
                     return null;
                 }
 
@@ -110,19 +111,34 @@ public class JobObjectifyDAOImpl implements JobDAO {
         });
 
         if (resJob == null){
-            throw new Exception("There was an error resaving job "+jobId);
+            throw new Exception("There was an error resaving job with id: "+jobId);
         }
         return resJob;
     }
-                
+      
+    /**
+     * Load {@link Job} with <b>jobId</b> from data store
+     * @param jobId id of {@link Job} to load
+     * @return {@link Job} from datastore with matching <b>jobId</b>
+     * @throws NullPointerException if <b>jobId</b> is null
+     * @throws Exception if <b>jobId</b> cannot be converted to <code>long</code> or
+     * if there is some other error
+     */
     @Override
     public Job getJobById(final String jobId) throws Exception {
         long jobIdAsLong;
+        
+        if (jobId == null){
+            throw new NullPointerException("jobId cannot be null");
+        }
         try {
             jobIdAsLong = Long.parseLong(jobId);
-        } catch (NumberFormatException nfe) {
-            throw new Exception(nfe);
         }
+        catch(NumberFormatException nfe){
+            throw new Exception("jobId must be numeric, error received when "
+                    + "parsing : "+nfe.getMessage(),nfe);
+        }
+        
         return ofy().load().type(Job.class).id(jobIdAsLong).now();
     }
 
@@ -134,31 +150,57 @@ public class JobObjectifyDAOImpl implements JobDAO {
      *         and neither value is null otherwise null is returned
      * @throws Exception if <b>jobId</b> is not parseable as a Long or there was 
      *         an issue with the data store
+     * @throws NullPointerException if <b>user</b> is null
      */
     @Override
     public Job getJobByIdAndUser(String jobId, String user) throws Exception {
 
         if (user == null){
-            return null;
+            throw new NullPointerException("User cannot be null");
         }
         
         Job job = this.getJobById(jobId);
         if (job == null){
+            _log.log(Level.INFO,"No job found with id {0}",jobId);
             return null;
         }
         if (job.getOwner() == null){
+            _log.log(Level.INFO,"User is null for Job {0}",jobId);
             return null;
         }
         
         if (job.getOwner().equals(user)){
             return job;
         }
+        _log.log(Level.INFO,"User {0} does not match owner of job {1}",
+                new Object[]{user,job.getOwner()});
         return null;
     }
 
+    /**
+     * Generates {@link Job} {@link Query} constraining {@link Job}s by status,
+     * owner,hasJobBeenSubmittedToScheduler,and whether {@link Job} is deleted.
+     * 
+     * @param owner If <b>non</b> <code>null</code> only {@link Job} with matching
+     * {@link Job#getOwner()} will be returned
+     * @param status If <b>non</b> <code>null</code> only {@link Job} that has
+     * {@link Job#getStatus() } in this variable (supports comma separated list)
+     * will be returned
+     * @param notSubmittedToScheduler If <b>non</b> <code>null</code> and set
+     * to <code>true</b> then {@link Job}s with 
+     * {@link Job#getHasJobBeenSubmittedToScheduler()} set to <code>false</code>
+     * will be returned.  
+     * @param showDeleted If <b>non</b> <code>null</code> only {@link Job} 
+     * with matching {@link Job#isDeleted()} will be returned.  If 
+     * <code>null</code> then {@link Job}s with
+     * {@link Job#isDeleted() () } set to <code>false</code>
+     * will be returned.
+     * @return {@link Query} object that can be used to return {@link Job} objects
+     * @throws Exception 
+     */
     private Query<Job> getJobsQuery(String owner, String status,
-           Boolean notSubmittedToScheduler, boolean noParams, 
-           boolean noWorkflowParams,final Boolean showDeleted) throws Exception {
+           Boolean notSubmittedToScheduler, 
+           final Boolean showDeleted) throws Exception {
          Query<Job> q = ofy().load().type(Job.class);
 
         if (status != null) {
@@ -167,7 +209,8 @@ public class JobObjectifyDAOImpl implements JobDAO {
         if (owner != null) {
             q = q.filter("_owner", owner);
         }
-        if (notSubmittedToScheduler == true) {
+        if (notSubmittedToScheduler != null && 
+                notSubmittedToScheduler == true) {
             q = q.filter("_hasJobBeenSubmittedToScheduler", false);
         }
 
@@ -186,7 +229,7 @@ public class JobObjectifyDAOImpl implements JobDAO {
            boolean noWorkflowParams,final Boolean showDeleted) throws Exception {
         
         Query<Job> q = getJobsQuery(owner,status,notSubmittedToScheduler,
-                noParams,noWorkflowParams,showDeleted);
+                showDeleted);
         
         if (noParams == false && noWorkflowParams == false) {
             return q.list();
@@ -210,10 +253,10 @@ public class JobObjectifyDAOImpl implements JobDAO {
 
     @Override
     public int getJobsCount(String owner, String status, 
-            Boolean notSubmittedToScheduler, boolean noParams, 
-            boolean noWorkflowParams, Boolean showDeleted) throws Exception {
+            Boolean notSubmittedToScheduler, 
+            Boolean showDeleted) throws Exception {
         Query<Job> q = getJobsQuery(owner,status,notSubmittedToScheduler,
-                noParams,noWorkflowParams,showDeleted);
+                showDeleted);
         return q.count();
     }
     
