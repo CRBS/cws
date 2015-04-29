@@ -232,7 +232,7 @@ public class JobRestService {
             // user can list everything so let them do whatever
             if (user.isAuthorizedTo(Permission.LIST_ALL_JOBS)) {
                 return _jobDAO.getJobsCount(owner, status, notSubmitted, 
-                        noParams, noWorkflowParams,showDeleted);
+                        showDeleted);
             }
             
             // user can only list their jobs so return error message if they try to
@@ -242,7 +242,7 @@ public class JobRestService {
                     throw new Exception("Not authorized to count jobs owned by "+owner);
                 }
                 return _jobDAO.getJobsCount(user.getLoginToRunJobAs(), status, 
-                        notSubmitted, noParams, noWorkflowParams,showDeleted);
+                        notSubmitted,showDeleted);
             }
             
             throw new WebApplicationException(HttpServletResponse.SC_UNAUTHORIZED);
