@@ -499,9 +499,9 @@ public class TestJobCmdScriptCreatorImpl {
         JobBinaries jb = new JobBinaries();
         jb.setKeplerScript(getAndCheckForTrueBinaryFile().getAbsolutePath());
         jb.setRegisterUpdateJar("register.jar");
-        jb.setJavaCommand("/bin/echo");
-        jb.setEchoCommand("/bin/echo");
-        jb.setMailCommand("cat >> email.${finishedMessage};/bin/echo ");
+        jb.setJavaCommand("echo");
+        jb.setEchoCommand("echo");
+        jb.setMailCommand("cat >> email.${finishedMessage};echo ");
         jb.setRetryCount(1);
         
         JobCmdScriptCreatorImpl scriptCreator = new JobCmdScriptCreatorImpl("/workflowsdir",
@@ -541,6 +541,7 @@ public class TestJobCmdScriptCreatorImpl {
         boolean pleaseFound = false;
         boolean contactFound = false;
         for (String line : lines){
+            System.out.println(line);
             if (line.startsWith("Dear")){
                 assertTrue(line.contains("Dear Unknown,"));
                 dearFound = true;
