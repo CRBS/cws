@@ -214,10 +214,7 @@ public class JobObjectifyDAOImpl implements JobDAO {
             q = q.filter("_hasJobBeenSubmittedToScheduler", false);
         }
 
-        if (showDeleted != null){
-            q = q.filter("_deleted",showDeleted);
-        }
-        else {
+        if (showDeleted == null || showDeleted == false){
             q = q.filter("_deleted",false);
         }
         return q;
@@ -282,7 +279,7 @@ public class JobObjectifyDAOImpl implements JobDAO {
         if (skipWorkflowCheck == false) {
 
             if (job.getWorkflow() == null) {
-                throw new Exception("Job Workflow cannot be null");
+                throw new NullPointerException("Job Workflow cannot be null");
             }
 
             if (job.getWorkflow().getId() == null || job.getWorkflow().getId() <= 0) {
@@ -292,7 +289,8 @@ public class JobObjectifyDAOImpl implements JobDAO {
             //the job otherwise it is an error
             Workflow wf = ofy().load().type(Workflow.class).id(job.getWorkflow().getId()).now();
             if (wf == null) {
-                throw new Exception("Unable to load Workflow for Job");
+                throw new Exception("Unable to load Workflow ("+
+                        job.getWorkflow().getId()+") for Job");
             }
         }
         
