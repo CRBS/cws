@@ -70,9 +70,7 @@ public class InputWorkspaceFileLinkObjectifyDAOImpl implements InputWorkspaceFil
         Key<Job> jobKey = Key.create(Job.class, jobId);
         q = q.filter("_job",jobKey);
         
-        if (showDeleted == null || showDeleted == false){
-            q = q.filter("_deleted",false);
-        }
+        q = addShowDeletedFilter(q, showDeleted);
         return q.list();
     }
     
@@ -84,10 +82,8 @@ public class InputWorkspaceFileLinkObjectifyDAOImpl implements InputWorkspaceFil
         Key<WorkspaceFile> workspaceFileKey = Key.create(WorkspaceFile.class, workspaceFileId);
         
         q = q.filter("_workspaceFile",workspaceFileKey);
-        
-        if (showDeleted == null || showDeleted == false){
-            q = q.filter("_deleted",false);
-        }
+        q = addShowDeletedFilter(q,showDeleted);
+
         return q;
     }
 
@@ -165,24 +161,32 @@ public class InputWorkspaceFileLinkObjectifyDAOImpl implements InputWorkspaceFil
      * Gets list of all {@link InputWorkspaceFileLink}s
      * @param showDeleted {@link InputWorkspaceFileLink}s with {@link InputWorkspaceFileLink#isDeleted()} will only
      * be displayed if this parameter is <b>NOT <code>null</code></b> and set to <b><code>true</code></b>
-     * @return List of {@link INputWorkspaceFileLink} objects
+     * @return List of {@link InputWorkspaceFileLink} objects
      * @throws Exception 
      */
     @Override
     public List<InputWorkspaceFileLink> getInputWorkspaceFileLinks(Boolean showDeleted) throws Exception {
         Query<InputWorkspaceFileLink> q = ofy().load().type(InputWorkspaceFileLink.class);
         
-        if (showDeleted != null){
-            q = q.filter("_deleted",showDeleted);
-        }
-        else {
-            q = q.filter("_deleted",false);
-        }
+        q = addShowDeletedFilter(q,showDeleted);
         return q.list();
     }
     
-    
-    
-    
-
+    /**
+     * Appends to <b>q</b> filter a <b>_deleted</b> <b>false</b> if <b>showDeleted</b>
+     * is <code>null</code> or <b>false</b> which when set constrains the results
+     * to only those {@link InputWorkspaceFileLink} objects which have 
+     * {@link InputWorkspaceFileLink#isDeleted()}
+     * set to <b>false</b>
+     * @param q
+     * @param showDeleted
+     * @return <b>q</b> with filter applied
+     */
+    private Query<InputWorkspaceFileLink> addShowDeletedFilter(Query<InputWorkspaceFileLink> q,
+            Boolean showDeleted){
+        if (showDeleted == null || showDeleted == false){
+            q = q.filter("_deleted",false);
+        }
+        return q;
+    }
 }
