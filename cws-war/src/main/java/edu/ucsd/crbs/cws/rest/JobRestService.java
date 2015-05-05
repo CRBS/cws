@@ -52,6 +52,8 @@ import edu.ucsd.crbs.cws.log.EventBuilder;
 import edu.ucsd.crbs.cws.log.EventBuilderImpl;
 import edu.ucsd.crbs.cws.workflow.Job;
 import edu.ucsd.crbs.cws.workflow.Workflow;
+import edu.ucsd.crbs.cws.workflow.report.DeleteReport;
+import edu.ucsd.crbs.cws.workflow.report.DeleteReportImpl;
 import edu.ucsd.crbs.cws.workflow.validate.JobValidator;
 import edu.ucsd.crbs.cws.workflow.validate.JobValidatorImpl;
 import java.util.List;
@@ -60,6 +62,7 @@ import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
@@ -512,6 +515,84 @@ public class JobRestService {
             throw wae;
         } catch (Exception ex) {
             _log.log(Level.SEVERE,"Caught Exception",ex);
+            throw new WebApplicationException(ex);
+        }
+    }
+    
+    @DELETE
+    @Path(Constants.JOB_ID_REST_PATH)
+    @Produces(MediaType.APPLICATION_JSON)
+    public DeleteReport delete(@PathParam(Constants.JOB_ID_PATH_PARAM) Long jobId,
+            @QueryParam(Constants.PERMANENTLY_DELETE_PARAM)final Boolean permanentlyDelete,
+            @QueryParam(Constants.USER_LOGIN_PARAM) final String userLogin,
+            @QueryParam(Constants.USER_TOKEN_PARAM) final String userToken,
+            @QueryParam(Constants.USER_LOGIN_TO_RUN_AS_PARAM) final String userLoginToRunAs,
+            @Context HttpServletRequest request) {
+        try {
+            User user = _authenticator.authenticate(request);
+            Event event = _eventBuilder.createEvent(request, user);
+            _log.info(event.getStringOfLocationData());
+            Job j = null;
+            DeleteReportImpl dwr = new DeleteReportImpl();
+            dwr.setId(jobId);
+            dwr.setSuccessful(false);
+            dwr.setReason("Unknown");
+            
+            if (!user.isAuthorizedTo(Permission.DELETE_ALL_JOBS)){
+                if (!user.isAuthorizedTo(Permission.DELETE_THEIR_JOBS)){
+                    dwr.setReason("Not authorized to delete");
+                    return dwr;
+                }
+                else {
+                    j = _jobDAO.getJobById(jobId.toString());
+                    if (j == null){
+                        dwr.setReason("Job ("+jobId+") not found");
+                        return dwr;
+                    }
+                    if (j.getOwner() == null){
+                        dwr.setReason("Job ("+jobId+") does not have owner");
+                        return dwr;
+                    }
+                    if (!user.getLoginToRunJobAs().equals(j.getOwner())){
+                        dwr.setReason(user.getLoginToRunJobAs()+
+                                " does not have permission to delete Job ("
+                                +jobId+")");
+                        return dwr;
+                    }
+                }
+            }
+            else {
+                j = _jobDAO.getJobById(jobId.toString());
+                if (j == null) {
+                    dwr.setReason("Job ("+jobId+") not found");
+                    return dwr;
+                }
+            }
+            
+            // delete workflow
+            DeleteReport retDwr = _jobDAO.delete(jobId,permanentlyDelete);
+            if (retDwr == null){
+                DeleteReportImpl failedDwr = new DeleteReportImpl();
+                failedDwr.setId(jobId);
+                failedDwr.setSuccessful(false);
+                failedDwr.setReason("Unknown");
+                return failedDwr;
+            }
+            
+            if (retDwr.isSuccessful()){
+                if (permanentlyDelete == null || permanentlyDelete == false){
+                     _eventDAO.neverComplainInsert(_eventBuilder.setAsLogicalDeleteJobEvent(event, j));
+                }
+                else {
+                     _eventDAO.neverComplainInsert(_eventBuilder.setAsDeleteJobEvent(event, j));
+                }
+            }
+            return retDwr;
+        }catch(WebApplicationException wae){
+            _log.log(Level.SEVERE,"Caught WebApplicationException",wae);
+            throw wae;
+        } catch(Exception ex){
+             _log.log(Level.SEVERE,"Caught Exception",ex);
             throw new WebApplicationException(ex);
         }
     }
