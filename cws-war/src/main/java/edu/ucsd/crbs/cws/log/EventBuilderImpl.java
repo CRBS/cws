@@ -318,9 +318,35 @@ public class EventBuilderImpl implements EventBuilder {
         event.setMessage(sb.toString());
         return event;
     }
-    
-    
-    
-    
-    
+
+    @Override
+    public Event setAsDeleteJobEvent(Event event, Job job) {
+        if (this.anyOfTheseObjectsNull(event,job) == true){
+             _log.log(Level.WARNING,"One or more parameters passed in is null.  Unable to log event.");
+            return null;
+        }
+        event.setJobId(job.getId());
+        event.setEventType(Event.DELETE_JOB_EVENT_TYPE);
+        event.setDate(new Date());
+        StringBuilder sb = new StringBuilder();
+        sb.append("Name=");
+        sb.append(nullSafeString(job.getName()));
+        
+        sb.append(",CreateDate=");
+        sb.append(nullSafeDateString(job.getCreateDate()));
+        event.setMessage(sb.toString());
+        return event;
+    }
+
+    @Override
+    public Event setAsLogicalDeleteJobEvent(Event event, Job job) {
+                if (this.anyOfTheseObjectsNull(event,job) == true){
+             _log.log(Level.WARNING,"One or more parameters passed in is null.  Unable to log event.");
+            return null;
+        }
+        event.setJobId(job.getId());
+        event.setEventType(Event.LOGICAL_DELETE_JOB_EVENT_TYPE);
+        event.setDate(new Date());
+        return event;
+    }
 }

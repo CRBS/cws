@@ -98,6 +98,16 @@ public class Event {
      */
     public static final String DELETE_WORKSPACEFILE_EVENT_TYPE = "deleteworkspacefile";
     
+    /**
+     * Deletion of Job
+     */
+    public static final String DELETE_JOB_EVENT_TYPE = "deletejob";
+    
+    /**
+     * Logical deletion of Job
+     */
+    public static final String LOGICAL_DELETE_JOB_EVENT_TYPE = "logicaldeletejob";
+    
     
     
     

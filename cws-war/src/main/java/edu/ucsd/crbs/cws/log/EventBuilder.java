@@ -129,5 +129,21 @@ public interface EventBuilder {
      */
     public Event setAsDeleteWorkspaceFileEvent(Event event, WorkspaceFile wsf);
     
+    /**
+     * Converts {@link Event} into what is known as Delete Job Event
+     * @param event
+     * @param job
+     * @return 
+     */
+    public Event setAsDeleteJobEvent(Event event,Job job);
+    
+    /**
+     * Converts {@link Event} into what is known as Logical Delete Job Event
+     * @param event
+     * @param job
+     * @return 
+     */
+    public Event setAsLogicalDeleteJobEvent(Event event,Job job);
+    
     
 }

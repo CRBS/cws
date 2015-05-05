@@ -375,5 +375,62 @@ public class TestEventBuilderImpl {
         assertTrue(resEvent.getMessage().equals("Name=bob,CreateDate="+
                 curDate.toString()+",Path=thepath"));
     }
+
     
+    @Test
+    public void testSetAsLogicalDeleteJobEvent(){
+        EventBuilderImpl builder = new EventBuilderImpl();
+        assertTrue(builder.setAsLogicalDeleteJobEvent(null, null) == null);
+        
+        Event e = new Event();
+        assertTrue(builder.setAsLogicalDeleteJobEvent(e, null) == null);
+
+        Job job = new Job();
+        assertTrue(builder.setAsLogicalDeleteJobEvent(null, job) == null);
+        
+        Event resEvent = builder.setAsLogicalDeleteJobEvent(e, job);
+        assertTrue(resEvent != null);
+        assertTrue(resEvent.getEventType().equals(Event.LOGICAL_DELETE_JOB_EVENT_TYPE));
+        assertTrue(resEvent.getDate() != null);
+        assertTrue(resEvent.getWorkspaceFileId() == null);
+        
+        job.setId(2L);
+        resEvent = builder.setAsLogicalDeleteJobEvent(e, job);
+        assertTrue(resEvent != null);
+        assertTrue(resEvent.getEventType().equals(Event.LOGICAL_DELETE_JOB_EVENT_TYPE));
+        assertTrue(resEvent.getDate() != null);
+        assertTrue(resEvent.getJobId() == 2L);
+    }
+    
+    @Test
+    public void testSetAsDeleteJobEvent(){
+        EventBuilderImpl builder = new EventBuilderImpl();
+        assertTrue(builder.setAsDeleteJobEvent(null, null) == null);
+        
+        Event e = new Event();
+        assertTrue(builder.setAsDeleteJobEvent(e, null) == null);
+
+        Job job = new Job();
+        assertTrue(builder.setAsDeleteJobEvent(null, job) == null);
+        
+        Event resEvent = builder.setAsDeleteJobEvent(e, job);
+        assertTrue(resEvent != null);
+        assertTrue(resEvent.getEventType().equals(Event.DELETE_JOB_EVENT_TYPE));
+        assertTrue(resEvent.getDate() != null);
+        assertTrue(resEvent.getJobId() == null);
+        assertTrue(resEvent.getMessage().equals("Name=null,CreateDate=null"));
+        
+        job.setId(2L);
+        Date curDate = new Date();
+        job.setCreateDate(curDate);
+        job.setName("bob");
+        
+        resEvent = builder.setAsDeleteJobEvent(e, job);
+        assertTrue(resEvent != null);
+        assertTrue(resEvent.getEventType().equals(Event.DELETE_JOB_EVENT_TYPE));
+        assertTrue(resEvent.getDate() != null);
+        assertTrue(resEvent.getJobId()== 2L);
+        assertTrue(resEvent.getMessage().equals("Name=bob,CreateDate="+
+                curDate.toString()));
+    }
 }
