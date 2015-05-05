@@ -54,6 +54,7 @@ import edu.ucsd.crbs.cws.log.EventBuilderImpl;
 import edu.ucsd.crbs.cws.servlet.ServletUtil;
 import edu.ucsd.crbs.cws.workflow.Workflow;
 import edu.ucsd.crbs.cws.workflow.WorkflowParameter;
+import edu.ucsd.crbs.cws.workflow.report.DeleteReport;
 import edu.ucsd.crbs.cws.workflow.report.DeleteReportImpl;
 import java.util.List;
 import java.util.logging.Level;
@@ -293,7 +294,7 @@ public class WorkflowRestService {
     @Path(Constants.WORKFLOW_ID_REST_PATH)
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public DeleteReportImpl deleteWorkflow(@PathParam(Constants.WORKFLOW_ID_PATH_PARAM)final Long workflowId,
+    public DeleteReport deleteWorkflow(@PathParam(Constants.WORKFLOW_ID_PATH_PARAM)final Long workflowId,
             @QueryParam(Constants.PERMANENTLY_DELETE_PARAM)final Boolean permanentlyDelete,
             @QueryParam(Constants.USER_LOGIN_PARAM) final String userLogin,
             @QueryParam(Constants.USER_TOKEN_PARAM) final String userToken,
@@ -311,7 +312,8 @@ public class WorkflowRestService {
             
             if (!user.isAuthorizedTo(Permission.DELETE_ALL_WORKFLOWS)){
                 if (!user.isAuthorizedTo(Permission.DELETE_THEIR_WORKFLOWS)){
-                    throw new WebApplicationException(HttpServletResponse.SC_UNAUTHORIZED);
+                    dwr.setReason("Not authorized to delete");
+                    return dwr;
                 }
                 else {
                     w = _workflowDAO.getWorkflowById(workflowId.toString(),user);
