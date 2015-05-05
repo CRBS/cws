@@ -37,10 +37,12 @@ import com.google.appengine.tools.development.testing.LocalBlobstoreServiceTestC
 import com.google.appengine.tools.development.testing.LocalDatastoreServiceTestConfig;
 import com.google.appengine.tools.development.testing.LocalServiceTestHelper;
 import static edu.ucsd.crbs.cws.dao.objectify.OfyService.ofy;
+import edu.ucsd.crbs.cws.workflow.InputWorkspaceFileLink;
 import edu.ucsd.crbs.cws.workflow.Job;
 import edu.ucsd.crbs.cws.workflow.Parameter;
 import edu.ucsd.crbs.cws.workflow.Workflow;
 import edu.ucsd.crbs.cws.workflow.WorkflowParameter;
+import edu.ucsd.crbs.cws.workflow.WorkspaceFile;
 import edu.ucsd.crbs.cws.workflow.report.DeleteReport;
 import java.util.ArrayList;
 import java.util.Date;
@@ -613,10 +615,17 @@ public class TestJobObjectifyDAOImpl {
         assertTrue(resJob.getId() != null);
     }
     
-    /*test insert job with parameters and skip workflow true, 1 param is a file
+    //test insert job with parameters and skip workflow true, 1 param is a file
     @Test
-    public void testInsertWhereNoParamsAreFileParams() throws Exception {
-        JobObjectifyDAOImpl jobDAO = new JobObjectifyDAOImpl(null);
+    public void testInsertWhereOneParamIsFile() throws Exception {
+        InputWorkspaceFileLinkObjectifyDAOImpl inputDAO = new InputWorkspaceFileLinkObjectifyDAOImpl();
+        JobObjectifyDAOImpl jobDAO = new JobObjectifyDAOImpl(inputDAO);
+        WorkspaceFileObjectifyDAOImpl workspaceDAO = new WorkspaceFileObjectifyDAOImpl(jobDAO,inputDAO);
+        
+        WorkspaceFile wsf = new WorkspaceFile();
+        wsf.setName("bob");
+        workspaceDAO.insert(wsf,false);
+        
         Job j = new Job();
         ArrayList<Parameter> params = new ArrayList<Parameter>();
         Parameter p = new Parameter();
@@ -625,8 +634,9 @@ public class TestJobObjectifyDAOImpl {
         params.add(p);
         
         p = new Parameter();
-        p.setName("3");
-        p.setValue("val2");
+        p.setName("foo2");
+        p.setValue(wsf.getId().toString());
+        p.setIsWorkspaceId(true);
         params.add(p);
         
         p = new Parameter();
@@ -637,7 +647,13 @@ public class TestJobObjectifyDAOImpl {
         Job resJob = jobDAO.insert(j, true);
         assertTrue(resJob != null);
         assertTrue(resJob.getId() != null);
+        
+        List<InputWorkspaceFileLink> linkList = inputDAO.getInputWorkspaceFileLinks(null);
+        assertTrue(linkList.size() == 1);
+        assertTrue(linkList.get(0).getWorkspaceFile().getId() == wsf.getId().longValue());
+        assertTrue(linkList.get(0).getParameterName().equals("foo2"));
+        
     }
-    */
+    
 
 }
