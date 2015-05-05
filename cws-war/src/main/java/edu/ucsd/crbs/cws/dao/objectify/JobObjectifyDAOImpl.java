@@ -318,9 +318,11 @@ public class JobObjectifyDAOImpl implements JobDAO {
     }
 
     /**
-     * Updates {@link Job} with id <b>jobId</b>
-     * @param jobId
-     * @param status
+     * Updates {@link Job} with id <b>jobId</b> Any values below if 
+     * <b>non</b> <code>null</b> will be set in the {@link Job} matching
+     * <b>jobId</b>
+     * @param jobId Must be set to a valid {@link Job#getId()} value
+     * @param status 
      * @param estCpu
      * @param estRunTime
      * @param estDisk
@@ -333,9 +335,8 @@ public class JobObjectifyDAOImpl implements JobDAO {
      * @param error
      * @param detailedError
      * @return
-     * @deprecated Please use {@link #update(edu.ucsd.crbs.cws.workflow.Job, 
-     * java.lang.Boolean, java.lang.Boolean, java.lang.Long, java.lang.Long,
-     * java.lang.Long) }
+     * @deprecated Please use
+     * {@link JobDAO#update(edu.ucsd.crbs.cws.workflow.Job)}
      * @throws Exception 
      */
     @Override
@@ -348,32 +349,83 @@ public class JobObjectifyDAOImpl implements JobDAO {
             final String error,
             final String detailedError) throws Exception {
 
-        Job tempJob = new Job();
-        tempJob.setId(jobId);
-        tempJob.setStatus(status);
+        Job tempJob = this.getJobById(Long.toString(jobId));
+        
+        if (tempJob == null){
+            return null;
+        }
+        boolean updated = false;
+        if (status != null){
+            updated = true;
+            tempJob.setStatus(status);
+        }
+        if (estCpu != null){
+            updated = true;
+            tempJob.setEstimatedCpuInSeconds(estCpu);
+        }
+        if (estRunTime != null){
+            updated = true;
+            tempJob.setEstimatedRunTimeInSeconds(estRunTime);
+        }
+        if (estDisk != null){
+            updated = true;
+            tempJob.setEstimatedDiskInBytes(estDisk);
+        }
         if (submitDate != null){
+            updated = true;
             tempJob.setSubmitDate(new Date(submitDate));
         }
         if (startDate != null){
+            updated = true;
             tempJob.setStartDate(new Date(startDate));
         }
         if (finishDate != null){
+            updated = true;
             tempJob.setFinishDate(new Date(finishDate));
         }
-        tempJob.setSchedulerJobId(schedulerJobId);
-        tempJob.setError(error);
-        tempJob.setDetailedError(detailedError);
-        
-        return update(tempJob);
+        if (submittedToScheduler != null){
+            updated = true;
+            tempJob.setHasJobBeenSubmittedToScheduler(submittedToScheduler);
+        }
+        if (schedulerJobId != null){
+            updated = true;
+            tempJob.setSchedulerJobId(schedulerJobId);
+        }
+        if (deleted != null){
+            updated = true;
+            tempJob.setDeleted(deleted);
+        }
+        if (error != null){
+            updated = true;
+            tempJob.setError(error);
+        }
+        if (detailedError != null){
+            updated = true;
+            tempJob.setDetailedError(detailedError);
+        }
+        if (updated == true){
+           return update(tempJob);
+        }
+        return tempJob;
     }
 
+    /**
+     * Updates {@link Job} in Data store with <b>job</b> passed in.  <p/>
+     * <b>NOTE:</b> It is suggested to load {@link Job} via 
+     * {@link JobDAO#getJobById(java.lang.String) } make changes and then pass
+     * it to this method.
+     * @param job Must have {@link Job#getId()} set 
+     * @return Updated {@link Job}
+     * @throws Exception if {@link Job#getId()} is not set for {@link Job} 
+     * @throws NullPointerException if <b>job</b> passed in is <code>null</code>
+     */
     @Override
     public Job update(final Job job) throws Exception {
         if (job == null){
-            throw new IllegalArgumentException("Job cannot be null");
+            throw new NullPointerException("Job cannot be null");
         }
         if (job.getId() == null){
-            throw new Exception("Id must be set");
+            throw new Exception("Id must be set for Job");
         }
         ofy().save().entity(job).now();
         return job;
@@ -434,7 +486,7 @@ public class JobObjectifyDAOImpl implements JobDAO {
             DeleteReport dr = _workspaceFileDAO.delete(wsfList.get(0).getId(), 
                         permanentlyDelete, true);
             if (dr.isSuccessful() == false){
-                dwr.setReason("Unable to delete Workspace File ("+dr.getId()+
+                dwr.setReason("Unable to delete WorkspaceFile ("+dr.getId()+
                         ") : "+dr.getReason());
                 return dwr;
             }
