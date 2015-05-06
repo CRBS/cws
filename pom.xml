@@ -3,12 +3,12 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>edu.ucsd.crbs.cws</groupId>
   <artifactId>cws</artifactId>
-  <version>1.24-SNAPSHOT</version>
+  <version>1.25-SNAPSHOT</version>
   <packaging>pom</packaging>
   
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <appengine.target.version>1.9.18</appengine.target.version>
+    <appengine.target.version>1.9.20</appengine.target.version>
     <appengine.application.name>REPLACE_WITH_YOUR_APPLICATION_NAME_FROM_GAE</appengine.application.name>
     <maven.compiler.source>1.7</maven.compiler.source>
     <maven.compiler.target>1.7</maven.compiler.target>
