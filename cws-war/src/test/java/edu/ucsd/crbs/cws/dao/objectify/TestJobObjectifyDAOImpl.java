@@ -1250,6 +1250,8 @@ public class TestJobObjectifyDAOImpl {
         Job j = new Job();
         j.setName("bob");
         j = jobDAO.insert(j, true);
+        assertTrue(j.getName().equals("bob"));
+
         j.setName(null);
         j = jobDAO.update(j);
         assertTrue(j.getName() == null);
