@@ -424,6 +424,23 @@ public class TestJobRestService {
             assertTrue(wae.getResponse().getStatus() == HttpServletResponse.SC_UNAUTHORIZED);
         }
     }
+    
+    @Test
+    public void testUpdateNotAuthorized() throws Exception {
+        Authenticator auth = mock(Authenticator.class);
+        HttpServletRequest request = mock(HttpServletRequest.class);
+        User u = new User();
+        when(auth.authenticate(request)).thenReturn(u);
+        JobRestService jrs = new JobRestService();
+        jrs.setAuthenticator(auth);
+        try {
+            jrs.update(1L,null, null, null, null, null, request);
+            fail("Expected exception");
+        }
+        catch(WebApplicationException wae){
+            assertTrue(wae.getResponse().getStatus() == HttpServletResponse.SC_UNAUTHORIZED);
+        }
+    }
 
     //test updateJob update job their authorized but job not owned by them
     @Test
@@ -452,6 +469,29 @@ public class TestJobRestService {
         }
     }
     
+     @Test
+    public void testUpdateTheirAuthorizedJobNotOwnedByThem() throws Exception {
+        Authenticator auth = mock(Authenticator.class);
+        HttpServletRequest request = mock(HttpServletRequest.class);
+        User u = new User();
+        u.setPermissions(Permission.UPDATE_THEIR_JOBS);
+        u.setLogin("bob");
+        when(auth.authenticate(request)).thenReturn(u);
+        
+        JobObjectifyDAOImpl jobDAO = new JobObjectifyDAOImpl(null);
+        Job j = new Job();
+        j.setOwner("joe");
+        j = jobDAO.insert(j, true);
+        JobRestService jrs = new JobRestService();
+        jrs.setAuthenticator(auth);
+        try {
+        j = jrs.update(j.getId(),j,
+                null, null,null, null, request);
+        }catch(WebApplicationException wae){
+            assertTrue(":"+wae.getMessage()+":",
+                    wae.getMessage().contains("Error retrieving Job or not authorized"));
+        }
+    }
     //test updateJob update job all authorized
     @Test
     public void testUpdateJobAllAuthorized() throws Exception {
@@ -484,10 +524,127 @@ public class TestJobRestService {
         assertTrue(j.getDetailedError().equals("10"));
     }
     
-    
+    @Test
+    public void testUpdateAllAuthorized() throws Exception {
+        Authenticator auth = mock(Authenticator.class);
+        HttpServletRequest request = mock(HttpServletRequest.class);
+        User u = new User();
+        u.setPermissions(Permission.UPDATE_ALL_JOBS);
+        when(auth.authenticate(request)).thenReturn(u);
+        
+        JobObjectifyDAOImpl jobDAO = new JobObjectifyDAOImpl(null);
+        Job j = new Job();
+        j = jobDAO.insert(j, true);
+        JobRestService jrs = new JobRestService();
+        jrs.setAuthenticator(auth);
+        j.setStatus("0");
+        
+        j = jrs.update(j.getId(), j,null, null,null, null, request);
+        assertTrue(j.getStatus().equals("0"));
+        
+    }
+ 
+       @Test
+    public void testUpdateTheirAuthorizedAndResaveSetToFalse() throws Exception {
+        Authenticator auth = mock(Authenticator.class);
+        HttpServletRequest request = mock(HttpServletRequest.class);
+        User u = new User();
+        u.setLogin("bob");
+        u.setPermissions(Permission.UPDATE_THEIR_JOBS);
+        when(auth.authenticate(request)).thenReturn(u);
+        
+        JobObjectifyDAOImpl jobDAO = new JobObjectifyDAOImpl(null);
+        Job j = new Job();
+        j.setOwner("bob");
+        j = jobDAO.insert(j, true);
+        JobRestService jrs = new JobRestService();
+        jrs.setAuthenticator(auth);
+        j.setStatus("0");
+        
+        j = jrs.update(j.getId(), j,null, null,null, Boolean.FALSE, request);
+        assertTrue(j.getStatus().equals("0"));
+        
+    }
+ 
 
     //test updateJob update job their authorized
+    @Test
+    public void testUpdateJobTheirAuthorizedAndResaveSetToFalse() throws Exception {
+        Authenticator auth = mock(Authenticator.class);
+        HttpServletRequest request = mock(HttpServletRequest.class);
+        User u = new User();
+        u.setLogin("bob");
+        u.setPermissions(Permission.UPDATE_THEIR_JOBS);
+        when(auth.authenticate(request)).thenReturn(u);
+        
+        JobObjectifyDAOImpl jobDAO = new JobObjectifyDAOImpl(null);
+        Job j = new Job();
+        j.setOwner("bob");
+        j = jobDAO.insert(j, true);
+        JobRestService jrs = new JobRestService();
+        jrs.setAuthenticator(auth);
+        j = jrs.updateJob(j.getId(), "0", 1L, 2L,
+                    3L, 4L, 5L, 
+                    6L, Boolean.TRUE, "8", Boolean.TRUE,
+                    "9", "10",null, null,null, Boolean.FALSE, request);
+        assertTrue(j.getStatus().equals("0"));
+        assertTrue(j.getEstimatedCpuInSeconds() == 1L);
+        assertTrue(j.getEstimatedRunTimeInSeconds() == 2L);
+        assertTrue(j.getEstimatedDiskInBytes() == 3L);
+        assertTrue(j.getSubmitDate().getTime() == 4L);
+        assertTrue(j.getStartDate().getTime() == 5L);
+        assertTrue(j.getFinishDate().getTime() == 6L);
+        assertTrue(j.getHasJobBeenSubmittedToScheduler() == true);
+        assertTrue(j.getSchedulerJobId().equals("8"));
+        assertTrue(j.isDeleted() == true);
+        assertTrue(j.getError().equals("9"));
+        assertTrue(j.getDetailedError().equals("10"));
+    }
 
     //test updateJob resave flag true
+    @Test
+    public void testUpdateJobTheirAuthorizedResaveSetToTrue() throws Exception {
+        Authenticator auth = mock(Authenticator.class);
+        HttpServletRequest request = mock(HttpServletRequest.class);
+        User u = new User();
+        u.setLogin("bob");
+        u.setLoginToRunJobAs("joe");
+        u.setPermissions(Permission.UPDATE_THEIR_JOBS);
+        when(auth.authenticate(request)).thenReturn(u);
+        
+        JobObjectifyDAOImpl jobDAO = new JobObjectifyDAOImpl(null);
+        Job j = new Job();
+        j.setOwner("joe");
+        j = jobDAO.insert(j, true);
+        JobRestService jrs = new JobRestService();
+        jrs.setAuthenticator(auth);
+        j = jrs.updateJob(j.getId(), "0", 1L, 2L,
+                    3L, 4L, 5L, 
+                    6L, Boolean.TRUE, "8", Boolean.TRUE,
+                    "9", "10",null, null,null, Boolean.TRUE, request);
+        assertTrue(j.getStatus() == null);
+    }
     
+    @Test
+    public void testUpdateTheirAuthorizedResaveSetToTrue() throws Exception {
+        Authenticator auth = mock(Authenticator.class);
+        HttpServletRequest request = mock(HttpServletRequest.class);
+        User u = new User();
+        u.setLogin("bob");
+        u.setLoginToRunJobAs("joe");
+        u.setPermissions(Permission.UPDATE_THEIR_JOBS);
+        when(auth.authenticate(request)).thenReturn(u);
+        
+        JobObjectifyDAOImpl jobDAO = new JobObjectifyDAOImpl(null);
+        Job j = new Job();
+        j.setOwner("joe");
+        
+        j = jobDAO.insert(j, true);
+        JobRestService jrs = new JobRestService();
+        jrs.setAuthenticator(auth);
+        j.setStatus("hello");
+        j = jrs.update(j.getId(), j,
+                    null, null,null, Boolean.TRUE, request);
+        assertTrue(j.getStatus() == null);
+    }
 }

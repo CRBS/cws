@@ -378,25 +378,9 @@ public class JobRestService {
                 _log.info("Job id is null.  wtf");
                 throw new WebApplicationException();
             }
-            Job job = null;
             _log.log(Level.INFO, "Job id is: {0}", jobId.toString());
 
-            if (!user.isAuthorizedTo(Permission.UPDATE_ALL_JOBS)) {
-                if (!user.isAuthorizedTo(Permission.UPDATE_THEIR_JOBS)){
-                    throw new WebApplicationException(HttpServletResponse.SC_UNAUTHORIZED);
-                }
-                job = _jobDAO.getJobByIdAndUser(jobId.toString(),
-                        user.getLoginToRunJobAs());
-                if (job == null){
-                    throw new Exception("Error retrieving Job or not authorized");
-                }
-            }
-            else {
-                job = _jobDAO.getJobById(jobId.toString());
-                if (job == null){
-                    throw new WebApplicationException(HttpServletResponse.SC_NOT_FOUND);
-                }
-            }
+            Job job = getJobIfAuthorizedToUpdate(user,jobId);
             
             if (resave != null && resave == true){
                     return _jobDAO.resave(jobId);
@@ -415,7 +399,41 @@ public class JobRestService {
         }
     }
 
+    private Job getJobIfAuthorizedToUpdate(User user,Long jobId) throws Exception {
+        Job job = null;
+        
+        if (!user.isAuthorizedTo(Permission.UPDATE_ALL_JOBS)) {
+                if (!user.isAuthorizedTo(Permission.UPDATE_THEIR_JOBS)){
+                    throw new WebApplicationException(HttpServletResponse.SC_UNAUTHORIZED);
+                }
+                job = _jobDAO.getJobByIdAndUser(jobId.toString(),
+                        user.getLoginToRunJobAs());
+                if (job == null){
+                    throw new Exception("Error retrieving Job or not authorized");
+                }
+                return job;
+        }
+        
+        job = _jobDAO.getJobById(jobId.toString());
+        if (job == null){
+            throw new WebApplicationException(HttpServletResponse.SC_NOT_FOUND);
+        }          
+        return job;
+    }
     
+    /**
+     * Updates {@link Job} with {@link Job#getId()} matching <b>jobId</b> with
+     * <b>job</b> passed in as JSON.  NOTE:  id of <b>job</b> will be replaced
+     * with <b>jobId</b>
+     * @param jobId
+     * @param job
+     * @param userLogin
+     * @param userToken
+     * @param userLoginToRunAs
+     * @param resave
+     * @param request
+     * @return 
+     */
     @PUT
     @Path(Constants.JOB_ID_REST_PATH)
     @Consumes(MediaType.APPLICATION_JSON)
@@ -425,40 +443,27 @@ public class JobRestService {
             @QueryParam(Constants.USER_LOGIN_PARAM) final String userLogin,
             @QueryParam(Constants.USER_TOKEN_PARAM) final String userToken,
             @QueryParam(Constants.USER_LOGIN_TO_RUN_AS_PARAM) final String userLoginToRunAs,
-            @QueryParam(Constants.RESAVE_QUERY_PARAM) final String resave,
+            @QueryParam(Constants.RESAVE_QUERY_PARAM) final Boolean resave,
             @Context HttpServletRequest request) {
 
         try {
             User user = _authenticator.authenticate(request);
             Event event = _eventBuilder.createEvent(request, user);
             _log.info(event.getStringOfLocationData());
-            if (jobId != null) {
-                _log.log(Level.INFO, "Job id is: {0}", jobId.toString());
-            } else {
-                job.setId(jobId);
-                _log.log(Level.INFO,"Job id not set in Json setting to {0}",
-                        job.getId());
+            
+            getJobIfAuthorizedToUpdate(user,jobId);
+            
+            if (resave != null && resave ==true){
+                return _jobDAO.resave(jobId);
             }
-
-            if (user.isAuthorizedTo(Permission.UPDATE_ALL_JOBS)) {
-                if (resave != null && resave.equalsIgnoreCase("true")){
-                    return _jobDAO.resave(jobId);
-                }
-                return _jobDAO.update(job);
+            if (job == null){
+                throw new Exception("Job passed in is null");
             }
-            if (user.isAuthorizedTo(Permission.UPDATE_THEIR_JOBS)){
-                Job checkJob = _jobDAO.getJobByIdAndUser(jobId.toString(),
-                        user.getLoginToRunJobAs());
-                if (checkJob == null){
-                    throw new Exception("Error retrieving Job or not authorized");
-                }
-                if (resave != null && resave.equalsIgnoreCase("true")){
-                    return _jobDAO.resave(jobId);
-                }
-                return _jobDAO.update(job);
-            }
-
-            throw new WebApplicationException(HttpServletResponse.SC_UNAUTHORIZED);
+            job.setId(jobId);
+            _log.log(Level.INFO,"Job id set to {0}",job.getId());
+            
+            return _jobDAO.update(job);
+            
         }catch(WebApplicationException wae){
             _log.log(Level.SEVERE,"Caught WebApplicationException",wae);
             throw wae;
