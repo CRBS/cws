@@ -112,6 +112,14 @@ public class JobRestService {
     
     static OutputWorkspaceFileUtil _workspaceFileUtil = new OutputWorkspaceFileUtilImpl(_workspaceFileDAO);
 
+    public void setAuthenticator(Authenticator auth){
+        _authenticator = auth;
+    }
+    
+    public void setValidator(JobValidator validator){
+        _validator = validator;
+    }
+    
     /**
      * HTTP GET call that gets a list of all jobs. The list can be filtered
      * with various query parameters (ie parameters that are in the end of the
@@ -174,16 +182,19 @@ public class JobRestService {
             
             // user can list everything so let them do whatever
             if (user.isAuthorizedTo(Permission.LIST_ALL_JOBS)) {
-                return _jobDAO.getJobs(owner, status, notSubmitted, noParams, noWorkflowParams,showDeleted);
+                return _jobDAO.getJobs(owner, status, notSubmitted, noParams, 
+                        noWorkflowParams,showDeleted);
             }
             
             // user can only list their jobs so return error message if they try to
             // list jobs for another user otherwise use their login
             if (user.isAuthorizedTo(Permission.LIST_THEIR_JOBS)){
                 if (owner != null && !owner.equals(user.getLoginToRunJobAs())){
-                    throw new Exception("Not authorized to list jobs owned by "+owner);
+                    throw new Exception("Not authorized to list jobs owned by "+
+                            owner);
                 }
-                return _jobDAO.getJobs(user.getLoginToRunJobAs(), status, notSubmitted, noParams, noWorkflowParams,showDeleted);
+                return _jobDAO.getJobs(user.getLoginToRunJobAs(), status, 
+                        notSubmitted, noParams, noWorkflowParams,showDeleted);
             }
             
             throw new WebApplicationException(HttpServletResponse.SC_UNAUTHORIZED);
@@ -308,8 +319,8 @@ public class JobRestService {
 
     /**
      * Need updateTask method which consumes @POST along with parameters to
-     * update Should take a {@link Job}, but use a transaction to load and only modify
-     * the fields the caller wants changed
+     * update Should take a {@link Job}, but use a transaction to load and 
+     * only modify the fields the caller wants changed
      *
      * @param jobId
      * @param status
@@ -355,43 +366,46 @@ public class JobRestService {
             @QueryParam(Constants.USER_LOGIN_PARAM) final String userLogin,
             @QueryParam(Constants.USER_TOKEN_PARAM) final String userToken,
             @QueryParam(Constants.USER_LOGIN_TO_RUN_AS_PARAM) final String userLoginToRunAs,
-            @QueryParam(Constants.RESAVE_QUERY_PARAM) final String resave,
+            @QueryParam(Constants.RESAVE_QUERY_PARAM) final Boolean resave,
             @Context HttpServletRequest request) {
 
         try {
             User user = _authenticator.authenticate(request);
             Event event = _eventBuilder.createEvent(request, user);
             _log.info(event.getStringOfLocationData());
-            if (jobId != null) {
-                _log.log(Level.INFO, "Job id is: {0}", jobId.toString());
-            } else {
+
+            if (jobId == null) {
                 _log.info("Job id is null.  wtf");
                 throw new WebApplicationException();
             }
+            Job job = null;
+            _log.log(Level.INFO, "Job id is: {0}", jobId.toString());
 
-            if (user.isAuthorizedTo(Permission.UPDATE_ALL_JOBS)) {
-                if (resave != null && resave.equalsIgnoreCase("true")){
-                    return _jobDAO.resave(jobId);
+            if (!user.isAuthorizedTo(Permission.UPDATE_ALL_JOBS)) {
+                if (!user.isAuthorizedTo(Permission.UPDATE_THEIR_JOBS)){
+                    throw new WebApplicationException(HttpServletResponse.SC_UNAUTHORIZED);
                 }
-                return _jobDAO.update(jobId, status, estCpu, estRunTime, estDisk,
-                        submitDate, startDate, finishDate, submittedToScheduler,
-                        schedulerJobId,deleted,error,detailedError);
-            }
-            if (user.isAuthorizedTo(Permission.UPDATE_THEIR_JOBS)){
-                Job job = _jobDAO.getJobByIdAndUser(jobId.toString(),
+                job = _jobDAO.getJobByIdAndUser(jobId.toString(),
                         user.getLoginToRunJobAs());
                 if (job == null){
                     throw new Exception("Error retrieving Job or not authorized");
                 }
-                if (resave != null && resave.equalsIgnoreCase("true")){
-                    return _jobDAO.resave(jobId);
+            }
+            else {
+                job = _jobDAO.getJobById(jobId.toString());
+                if (job == null){
+                    throw new WebApplicationException(HttpServletResponse.SC_NOT_FOUND);
                 }
-                return _jobDAO.update(jobId, status, estCpu, estRunTime, estDisk,
+            }
+            
+            if (resave != null && resave == true){
+                    return _jobDAO.resave(jobId);
+            }
+            
+            return _jobDAO.update(jobId, status, estCpu, estRunTime, estDisk,
                         submitDate, startDate, finishDate, submittedToScheduler,
                         schedulerJobId,deleted,error,detailedError);
-            }
-
-            throw new WebApplicationException(HttpServletResponse.SC_UNAUTHORIZED);
+    
         }catch(WebApplicationException wae){
             _log.log(Level.SEVERE,"Caught WebApplicationException",wae);
             throw wae;
@@ -422,7 +436,7 @@ public class JobRestService {
                 _log.log(Level.INFO, "Job id is: {0}", jobId.toString());
             } else {
                 job.setId(jobId);
-                _log.log(Level.INFO,"Job id not set in Json settting to {0}",
+                _log.log(Level.INFO,"Job id not set in Json setting to {0}",
                         job.getId());
             }
 
