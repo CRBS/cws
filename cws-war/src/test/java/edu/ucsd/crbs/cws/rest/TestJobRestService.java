@@ -544,7 +544,7 @@ public class TestJobRestService {
         
     }
  
-       @Test
+    @Test
     public void testUpdateTheirAuthorizedAndResaveSetToFalse() throws Exception {
         Authenticator auth = mock(Authenticator.class);
         HttpServletRequest request = mock(HttpServletRequest.class);
