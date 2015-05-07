@@ -1146,6 +1146,10 @@ public class App {
         user.setToken("sometokenxxxxxx");
         user.setPermissions(Permission.CREATE_USER);
         user.setIpAddress("127.0.0.1");
+        ArrayList<String> ipaddresses = new ArrayList<String>();
+        ipaddresses.add("192.168.0.1");
+        ipaddresses.add("192.168.0.1");
+        user.setAllowedIpAddresses(ipaddresses);
         return user;
     }
  
