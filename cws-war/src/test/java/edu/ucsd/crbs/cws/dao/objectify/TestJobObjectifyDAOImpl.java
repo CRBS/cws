@@ -81,6 +81,7 @@ public class TestJobObjectifyDAOImpl {
     @BeforeClass
     public static void setUpClass() {
         Logger.getLogger(JobObjectifyDAOImpl.class.getName()).setLevel(Level.OFF);
+        Logger.getLogger(WorkspaceFileObjectifyDAOImpl.class.getName()).setLevel(Level.OFF);
     }
 
     @AfterClass
@@ -962,7 +963,7 @@ public class TestJobObjectifyDAOImpl {
                 null,
                 null);
         assertTrue(resJob.getId() == j.getId().longValue());
-        assertTrue(resJob.getEstimatedRunTimeInSeconds() == 1L);
+        assertTrue(resJob.getEstimatedWallTimeInSeconds() == 1L);
     }
 
     @Test
@@ -1207,7 +1208,7 @@ public class TestJobObjectifyDAOImpl {
         assertTrue(resJob.getId() == j.getId().longValue());
         assertTrue(resJob.getStatus().equals("status"));
         assertTrue(resJob.getEstimatedCpuInSeconds() == 1L);
-        assertTrue(resJob.getEstimatedRunTimeInSeconds() == 2L);
+        assertTrue(resJob.getEstimatedWallTimeInSeconds() == 2L);
         assertTrue(resJob.getEstimatedDiskInBytes() == 3L);
         assertTrue(resJob.getSubmitDate().getTime() == 4L);
         assertTrue(resJob.getStartDate().getTime() == 5L);
