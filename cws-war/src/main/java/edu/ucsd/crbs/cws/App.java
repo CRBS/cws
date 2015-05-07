@@ -1031,7 +1031,7 @@ public class App {
         j.setDownloadURL("http://foo.com/asdflkj");
         j.setEstimatedCpuInSeconds(5345);
         j.setEstimatedDiskInBytes(234234234L);
-        j.setEstimatedRunTimeInSeconds(334343);
+        j.setEstimatedWallTimeInSeconds(334343);
         j.setFinishDate(new Date());
         j.setStatus(Job.RUNNING_STATUS);
         j.setSchedulerJobId("12322");
