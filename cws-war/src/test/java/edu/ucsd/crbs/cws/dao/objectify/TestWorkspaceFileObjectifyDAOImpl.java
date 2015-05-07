@@ -241,7 +241,7 @@ public class TestWorkspaceFileObjectifyDAOImpl {
                 null, false);
         assertTrue(dwr != null);
         assertTrue(dwr.isSuccessful() == false);
-        assertTrue(dwr.getReason().equals("Cannot delete WorkspaceFile it is output of job ("+j.getId()+" "+j.getName()));
+        assertTrue(dwr.getReason().equals("Cannot delete WorkspaceFile it is output of job ("+j.getId()+") "+j.getName()));
     }
     
     
