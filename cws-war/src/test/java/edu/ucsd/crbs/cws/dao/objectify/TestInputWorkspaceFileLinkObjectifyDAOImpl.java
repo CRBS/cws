@@ -33,6 +33,7 @@
 
 package edu.ucsd.crbs.cws.dao.objectify;
 
+import com.google.appengine.api.datastore.dev.LocalDatastoreService;
 import com.google.appengine.tools.development.testing.LocalBlobstoreServiceTestConfig;
 import com.google.appengine.tools.development.testing.LocalDatastoreServiceTestConfig;
 import com.google.appengine.tools.development.testing.LocalServiceTestHelper;
@@ -42,6 +43,8 @@ import edu.ucsd.crbs.cws.workflow.Job;
 import edu.ucsd.crbs.cws.workflow.WorkspaceFile;
 import java.util.List;
 import java.util.Objects;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.junit.After;
 import org.junit.AfterClass;
 import static org.junit.Assert.assertTrue;
@@ -70,6 +73,7 @@ public class TestInputWorkspaceFileLinkObjectifyDAOImpl {
 
     @BeforeClass
     public static void setUpClass() {
+         Logger.getLogger(LocalDatastoreService.class.getName()).setLevel(Level.OFF);
     }
 
     @AfterClass
