@@ -32,6 +32,7 @@
  */
 package edu.ucsd.crbs.cws.rest;
 
+import com.google.appengine.api.datastore.dev.LocalDatastoreService;
 import com.google.appengine.tools.development.testing.LocalBlobstoreServiceTestConfig;
 import com.google.appengine.tools.development.testing.LocalDatastoreServiceTestConfig;
 import com.google.appengine.tools.development.testing.LocalServiceTestHelper;
@@ -46,8 +47,12 @@ import edu.ucsd.crbs.cws.workflow.Job;
 import edu.ucsd.crbs.cws.workflow.Workflow;
 import edu.ucsd.crbs.cws.workflow.WorkspaceFile;
 import edu.ucsd.crbs.cws.workflow.report.DeleteReport;
+import edu.ucsd.crbs.cws.workflow.validate.JobParametersNullNameChecker;
+import edu.ucsd.crbs.cws.workflow.validate.JobValidatorImpl;
 import java.util.Date;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.WebApplicationException;
@@ -77,6 +82,10 @@ public class TestJobRestService {
     
     @BeforeClass
     public static void setUpClass() {
+        Logger.getLogger(JobRestService.class.getName()).setLevel(Level.OFF);
+        Logger.getLogger(JobValidatorImpl.class.getName()).setLevel(Level.OFF);
+        Logger.getLogger(JobParametersNullNameChecker.class.getName()).setLevel(Level.OFF);
+        Logger.getLogger(LocalDatastoreService.class.getName()).setLevel(Level.OFF);
     }
     
     @AfterClass
@@ -512,7 +521,7 @@ public class TestJobRestService {
                     "9", "10",null, null,null, null, request);
         assertTrue(j.getStatus().equals("0"));
         assertTrue(j.getEstimatedCpuInSeconds() == 1L);
-        assertTrue(j.getEstimatedRunTimeInSeconds() == 2L);
+        assertTrue(j.getEstimatedWallTimeInSeconds() == 2L);
         assertTrue(j.getEstimatedDiskInBytes() == 3L);
         assertTrue(j.getSubmitDate().getTime() == 4L);
         assertTrue(j.getStartDate().getTime() == 5L);
@@ -589,7 +598,7 @@ public class TestJobRestService {
                     "9", "10",null, null,null, Boolean.FALSE, request);
         assertTrue(j.getStatus().equals("0"));
         assertTrue(j.getEstimatedCpuInSeconds() == 1L);
-        assertTrue(j.getEstimatedRunTimeInSeconds() == 2L);
+        assertTrue(j.getEstimatedWallTimeInSeconds() == 2L);
         assertTrue(j.getEstimatedDiskInBytes() == 3L);
         assertTrue(j.getSubmitDate().getTime() == 4L);
         assertTrue(j.getStartDate().getTime() == 5L);
