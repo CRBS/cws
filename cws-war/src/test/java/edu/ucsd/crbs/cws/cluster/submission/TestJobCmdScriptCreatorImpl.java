@@ -104,13 +104,6 @@ public class TestJobCmdScriptCreatorImpl {
         return emailNotifyData;
     }
     
-    private void printFile(File textFile) throws Exception {
-        List<String> lines = IOUtils.readLines(new FileReader(textFile));
-        for (String line :lines){
-            System.out.println(line);
-        }
-    }
-    
     /**
      * Helper method to try to find true command
      */
@@ -541,7 +534,6 @@ public class TestJobCmdScriptCreatorImpl {
         boolean pleaseFound = false;
         boolean contactFound = false;
         for (String line : lines){
-            System.out.println(line);
             if (line.startsWith("Dear")){
                 assertTrue(line.contains("Dear Unknown,"));
                 dearFound = true;
