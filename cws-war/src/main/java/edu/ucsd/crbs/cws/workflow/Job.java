@@ -119,9 +119,6 @@ public class Job {
     private long _estimatedCpuInSeconds;
     private String _estimatedCpuInSecondsHelp;
     
-    private long _estimatedRunTimeInSeconds;
-    private String _estimatedRunTimeInSecondsHelp;
-    
     private long _estimatedDiskInBytes;
     private String _estimatedDiskInBytesHelp;
     
@@ -351,22 +348,6 @@ public class Job {
 
     public void setEstimatedCpuInSecondsHelp(String _estimatedCpuInSecondsHelp) {
         this._estimatedCpuInSecondsHelp = _estimatedCpuInSecondsHelp;
-    }
-
-    public long getEstimatedRunTimeInSeconds() {
-        return _estimatedRunTimeInSeconds;
-    }
-
-    public void setEstimatedRunTimeInSeconds(long _estimatedRunTimeInSeconds) {
-        this._estimatedRunTimeInSeconds = _estimatedRunTimeInSeconds;
-    }
-
-    public String getEstimatedRunTimeInSecondsHelp() {
-        return _estimatedRunTimeInSecondsHelp;
-    }
-
-    public void setEstimatedRunTimeInSecondsHelp(String _estimatedRunTimeInSecondsHelp) {
-        this._estimatedRunTimeInSecondsHelp = _estimatedRunTimeInSecondsHelp;
     }
 
     public String getEstimatedDiskInBytesHelp() {
