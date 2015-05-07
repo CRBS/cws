@@ -341,7 +341,7 @@ public class JobObjectifyDAOImpl implements JobDAO {
      */
     @Override
     public Job update(final long jobId, final String status, final Long estCpu,
-            final Long estRunTime, final Long estDisk, final Long submitDate,
+            final Long estWallTime, final Long estDisk, final Long submitDate,
             final Long startDate, final Long finishDate,
             final Boolean submittedToScheduler,
             final String schedulerJobId,
@@ -363,9 +363,9 @@ public class JobObjectifyDAOImpl implements JobDAO {
             updated = true;
             tempJob.setEstimatedCpuInSeconds(estCpu);
         }
-        if (estRunTime != null){
+        if (estWallTime != null){
             updated = true;
-            tempJob.setEstimatedRunTimeInSeconds(estRunTime);
+            tempJob.setEstimatedWallTimeInSeconds(estWallTime);
         }
         if (estDisk != null){
             updated = true;
