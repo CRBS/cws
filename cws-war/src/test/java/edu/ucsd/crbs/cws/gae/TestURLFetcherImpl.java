@@ -45,6 +45,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -135,7 +136,7 @@ public class TestURLFetcherImpl {
         URLFetcherImpl fetcher = new URLFetcherImpl();
         WorkflowParameter wp = new WorkflowParameter();
         wp.setType(WorkflowParameter.Type.DROP_DOWN);
-        wp.setValue("http://www.crbs.ucsd.edu/doesnotexisteverevervever");
+        wp.setValue("http://www.google.com/doesnotexisteverevervever");
         wp.setNameValueDelimiter("==");
         User user = new User();
         user.setLogin("bob");
