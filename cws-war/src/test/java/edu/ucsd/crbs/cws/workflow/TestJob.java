@@ -48,7 +48,7 @@ public class TestJob {
         assertTrue(t.getOwner() == null);
         assertTrue(t.getStatus() == null);
         assertTrue(t.getEstimatedCpuInSeconds() == 0);
-        assertTrue(t.getEstimatedRunTimeInSeconds() == 0);
+        assertTrue(t.getEstimatedWallTimeInSeconds() == 0);
         assertTrue(t.getEstimatedDiskInBytes() == 0);
         assertTrue(t.getCreateDate() == null);
         assertTrue(t.getSubmitDate() == null);
@@ -66,7 +66,7 @@ public class TestJob {
         t.setOwner("owner");
         t.setStatus("status");
         t.setEstimatedCpuInSeconds(1);
-        t.setEstimatedRunTimeInSeconds(2);
+        t.setEstimatedWallTimeInSeconds(2);
         t.setEstimatedDiskInBytes(3);
         Date createDate = new Date();
         t.setCreateDate(createDate);
@@ -89,7 +89,7 @@ public class TestJob {
         assertTrue(t.getOwner().equals("owner"));
         assertTrue(t.getStatus().equals("status"));
         assertTrue(t.getEstimatedCpuInSeconds() == 1);
-        assertTrue(t.getEstimatedRunTimeInSeconds() == 2);
+        assertTrue(t.getEstimatedWallTimeInSeconds() == 2);
         assertTrue(t.getEstimatedDiskInBytes() == 3);
         assertTrue(t.getCreateDate().equals(createDate));
         assertTrue(t.getSubmitDate().equals(submitDate));
