@@ -333,7 +333,7 @@ public class WorkspaceFileObjectifyDAOImpl implements WorkspaceFileDAO {
                 Job j = _jobDAO.getJobById(wsf.getSourceJobId().toString());
                 if (j != null){
                     dwr.setReason("Cannot delete WorkspaceFile it is output of job ("+
-                            j.getId()+" "+j.getName());
+                            j.getId()+") "+j.getName());
                     return dwr;
                 }
             }
