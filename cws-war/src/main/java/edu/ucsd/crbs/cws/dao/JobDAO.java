@@ -112,7 +112,7 @@ public interface JobDAO {
      * @param jobId
      * @param status
      * @param estCpu
-     * @param estRunTime
+     * @param estWallTime
      * @param estDisk
      * @param submitDate
      * @param startDate
@@ -122,7 +122,7 @@ public interface JobDAO {
      * @return
      * @throws Exception
      */
-    public Job update(long jobId, final String status, Long estCpu, Long estRunTime,
+    public Job update(long jobId, final String status, Long estCpu, Long estWallTime,
             Long estDisk, Long submitDate, Long startDate, Long finishDate,
             Boolean submittedToScheduler, final String schedulerJobId,
             final Boolean deleted, final String error, final String detailedError) throws Exception;
