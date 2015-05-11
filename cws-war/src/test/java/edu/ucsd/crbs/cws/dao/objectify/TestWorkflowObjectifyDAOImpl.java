@@ -33,7 +33,6 @@
 
 package edu.ucsd.crbs.cws.dao.objectify;
 
-import com.google.appengine.api.datastore.dev.LocalDatastoreService;
 import com.google.appengine.tools.development.testing.LocalBlobstoreServiceTestConfig;
 import com.google.appengine.tools.development.testing.LocalDatastoreServiceTestConfig;
 import com.google.appengine.tools.development.testing.LocalServiceTestHelper;
@@ -41,7 +40,8 @@ import static edu.ucsd.crbs.cws.dao.objectify.OfyService.ofy;
 
 import edu.ucsd.crbs.cws.dao.JobDAO;
 import edu.ucsd.crbs.cws.workflow.Workflow;
-import edu.ucsd.crbs.cws.workflow.report.DeleteReportImpl;
+import edu.ucsd.crbs.cws.workflow.report.DeleteReport;
+import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.junit.After;
@@ -93,6 +93,104 @@ public class TestWorkflowObjectifyDAOImpl {
         _helper.tearDown();
         
     }
+    
+    //test insert null workflow
+    @Test
+    public void testInsertNullWorkflow() throws Exception {
+        WorkflowObjectifyDAOImpl workflowDAO = new WorkflowObjectifyDAOImpl(null);
+        try {
+            workflowDAO.insert(null);
+            fail("Expected exception");
+        }
+        catch(Exception ex){
+            assertTrue(ex.getMessage().equals("Workflow object passed in is null"));
+        }
+    }
+    
+    @Test
+    public void testInsertNullNameWorkflow() throws Exception {
+        WorkflowObjectifyDAOImpl workflowDAO = new WorkflowObjectifyDAOImpl(null);
+        try {
+            workflowDAO.insert(new Workflow());
+            fail("Expected exception");
+        }
+        catch(NullPointerException npe){
+            assertTrue(npe.getMessage().equals("Workflow name cannot be null"));
+        }
+    }
+    
+    //test insert create date set on workflow with no ancestors and version unset
+    @Test
+    public void testInsertWithCreateDateSet() throws Exception {
+        WorkflowObjectifyDAOImpl workflowDAO = new WorkflowObjectifyDAOImpl(null);
+        Workflow w = new Workflow();
+        Date cDate = new Date();
+        w.setCreateDate(cDate);
+        w.setName("foo");
+        assertTrue(w.getVersion() == 0);
+        w = workflowDAO.insert(w);
+        assertTrue(w.getId() != null);
+        assertTrue(w.getCreateDate().getTime() == cDate.getTime());
+        assertTrue(w.getVersion() == 1);
+        
+    }
+    
+    //test insert create date not set on workflow with no ancestors
+    @Test
+    public void testInsertWithCreateDateNotSet() throws Exception {
+        WorkflowObjectifyDAOImpl workflowDAO = new WorkflowObjectifyDAOImpl(null);
+        Workflow w = new Workflow();
+        w.setName("foo");
+        assertTrue(w.getCreateDate() == null);
+        w = workflowDAO.insert(w);
+        assertTrue(w.getId() != null);
+        assertTrue(w.getCreateDate() != null);
+    }
+    
+    //test insert version set negative and no ancestors
+    @Test
+    public void testInsertWithVersionSetNegative() throws Exception {
+        WorkflowObjectifyDAOImpl workflowDAO = new WorkflowObjectifyDAOImpl(null);
+        Workflow w = new Workflow();
+        w.setName("foo");
+        w.setVersion(-1);
+        assertTrue(w.getCreateDate() == null);
+        w = workflowDAO.insert(w);
+        assertTrue(w.getId() != null);
+        assertTrue(w.getVersion() == 1);
+    }
+    
+    //test insert and 1 ancestor workflow with max version 1
+    @Test
+    public void testInsertWithOneAncestor() throws Exception {
+        WorkflowObjectifyDAOImpl workflowDAO = new WorkflowObjectifyDAOImpl(null);
+        Workflow baseWf = new Workflow();
+        baseWf.setName("foo");
+        baseWf = workflowDAO.insert(baseWf);
+        Workflow w = new Workflow();
+        w.setName(baseWf.getName());
+        w = workflowDAO.insert(w);
+        assertTrue(w.getId() != null);
+        assertTrue(w.getVersion() == 2);
+    }
+
+    
+    //test insert and 3 ancestor workflows with max version 3
+    @Test
+    public void testInsertWithThreeAncestors() throws Exception {
+        WorkflowObjectifyDAOImpl workflowDAO = new WorkflowObjectifyDAOImpl(null);
+        Workflow baseWf = new Workflow();
+        baseWf.setName("foo");
+        baseWf = workflowDAO.insert(baseWf);
+        baseWf = workflowDAO.insert(baseWf);
+        baseWf = workflowDAO.insert(baseWf);
+        
+        Workflow w = new Workflow();
+        w.setName(baseWf.getName());
+        w = workflowDAO.insert(w);
+        assertTrue(w.getId() != null);
+        assertTrue(w.getVersion() == 4);
+    }
 
     @Test
     public void testDeleteWhereWorkflowHasJobsRunWithIt() throws Exception{
@@ -100,7 +198,7 @@ public class TestWorkflowObjectifyDAOImpl {
         when(jobDAO.getJobsWithWorkflowIdCount(1L)).thenReturn(1);
         WorkflowObjectifyDAOImpl workflowDAO = new WorkflowObjectifyDAOImpl(jobDAO);
         
-        DeleteReportImpl dwr = workflowDAO.delete(1L, null);
+        DeleteReport dwr = workflowDAO.delete(1L, null);
         assertFalse(dwr.isSuccessful());
         assertTrue(dwr.getId() == 1L);
         assertTrue(dwr.getReason().equals("Cannot delete 1 job(s) have been run under workflow"));
@@ -114,7 +212,7 @@ public class TestWorkflowObjectifyDAOImpl {
         WorkflowObjectifyDAOImpl workflowDAO = new WorkflowObjectifyDAOImpl(jobDAO);
         
         try {
-            DeleteReportImpl dwr = workflowDAO.delete(1L, null);
+            DeleteReport dwr = workflowDAO.delete(1L, null);
             fail("Expected exception");
         }
         catch(Exception ex){
@@ -134,7 +232,7 @@ public class TestWorkflowObjectifyDAOImpl {
         
         when(jobDAO.getJobsWithWorkflowIdCount(w.getId())).thenReturn(0);
         
-        DeleteReportImpl dwr = workflowDAO.delete(w.getId(), deleteParam);
+        DeleteReport dwr = workflowDAO.delete(w.getId(), deleteParam);
         assertTrue(dwr != null);
         assertTrue(dwr.getId() == w.getId());
         assertTrue(dwr.isSuccessful());
@@ -163,7 +261,7 @@ public class TestWorkflowObjectifyDAOImpl {
         Workflow w = workflowDAO.getWorkflowById(Long.toString(1), null);
         assertTrue(w == null);
         
-        DeleteReportImpl dwr = workflowDAO.delete(1L,Boolean.TRUE);
+        DeleteReport dwr = workflowDAO.delete(1L,Boolean.TRUE);
         assertTrue(dwr != null);
         assertTrue(dwr.getId() == 1L);
         assertTrue(dwr.isSuccessful() == false);
@@ -184,7 +282,7 @@ public class TestWorkflowObjectifyDAOImpl {
         
         when(jobDAO.getJobsWithWorkflowIdCount(w.getId())).thenReturn(0);
         
-        DeleteReportImpl dwr = workflowDAO.delete(w.getId(),Boolean.TRUE);
+        DeleteReport dwr = workflowDAO.delete(w.getId(),Boolean.TRUE);
         assertTrue(dwr != null);
         assertTrue(dwr.isSuccessful());
         assertTrue(dwr.getReason() == null);
@@ -209,7 +307,7 @@ public class TestWorkflowObjectifyDAOImpl {
         
         when(jobDAO.getJobsWithWorkflowIdCount(w.getId())).thenReturn(0);
         
-        DeleteReportImpl dwr = workflowDAO.delete(w.getId(),Boolean.TRUE);
+        DeleteReport dwr = workflowDAO.delete(w.getId(),Boolean.TRUE);
         assertTrue(dwr != null);
         assertTrue(dwr.isSuccessful());
         assertTrue(dwr.getReason() == null);
