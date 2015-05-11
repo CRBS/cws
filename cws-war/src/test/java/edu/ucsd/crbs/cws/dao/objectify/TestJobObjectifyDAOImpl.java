@@ -398,6 +398,7 @@ public class TestJobObjectifyDAOImpl {
         ArrayList<WorkflowParameter> wparams = new ArrayList<WorkflowParameter>();
         wparams.add(wp);
         w.setParameters(wparams);
+        w.setName("name");
         w = workflowDAO.insert(w);
         Job j = new Job();
         j.setWorkflow(w);
@@ -432,6 +433,7 @@ public class TestJobObjectifyDAOImpl {
         ArrayList<WorkflowParameter> wparams = new ArrayList<WorkflowParameter>();
         wparams.add(wp);
         w.setParameters(wparams);
+        w.setName("name");
         w = workflowDAO.insert(w);
         Job j = new Job();
         j.setWorkflow(w);
@@ -465,6 +467,7 @@ public class TestJobObjectifyDAOImpl {
         ArrayList<WorkflowParameter> wparams = new ArrayList<WorkflowParameter>();
         wparams.add(wp);
         w.setParameters(wparams);
+        w.setName("name");
         w = workflowDAO.insert(w);
         Job j = new Job();
         j.setWorkflow(w);
@@ -498,6 +501,7 @@ public class TestJobObjectifyDAOImpl {
         ArrayList<WorkflowParameter> wparams = new ArrayList<WorkflowParameter>();
         wparams.add(wp);
         w.setParameters(wparams);
+        w.setName("name");
         w = workflowDAO.insert(w);
         Job j = new Job();
         j.setWorkflow(w);
@@ -530,6 +534,7 @@ public class TestJobObjectifyDAOImpl {
         ArrayList<WorkflowParameter> wparams = new ArrayList<WorkflowParameter>();
         wparams.add(wp);
         w.setParameters(wparams);
+        w.setName("name");
         w = workflowDAO.insert(w);
         Job j = new Job();
         j.setWorkflow(w);
@@ -731,6 +736,7 @@ public class TestJobObjectifyDAOImpl {
         JobObjectifyDAOImpl jobDAO = new JobObjectifyDAOImpl(null);
         WorkflowObjectifyDAOImpl workflowDAO = new WorkflowObjectifyDAOImpl(jobDAO);
         Workflow w = new Workflow();
+        w.setName("name");
         w = workflowDAO.insert(w);
         Job j = new Job();
         j.setWorkflow(w);
