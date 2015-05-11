@@ -341,15 +341,17 @@ public class WorkflowRestService {
                 }
             }
             // delete workflow
-            dwr = _workflowDAO.delete(workflowId,permanentlyDelete);
-            if (dwr == null){
-                dwr = new DeleteReportImpl();
-                dwr.setId(workflowId);
-                dwr.setSuccessful(false);
-                dwr.setReason("Unknown");
+            DeleteReport retDwr = _workflowDAO.delete(workflowId,permanentlyDelete);
+            
+            if (retDwr == null){
+                DeleteReportImpl failedDwr = new DeleteReportImpl();
+                failedDwr.setId(workflowId);
+                failedDwr.setSuccessful(false);
+                failedDwr.setReason("Unknown");
+                return failedDwr;
             }
             
-            if (dwr.isSuccessful()){
+            if (retDwr.isSuccessful()){
                 if (permanentlyDelete == null || permanentlyDelete == false){
                      _eventDAO.neverComplainInsert(_eventBuilder.setAsLogicalDeleteWorkflowEvent(event, w));
                 }
@@ -357,7 +359,7 @@ public class WorkflowRestService {
                      _eventDAO.neverComplainInsert(_eventBuilder.setAsDeleteWorkflowEvent(event, w));
                 }
             }
-            return dwr;
+            return retDwr;
         }catch(WebApplicationException wae){
             _log.log(Level.SEVERE,"Caught WebApplicationException",wae);
             throw wae;
