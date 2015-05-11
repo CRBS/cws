@@ -128,9 +128,11 @@ public class WorkflowObjectifyDAOImpl implements WorkflowDAO {
 
         if (latestWorkflow != null){
             w.setVersion(latestWorkflow.getVersion() + 1);
+            w.setParentWorkflow(latestWorkflow);
         }
         else {
             w.setVersion(1);
+            w.setParentWorkflow(null);
         }
 
         Key<Workflow> wfKey = ofy().save().entity(w).now();
@@ -184,7 +186,7 @@ public class WorkflowObjectifyDAOImpl implements WorkflowDAO {
         parameters instead of removing them here */
         Query<Workflow> q = ofy().load().type(Workflow.class);
 
-        if (showDeleted != null || showDeleted == false) {
+        if (showDeleted == null || showDeleted == false) {
             q = q.filter("_deleted", false);
         }
 
