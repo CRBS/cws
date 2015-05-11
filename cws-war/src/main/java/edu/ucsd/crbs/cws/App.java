@@ -140,8 +140,6 @@ public class App {
 
     public static final String KEPLER_SCRIPT_ARG = "kepler";
 
-    public static final String PARENT_WFID_ARG = "parentwf";
-
     public static final String EXAMPLE_JSON_ARG = "examplejson";
 
     public static final String QUEUE_ARG = "queue";
@@ -222,7 +220,6 @@ public class App {
                     accepts(UPDATE_PATH_ARG,"Updates Workspace file path").withRequiredArg().ofType(String.class).describedAs("workspace file id");
                     accepts(PATH_ARG,"Sets WorkspaceFile file path.  Used in coordination with --"+UPDATE_PATH_ARG).withRequiredArg().ofType(String.class).describedAs("file path");
                     accepts(URL_ARG, "URL to use with --" + UPLOAD_WF_ARG + ", --"+UPLOAD_FILE_ARG+", --"+GET_WORKSPACE_FILE_INFO_ARG+" flags").withRequiredArg().ofType(String.class).describedAs("URL");
-                    accepts(PARENT_WFID_ARG, "Used to set parent workflow id when invoking --"+UPLOAD_WF_ARG).withRequiredArg().ofType(Long.class).describedAs("Workflow Id");
                     accepts(EXAMPLE_JSON_ARG, "Outputs example JSON of Job, User, Workflow, and WorkspaceFile objects");
                     accepts(WF_EXEC_DIR_ARG, "Workflow Execution Directory").withRequiredArg().ofType(File.class).describedAs("Directory");
                     accepts(WF_DIR_ARG, "Workflows Directory").withRequiredArg().ofType(File.class).describedAs("Directory");
@@ -608,10 +605,7 @@ public class App {
                     postURL = (String) optionSet.valueOf(URL_ARG);
                     failIfOptionSetMissingLoginOrToken(optionSet,"--"+UPLOAD_WF_ARG+" and --"+URL_ARG+" flag");
                 }
-
-                if (optionSet.has(PARENT_WFID_ARG)) {
-                    parentWfId = (Long) optionSet.valueOf(PARENT_WFID_ARG);
-                }
+            
                 File workflowFile = (File)optionSet.valueOf(UPLOAD_WF_ARG);
                 Workflow w = getWorkflowFromFile(workflowFile);
                 if (w != null) {
