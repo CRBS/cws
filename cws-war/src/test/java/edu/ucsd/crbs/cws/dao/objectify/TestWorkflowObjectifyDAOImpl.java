@@ -40,8 +40,11 @@ import static edu.ucsd.crbs.cws.dao.objectify.OfyService.ofy;
 
 import edu.ucsd.crbs.cws.dao.JobDAO;
 import edu.ucsd.crbs.cws.workflow.Workflow;
+import edu.ucsd.crbs.cws.workflow.WorkflowParameter;
 import edu.ucsd.crbs.cws.workflow.report.DeleteReport;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.junit.After;
@@ -152,12 +155,17 @@ public class TestWorkflowObjectifyDAOImpl {
     public void testInsertWithVersionSetNegative() throws Exception {
         WorkflowObjectifyDAOImpl workflowDAO = new WorkflowObjectifyDAOImpl(null);
         Workflow w = new Workflow();
+        Workflow gee = new Workflow();
+        gee.setName("joey");
+        workflowDAO.insert(gee);
         w.setName("foo");
+        w.setParentWorkflow(gee);
         w.setVersion(-1);
         assertTrue(w.getCreateDate() == null);
         w = workflowDAO.insert(w);
         assertTrue(w.getId() != null);
         assertTrue(w.getVersion() == 1);
+        assertTrue(w.getParentWorkflow() == null);
     }
     
     //test insert and 1 ancestor workflow with max version 1
@@ -190,7 +198,70 @@ public class TestWorkflowObjectifyDAOImpl {
         w = workflowDAO.insert(w);
         assertTrue(w.getId() != null);
         assertTrue(w.getVersion() == 4);
+        assertTrue(w.getParentWorkflow().getId() == baseWf.getId().longValue());
     }
+    
+    //test getAllWorkflows no workflows found
+    @Test
+    public void testGetAllWorkflowsNoWorkflowsFound() throws Exception {
+        WorkflowObjectifyDAOImpl workflowDAO = new WorkflowObjectifyDAOImpl(null);
+        List<Workflow> wfList = workflowDAO.getAllWorkflows(false, null);
+        assertTrue(wfList.isEmpty());
+        
+    }
+    
+    //test getAllWorkflows showDeleted with different values
+    @Test
+    public void testGetAllWorkflowsNoWorkflowsshowDeletedNull() throws Exception {
+        WorkflowObjectifyDAOImpl workflowDAO = new WorkflowObjectifyDAOImpl(null);
+        Workflow w = new Workflow();
+        w.setName("bob");
+        w.setDeleted(true);
+        workflowDAO.insert(w);
+        w = new Workflow();
+        w.setName("joe");
+        w.setDeleted(false);
+        workflowDAO.insert(w);
+        
+        List<Workflow> wfList = workflowDAO.getAllWorkflows(false, null);
+        assertTrue(wfList.size() == 1);
+        assertTrue(wfList.get(0).getName().equals("joe"));
+        
+        wfList = workflowDAO.getAllWorkflows(false, Boolean.FALSE);
+        assertTrue(wfList.size() == 1);
+        assertTrue(wfList.get(0).getName().equals("joe"));
+        
+        wfList = workflowDAO.getAllWorkflows(false, Boolean.TRUE);
+        assertTrue(wfList.size() == 2);
+    }
+    
+    //test getAllWorkflows omitWorkflowParams true
+    @Test
+    public void testGetAllWorkflowsOmittedParams() throws Exception {
+        WorkflowObjectifyDAOImpl workflowDAO = new WorkflowObjectifyDAOImpl(null);
+        Workflow w = new Workflow();
+       
+        w.setName("bob");
+        ArrayList<WorkflowParameter> wParams = new ArrayList<WorkflowParameter>();
+        WorkflowParameter wp = new WorkflowParameter();
+        wp.setName("yo");
+        w.setParameters(wParams);
+        workflowDAO.insert(w);
+        
+        List<Workflow> wfList = workflowDAO.getAllWorkflows(false, null);
+        assertTrue(wfList.size() == 1);
+        assertTrue(wfList.get(0).getName().equals("bob"));
+        assertTrue(wfList.get(0).getParameters() != null);
+        
+        wfList = workflowDAO.getAllWorkflows(true, null);
+        assertTrue(wfList.size() == 1);
+        assertTrue(wfList.get(0).getName().equals("bob"));
+        assertTrue(wfList.get(0).getParameters() == null);
+    }
+    
+    
+    
+   
 
     @Test
     public void testDeleteWhereWorkflowHasJobsRunWithIt() throws Exception{
