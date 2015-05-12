@@ -36,6 +36,8 @@ package edu.ucsd.crbs.cws.log;
 import com.google.appengine.api.capabilities.CapabilitiesService;
 import com.google.appengine.api.capabilities.Capability;
 import com.google.appengine.api.capabilities.CapabilityState;
+import com.google.apphosting.api.ApiProxy;
+import com.google.apphosting.api.ApiProxy.Environment;
 
 /**
  * Contains status of Google App Engine services
@@ -43,23 +45,27 @@ import com.google.appengine.api.capabilities.CapabilityState;
  */
 public class ServiceStatus {
     
-    public static final String DISABLED = "disabled";
-    public static final String ENABLED = "enabled";
-    public static final String UNKNOWN = "unknown";
-    public static final String SCHEDULED_MAINTENANCE = "scheduled_maintenance";
-    
-    
-    
     private CapabilityState _blobStoreStatus;
     private CapabilityState _dataStoreReadStatus;
     private CapabilityState _dataStoreWriteStatus;
     private CapabilityState _memCacheStatus;
     private CapabilityState _urlFetchStatus;
+    
+    private String _applicationId;
+    private String _applicationVersionId;
+    
 
     public ServiceStatus(CapabilitiesService service){
         updateStatus(service);
+        Environment env = ApiProxy.getCurrentEnvironment();
+        _applicationId = env.getAppId();
+        _applicationVersionId = env.getVersionId();
     }
     
+    /**
+     * Updates internal variables with status of Google App Engine services
+     * @param service used to obtain status information
+     */
     private void updateStatus(CapabilitiesService service){
         _blobStoreStatus = service.getStatus(Capability.BLOBSTORE);
         _dataStoreReadStatus = service.getStatus(Capability.DATASTORE);
@@ -107,10 +113,20 @@ public class ServiceStatus {
     public void setUrlFetchStatus(CapabilityState _urlFetchStatus) {
         this._urlFetchStatus = _urlFetchStatus;
     }
-    
-    
-    
-    
-    
 
+    public String getApplicationId() {
+        return _applicationId;
+    }
+
+    public void setApplicationId(String _applicationId) {
+        this._applicationId = _applicationId;
+    }
+
+    public String getApplicationVersionId() {
+        return _applicationVersionId;
+    }
+
+    public void setApplicationVersionId(String _applicationVersionId) {
+        this._applicationVersionId = _applicationVersionId;
+    }
 }
