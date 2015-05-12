@@ -4,13 +4,13 @@
 
   <groupId>edu.ucsd.crbs.cws</groupId>
   <artifactId>cws-ear</artifactId>
-  <version>1.26-SNAPSHOT</version>
+  <version>1.27-SNAPSHOT</version>
   <packaging>ear</packaging>
 
   <parent>
     <groupId>edu.ucsd.crbs.cws</groupId>
     <artifactId>cws</artifactId>
-    <version>1.26-SNAPSHOT</version>
+    <version>1.27-SNAPSHOT</version>
   </parent>
 
   <build>
@@ -38,7 +38,7 @@
     <dependency>
       <groupId>edu.ucsd.crbs.cws</groupId>
       <artifactId>cws-war</artifactId>
-      <version>1.26-SNAPSHOT</version>
+      <version>1.27-SNAPSHOT</version>
       <type>war</type>
     </dependency>
   </dependencies>
