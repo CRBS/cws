@@ -55,7 +55,8 @@ public class StatusRestService {
      * Returns {@link ServiceStatus} which contains information about
      * application
      * @param request
-     * @return 
+     * @return status of application in {@link ServiceStatus} object which
+     * if called via REST call it will be in JSON format.
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
