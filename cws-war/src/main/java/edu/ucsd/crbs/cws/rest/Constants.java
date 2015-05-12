@@ -100,6 +100,11 @@ public class Constants {
     public static final String COUNT_PATH = "count";
     
     /**
+     * REST URL path for status
+     */
+    public static final String STATUS_PATH = "status";
+    
+    /**
      * User login query parameter name.  This should be passed to all
      * rest calls
      */
