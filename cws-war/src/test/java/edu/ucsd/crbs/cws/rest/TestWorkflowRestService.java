@@ -33,11 +33,17 @@
 
 package edu.ucsd.crbs.cws.rest;
 
+import com.google.appengine.api.datastore.dev.LocalDatastoreService;
+import com.google.appengine.tools.development.testing.LocalBlobstoreServiceTestConfig;
+import com.google.appengine.tools.development.testing.LocalDatastoreServiceTestConfig;
+import com.google.appengine.tools.development.testing.LocalServiceTestHelper;
 import edu.ucsd.crbs.cws.auth.Authenticator;
 import edu.ucsd.crbs.cws.auth.Permission;
 import edu.ucsd.crbs.cws.auth.User;
 import edu.ucsd.crbs.cws.dao.EventDAO;
 import edu.ucsd.crbs.cws.dao.WorkflowDAO;
+import static edu.ucsd.crbs.cws.dao.objectify.OfyService.ofy;
+import edu.ucsd.crbs.cws.dao.objectify.WorkflowObjectifyDAOImpl;
 import edu.ucsd.crbs.cws.log.Event;
 import edu.ucsd.crbs.cws.log.EventBuilder;
 import edu.ucsd.crbs.cws.workflow.Workflow;
@@ -45,6 +51,7 @@ import edu.ucsd.crbs.cws.workflow.report.DeleteReport;
 import edu.ucsd.crbs.cws.workflow.report.DeleteReportImpl;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.WebApplicationException;
 import org.junit.After;
@@ -68,12 +75,18 @@ import static org.mockito.Mockito.when;
 @RunWith(JUnit4.class)
 public class TestWorkflowRestService {
 
+    private final LocalServiceTestHelper _helper
+            = new LocalServiceTestHelper(new LocalDatastoreServiceTestConfig(),
+                    new LocalBlobstoreServiceTestConfig());
+
+    
     public TestWorkflowRestService() {
     }
 
     @BeforeClass
     public static void setUpClass() {
          Logger.getLogger(WorkflowRestService.class.getName()).setLevel(Level.OFF);
+         Logger.getLogger(LocalDatastoreService.class.getName()).setLevel(Level.OFF);
     }
 
     @AfterClass
@@ -82,12 +95,155 @@ public class TestWorkflowRestService {
 
     @Before
     public void setUp() {
+        _helper.setUp();
+        ofy().clear();
     }
 
     @After
     public void tearDown() {
+        _helper.tearDown();
     }
 
+    //test updateWorkflow no permission
+    @Test
+    public void testUpdateWorkflowNoPermission() throws Exception {
+        Authenticator auth = mock(Authenticator.class);
+        HttpServletRequest request = mock(HttpServletRequest.class);
+        
+        User u = new User();
+        u.setLogin("bob");
+        u.setPermissions(Permission.NONE);
+        
+        when(auth.authenticate(request)).thenReturn(u);
+        WorkflowRestService wrs = new WorkflowRestService();
+        wrs.setAuthenticator(auth);
+        
+        try {
+            wrs.updateWorkflow(1L,null,null,null, 
+                    request);
+            fail("Expected exception");
+        }
+        catch(WebApplicationException wae){
+            assertTrue(wae.getMessage(),
+                    wae.getResponse().getStatus() == HttpServletResponse.SC_UNAUTHORIZED);
+        }
+    }
+    
+    //test updateWorkflow resave non existant workflow
+    @Test
+    public void testUpdateWorkflowResaveNonExistantWorkflow() throws Exception {
+        Authenticator auth = mock(Authenticator.class);
+        HttpServletRequest request = mock(HttpServletRequest.class);
+        
+        User u = new User();
+        u.setLogin("bob");
+        u.setPermissions(Permission.UPDATE_ALL_WORKFLOWS);
+        
+        when(auth.authenticate(request)).thenReturn(u);
+        WorkflowRestService wrs = new WorkflowRestService();
+        wrs.setAuthenticator(auth);
+        
+        try {
+            wrs.updateWorkflow(1L,Boolean.TRUE,null,null, 
+                    request);
+            fail("Expected exception");
+        }
+        catch(WebApplicationException ex){
+            assertTrue(ex.getMessage(),
+                    ex.getMessage().contains("There was an error resaving Workflow"));
+        }
+    }
+    
+    //test updateWorkflow resave on valid workflow
+    @Test
+    public void testUpdateWorkflowResaveOnValidWorkflow() throws Exception {
+        Authenticator auth = mock(Authenticator.class);
+        HttpServletRequest request = mock(HttpServletRequest.class);
+        
+        WorkflowDAO workflowDAO = new WorkflowObjectifyDAOImpl(null);
+        Workflow w = new Workflow();
+        w.setName("wf");
+        w = workflowDAO.insert(w);
+        
+        User u = new User();
+        u.setLogin("bob");
+        u.setPermissions(Permission.UPDATE_ALL_WORKFLOWS);
+        
+        when(auth.authenticate(request)).thenReturn(u);
+        WorkflowRestService wrs = new WorkflowRestService();
+        wrs.setAuthenticator(auth);
+        
+        w = wrs.updateWorkflow(w.getId(),Boolean.TRUE,null,null, 
+                    request);
+        assertTrue(w.getId() != null);
+    }
+    
+    //test updateWorkflow no changes
+    @Test
+    public void testUpdateWorkflowNoChanges() throws Exception {
+        Authenticator auth = mock(Authenticator.class);
+        HttpServletRequest request = mock(HttpServletRequest.class);
+        
+        WorkflowDAO workflowDAO = new WorkflowObjectifyDAOImpl(null);
+        Workflow w = new Workflow();
+        w.setName("wf");
+        w = workflowDAO.insert(w);
+        
+        User u = new User();
+        u.setLogin("bob");
+        u.setPermissions(Permission.UPDATE_ALL_WORKFLOWS);
+        
+        when(auth.authenticate(request)).thenReturn(u);
+        WorkflowRestService wrs = new WorkflowRestService();
+        wrs.setAuthenticator(auth);
+        
+        w = wrs.updateWorkflow(w.getId(),null,null,null, 
+                    request);
+        assertTrue(w.getId() != null);
+        assertTrue(w.isDeleted() == false);
+        assertTrue(w.getVersion() == 1);
+    }
+    
+    //test updateWorkflow deleted and version true/false
+        @Test
+    public void testUpdateWorkflowWithChangesToDeletedAndVersion() throws Exception {
+        Authenticator auth = mock(Authenticator.class);
+        HttpServletRequest request = mock(HttpServletRequest.class);
+        
+        WorkflowDAO workflowDAO = new WorkflowObjectifyDAOImpl(null);
+        Workflow w = new Workflow();
+        w.setName("wf");
+        w = workflowDAO.insert(w);
+        
+        User u = new User();
+        u.setLogin("bob");
+        u.setPermissions(Permission.UPDATE_ALL_WORKFLOWS);
+        
+        when(auth.authenticate(request)).thenReturn(u);
+        WorkflowRestService wrs = new WorkflowRestService();
+        wrs.setAuthenticator(auth);
+        
+        w = wrs.updateWorkflow(w.getId(),null,Boolean.TRUE,2, 
+                    request);
+        assertTrue(w.getId() != null);
+        assertTrue(w.isDeleted() == true);
+        assertTrue(w.getVersion() == 2);
+        
+        w = wrs.updateWorkflow(w.getId(),null,Boolean.FALSE,3, 
+                    request);
+        assertTrue(w.getId() != null);
+        assertTrue(w.isDeleted() == false);
+        assertTrue(w.getVersion() == 3);
+
+                w = wrs.updateWorkflow(w.getId(),null,null,null, 
+                    request);
+        assertTrue(w.getId() != null);
+        assertTrue(w.isDeleted() == false);
+        assertTrue(w.getVersion() == 3);
+
+        
+    }
+    
     @Test
     public void testDeleteWorkflowButNotAuthorized() throws Exception {
         
@@ -97,15 +253,8 @@ public class TestWorkflowRestService {
 
         User u = new User();
         u.setPermissions(Permission.NONE);
-
-        
-        EventBuilder eventBuilder = mock(EventBuilder.class);
-        when(eventBuilder.createEvent(null,u)).thenReturn(new Event());
-        wrs.setEventBuilder(eventBuilder);
-        
         when(auth.authenticate(null)).thenReturn(u);
         
-       
         DeleteReport dr = wrs.deleteWorkflow(1L, null, null, null, null, null);
         assertTrue(dr != null);
         assertTrue(dr.isSuccessful() == false);
@@ -123,10 +272,6 @@ public class TestWorkflowRestService {
         User u = new User();
         u.setLogin("bob");
         u.setPermissions(Permission.DELETE_THEIR_WORKFLOWS);
-        
-        EventBuilder eventBuilder = mock(EventBuilder.class);
-        when(eventBuilder.createEvent(null,u)).thenReturn(new Event());
-        wrs.setEventBuilder(eventBuilder);
         
         WorkflowDAO workflowDAO = mock(WorkflowDAO.class);
         wrs.setWorkflowDAO(workflowDAO);
@@ -155,10 +300,6 @@ public class TestWorkflowRestService {
         u.setLogin("bob");
         u.setPermissions(Permission.DELETE_THEIR_WORKFLOWS);
         
-        EventBuilder eventBuilder = mock(EventBuilder.class);
-        when(eventBuilder.createEvent(null,u)).thenReturn(new Event());
-        wrs.setEventBuilder(eventBuilder);
-        
         WorkflowDAO workflowDAO = mock(WorkflowDAO.class);
         wrs.setWorkflowDAO(workflowDAO);
         Workflow w = new Workflow();
@@ -184,10 +325,6 @@ public class TestWorkflowRestService {
         User u = new User();
         u.setLogin("bob");
         u.setPermissions(Permission.DELETE_THEIR_WORKFLOWS);
-        
-        EventBuilder eventBuilder = mock(EventBuilder.class);
-        when(eventBuilder.createEvent(null,u)).thenReturn(new Event());
-        wrs.setEventBuilder(eventBuilder);
         
         WorkflowDAO workflowDAO = mock(WorkflowDAO.class);
         wrs.setWorkflowDAO(workflowDAO);
@@ -217,10 +354,6 @@ public class TestWorkflowRestService {
         u.setLogin("bob");
         u.setPermissions(Permission.DELETE_ALL_WORKFLOWS);
         
-        EventBuilder eventBuilder = mock(EventBuilder.class);
-        when(eventBuilder.createEvent(null,u)).thenReturn(new Event());
-        wrs.setEventBuilder(eventBuilder);
-        
         WorkflowDAO workflowDAO = mock(WorkflowDAO.class);
         wrs.setWorkflowDAO(workflowDAO);
         
@@ -246,10 +379,6 @@ public class TestWorkflowRestService {
         User u = new User();
         u.setLogin("bob");
         u.setPermissions(Permission.DELETE_ALL_WORKFLOWS);
-        
-        EventBuilder eventBuilder = mock(EventBuilder.class);
-        when(eventBuilder.createEvent(null,u)).thenReturn(new Event());
-        wrs.setEventBuilder(eventBuilder);
         
         WorkflowDAO workflowDAO = mock(WorkflowDAO.class);
         wrs.setWorkflowDAO(workflowDAO);
@@ -281,11 +410,6 @@ public class TestWorkflowRestService {
         u.setLogin("bob");
         u.setPermissions(Permission.DELETE_ALL_WORKFLOWS);
         
-        EventBuilder eventBuilder = mock(EventBuilder.class);
-        Event event = new Event();
-        when(eventBuilder.createEvent(null,u)).thenReturn(event);
-        wrs.setEventBuilder(eventBuilder);
-        
         WorkflowDAO workflowDAO = mock(WorkflowDAO.class);
         wrs.setWorkflowDAO(workflowDAO);
         Workflow w = new Workflow();
@@ -298,8 +422,7 @@ public class TestWorkflowRestService {
         
         EventDAO eventDAO = mock(EventDAO.class);
         wrs.setEventDAO(eventDAO);
-        when(eventBuilder.setAsLogicalDeleteWorkflowEvent(event, w)).thenReturn(event);
-
+      
         
         DeleteReport dwr = wrs.deleteWorkflow(1L, Boolean.FALSE, null, null, null, null);
         assertTrue(dwr != null);
@@ -308,7 +431,7 @@ public class TestWorkflowRestService {
         assertTrue(dwr.isSuccessful());
         
         verify(workflowDAO).delete(1L, Boolean.FALSE);
-        verify(eventBuilder).setAsLogicalDeleteWorkflowEvent(event, w);
+      //  verify(eventBuilder).setAsLogicalDeleteWorkflowEvent(event, w);
 
     }
     
@@ -322,12 +445,6 @@ public class TestWorkflowRestService {
         User u = new User();
         u.setLogin("bob");
         u.setPermissions(Permission.DELETE_ALL_WORKFLOWS);
-        
-        EventBuilder eventBuilder = mock(EventBuilder.class);
-        Event event = new Event();
-        when(eventBuilder.createEvent(null,u)).thenReturn(event);
-        wrs.setEventBuilder(eventBuilder);
-        
         
         WorkflowDAO workflowDAO = mock(WorkflowDAO.class);
         wrs.setWorkflowDAO(workflowDAO);
@@ -343,7 +460,6 @@ public class TestWorkflowRestService {
         
         EventDAO eventDAO = mock(EventDAO.class);
         wrs.setEventDAO(eventDAO);
-        when(eventBuilder.setAsDeleteWorkflowEvent(event, w)).thenReturn(event);
         
         DeleteReport dwr = wrs.deleteWorkflow(1L, Boolean.TRUE, null, null, null, null);
         assertTrue(dwr != null);
@@ -352,7 +468,7 @@ public class TestWorkflowRestService {
         assertTrue(dwr.isSuccessful());
         
         verify(workflowDAO).delete(1L, Boolean.TRUE);
-        verify(eventBuilder).setAsDeleteWorkflowEvent(event, w);
+//        verify(eventBuilder).setAsDeleteWorkflowEvent(event, w);
     }
 
     
