@@ -396,7 +396,8 @@ public class TestWorkflowObjectifyDAOImpl {
         WorkflowObjectifyDAOImpl workflowDAO = new WorkflowObjectifyDAOImpl(null);
         
         try {
-            assertTrue(workflowDAO.updateDeleted(1L, true) == null);
+            assertTrue(workflowDAO.updateDeletedAndVersion(1L, true,
+                    null) == null);
             fail("Expected exception");
         }
         catch(Exception ex){
@@ -409,12 +410,19 @@ public class TestWorkflowObjectifyDAOImpl {
         
         w = workflowDAO.insert(w);
         assertTrue(w.isDeleted() == false);
-        
-        w = workflowDAO.updateDeleted(w.getId(), true);
+        assertTrue(w.getVersion() == 1);
+        w = workflowDAO.updateDeletedAndVersion(w.getId(), true,null);
         assertTrue(w.isDeleted() == true);
+        assertTrue(w.getVersion() == 1);
         
-        w = workflowDAO.updateDeleted(w.getId(), false);
+        w = workflowDAO.updateDeletedAndVersion(w.getId(), false,2);
         assertTrue(w.isDeleted() == false);
+        assertTrue(w.getVersion() == 2);
+        
+        w = workflowDAO.updateDeletedAndVersion(w.getId(), null,null);
+        assertTrue(w.isDeleted() == false);
+        assertTrue(w.getVersion() == 2);
+        
     }
     
 }
