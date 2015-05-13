@@ -90,10 +90,12 @@ public interface WorkflowDAO {
      * Updates Deleted field for given {@link Workflow}
      * @param workflowId
      * @param isDeleted
-     * @return {@link Workflow} matching <b>workflowId</b> loaded from datastore upon succes.
+     * @return {@link Workflow} matching <b>workflowId</b> loaded from 
+     * datastore upon succes.
      * @throws Exception 
      */
-    public Workflow updateDeleted(final long workflowId,final boolean isDeleted) throws Exception;
+    public Workflow updateDeletedAndVersion(final long workflowId,
+            final Boolean isDeleted,Integer version) throws Exception;
     
     /**
      * Given a <b>job</b> this method looks at the {@link Workflow} object within
