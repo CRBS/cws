@@ -85,14 +85,17 @@ public class WorkflowRestService {
     private static final Logger _log
             = Logger.getLogger(WorkflowRestService.class.getName());
 
-    static Authenticator _authenticator = new AuthenticatorImpl();
-
-    static EventBuilder _eventBuilder = new EventBuilderImpl();
-    
-    static EventDAO _eventDAO = new EventObjectifyDAOImpl();
-
-    static WorkflowDAO _workflowDAO = new WorkflowObjectifyDAOImpl((JobDAO)new JobObjectifyDAOImpl(new InputWorkspaceFileLinkObjectifyDAOImpl()));
-
+     Authenticator _authenticator;
+     EventBuilder _eventBuilder;
+     EventDAO _eventDAO;
+     WorkflowDAO _workflowDAO;
+     
+    public WorkflowRestService(){
+        _authenticator = new AuthenticatorImpl();
+        _eventBuilder = new EventBuilderImpl();
+        _eventDAO = new EventObjectifyDAOImpl();
+        _workflowDAO = new WorkflowObjectifyDAOImpl((JobDAO)new JobObjectifyDAOImpl(new InputWorkspaceFileLinkObjectifyDAOImpl()));
+    }
     /**
      * Sets a new {@link Authenticator}
      * @param auth 
@@ -123,6 +126,7 @@ public class WorkflowRestService {
      * objects from WorkflowDAO. If none are found an empty list is returned. If
      * there is an error a 500 response is returned
      *
+     * @param showDeleted
      * @param userLogin
      * @param userToken
      * @param userLoginToRunAs
@@ -137,7 +141,6 @@ public class WorkflowRestService {
             @QueryParam(Constants.USER_TOKEN_PARAM) final String userToken,
             @QueryParam(Constants.USER_LOGIN_TO_RUN_AS_PARAM) final String userLoginToRunAs,
             @Context HttpServletRequest request) {
-        List<Workflow> workflows = null;
         try {
             User user = _authenticator.authenticate(request);
             Event event = _eventBuilder.createEvent(request, user);
@@ -177,7 +180,6 @@ public class WorkflowRestService {
             @QueryParam(Constants.USER_LOGIN_TO_RUN_AS_PARAM) final String userLoginToRunAs,
             @Context HttpServletRequest request) {
 
-        Workflow wf = null;
         try {
             User user = _authenticator.authenticate(request);
             Event event = _eventBuilder.createEvent(request, user);
@@ -263,24 +265,27 @@ public class WorkflowRestService {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Workflow updateWorkflow(@PathParam(Constants.WORKFLOW_ID_PATH_PARAM)final Long workflowId,
-            @QueryParam(Constants.USER_LOGIN_PARAM) final String userLogin,
-            @QueryParam(Constants.USER_TOKEN_PARAM) final String userToken,
-            @QueryParam(Constants.USER_LOGIN_TO_RUN_AS_PARAM) final String userLoginToRunAs,
-            @QueryParam(Constants.RESAVE_QUERY_PARAM) final String resave,
+            @QueryParam(Constants.RESAVE_QUERY_PARAM) final Boolean resave,
+            @QueryParam(Constants.DELETED_QUERY_PARAM) final Boolean deleted,
+            @QueryParam(Constants.VERSION_QUERY_PARAM) final Integer version,
             @Context HttpServletRequest request) {
         
         try {
             User user = _authenticator.authenticate(request);
             Event event = _eventBuilder.createEvent(request, user);
+           
             _log.info(event.getStringOfLocationData());
             
-            if (user.isAuthorizedTo(Permission.UPDATE_ALL_WORKFLOWS)){
-                if (resave != null && resave.equalsIgnoreCase(Boolean.TRUE.toString())){
-                    return _workflowDAO.resave(workflowId);
-                }
-                return null;
+            if (!user.isAuthorizedTo(Permission.UPDATE_ALL_WORKFLOWS)){
+                _log.info("Not authorized");
+                throw new WebApplicationException(HttpServletResponse.SC_UNAUTHORIZED);    
             }
-            throw new WebApplicationException(HttpServletResponse.SC_UNAUTHORIZED);
+            if (resave != null && resave == true){
+                _log.info("Resaving workflow");
+                return _workflowDAO.resave(workflowId);
+            }
+            return _workflowDAO.updateDeletedAndVersion(workflowId,deleted,
+                    version);
         }catch(WebApplicationException wae){
             _log.log(Level.SEVERE,"Caught WebApplicationException",wae);
             throw wae;
