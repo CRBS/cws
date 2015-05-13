@@ -91,9 +91,13 @@ public class WorkflowObjectifyDAOImpl implements WorkflowDAO {
                 try {
                     workflow = getWorkflowById(Long.toString(workflowId), null);
                 } catch (Exception ex) {
+                    _log.log(Level.WARNING,
+                            "Caught exception attempting to load Workflow {0} : {1}",
+                            new Object[]{workflowId,ex.getMessage()});
                     return null;
                 }
                 if (workflow == null) {
+                    _log.log(Level.WARNING,"Workflow {0} not found",workflowId);
                     return null;
                 }
 
@@ -101,7 +105,9 @@ public class WorkflowObjectifyDAOImpl implements WorkflowDAO {
                 return workflow;
             }
         });
-
+        if (res == null){
+            throw new Exception("There was an error resaving Workflow with id: "+workflowId);
+        }
         return res;
     }
 
@@ -272,7 +278,8 @@ public class WorkflowObjectifyDAOImpl implements WorkflowDAO {
     }
 
     @Override
-    public Workflow updateDeleted(final long workflowId, final boolean isDeleted) throws Exception {
+    public Workflow updateDeletedAndVersion(final long workflowId, final Boolean isDeleted,
+            final Integer version) throws Exception {
         Workflow resWorkflow;
         resWorkflow = ofy().transact(new Work<Workflow>() {
             @Override
@@ -283,12 +290,20 @@ public class WorkflowObjectifyDAOImpl implements WorkflowDAO {
                     return null;
                 }
 
-                if (w.isDeleted() == isDeleted) {
-                    return w;
+                boolean update = false;
+                if (isDeleted != null && w.isDeleted() != isDeleted){
+                    w.setDeleted(isDeleted);
+                    update = true;
                 }
 
-                w.setDeleted(isDeleted);
-                Key<Workflow> wKey = ofy().save().entity(w).now();
+                if (version != null && version != w.getVersion()){
+                    w.setVersion(version);
+                    update = true;
+                }
+                
+                if (update == true){
+                    Key<Workflow> wKey = ofy().save().entity(w).now();
+                }
                 return w;
             }
         });
@@ -374,7 +389,7 @@ public class WorkflowObjectifyDAOImpl implements WorkflowDAO {
             ofy().delete().type(Workflow.class).id(workflowId).now();
         } else {
             //else just set _deleted to true 
-            updateDeleted(workflowId, true);
+            updateDeletedAndVersion(workflowId, true,null);
         }
         dwr.setSuccessful(true);
         dwr.setReason(null);
