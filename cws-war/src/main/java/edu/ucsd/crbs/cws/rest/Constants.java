@@ -153,6 +153,8 @@ public class Constants {
 
     public static final String DELETED_QUERY_PARAM = "deleted";
     
+    public static final String VERSION_QUERY_PARAM = "version";
+    
     public static final String SHOW_DELETED_QUERY_PARAM = "showdeleted";
     
     
