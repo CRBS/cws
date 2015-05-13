@@ -169,7 +169,8 @@ public class WorkflowRestDAOImpl implements WorkflowDAO {
     }
 
     @Override
-    public Workflow updateDeleted(long workflowId, boolean isDeleted) throws Exception {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public Workflow updateDeletedAndVersion(long workflowId, 
+            Boolean isDeleted,Integer version) throws Exception {
+        throw new UnsupportedOperationException("Not supported yet."); 
     }
 }
