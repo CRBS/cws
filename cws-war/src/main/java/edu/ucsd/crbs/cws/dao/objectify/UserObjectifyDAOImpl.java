@@ -78,6 +78,10 @@ public class UserObjectifyDAOImpl implements UserDAO {
         if (token != null){
             q = q.filter("_token ==",token);
         }
+        
+        //hide deleted users
+        q = q.filter("_deleted",false);
+        
         List<User> user = q.limit(1).list();
         if (user != null && user.isEmpty() == false){
             return user.get(0);
