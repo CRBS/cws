@@ -59,122 +59,137 @@ public class Permission {
     /**
      * Permission to get a list of their own Jobs
      */
-    public static final int LIST_THEIR_JOBS = 2;
+    public static final int LIST_THEIR_JOBS = 1 << 1;
     
     /**
      * Permission to update any and all Jobs
      */
-    public static final int UPDATE_ALL_JOBS = 4;
+    public static final int UPDATE_ALL_JOBS = 1 << 2;
     
     /**
      * Permission to update their own Jobs
      */
-    public static final int UPDATE_THEIR_JOBS = 8;
+    public static final int UPDATE_THEIR_JOBS = 1 << 3;
     
     /**
      * Permission to create a new Job
      */
-    public static final int CREATE_JOB = 16;
+    public static final int CREATE_JOB = 1 << 4;
     
     /**
      * Permission to get a list of all workflows
      */
-    public static final int LIST_ALL_WORKFLOWS = 32;
+    public static final int LIST_ALL_WORKFLOWS = 1 << 5;
+    
+    public static final int LIST_THEIR_WORKFLOWS = 1 << 6;
     
     /**
      * Permission to update all workflows
      */
-    public static final int UPDATE_ALL_WORKFLOWS = 64;
+    public static final int UPDATE_ALL_WORKFLOWS = 1 << 7;
+    
+    /**
+     * Permission to update their workflows
+     */
+    public static final int UPDATE_THEIR_WORKFLOWS = 1 << 8;
     
     /**
      * Permission to create a workflow
      */
-    public static final int CREATE_WORKFLOW = 128;
+    public static final int CREATE_WORKFLOW = 1 << 9;
     
     /**
      * Permission to download all workflows
      */
-    public static final int DOWNLOAD_ALL_WORKFLOWS = 256;
+    public static final int DOWNLOAD_ALL_WORKFLOWS = 1 << 10;
     
     /**
      * Permission to download their workflows
      */
-    public static final int DOWNLOAD_THEIR_WORKFLOWS = 512;
+    public static final int DOWNLOAD_THEIR_WORKFLOWS = 1 << 11;
     
     /**
      * Permission to run as another user
      */
-    public static final int RUN_AS_ANOTHER_USER = 1024;
+    public static final int RUN_AS_ANOTHER_USER = 1 << 12;
     
     /**
      * Permission to list all workspace files
      */
-    public static final int LIST_ALL_WORKSPACEFILES = 2048;
+    public static final int LIST_ALL_WORKSPACEFILES = 1 << 13;
     
     /**
      * Permission to list their workspace files
      */
-    public static final int LIST_THEIR_WORKSPACEFILES = 4096;
+    public static final int LIST_THEIR_WORKSPACEFILES = 1 << 14;
     
     /**
      * Permission to create a workspace file
      */
-    public static final int CREATE_WORKSPACEFILE = 8192;
+    public static final int CREATE_WORKSPACEFILE = 1 << 15;
     
     /**
      * Permission to update workspace file
      */
-    public static final int UPDATE_ALL_WORKSPACEFILES = 16384;
+    public static final int UPDATE_ALL_WORKSPACEFILES = 1 << 16;
+    
+    public static final int UPDATE_THEIR_WORKSPACEFILES = 1 << 17;
     
     /**
      * Permission to download workspace file
      */
-    public static final int DOWNLOAD_ALL_WORKSPACEFILES = 32768;
+    public static final int DOWNLOAD_ALL_WORKSPACEFILES = 1 << 18;
+    
+    public static final int DOWNLOAD_THEIR_WORKSPACEFILES = 1 << 19;
     
     /**
      * Permission to list all users
      */
-    public static final int LIST_ALL_USERS = 65536;
+    public static final int LIST_ALL_USERS = 1 << 20;
+    
+    /**
+     * Permission to list their users
+     */
+    public static final int LIST_THEIR_USERS = 1 << 21;
     
     /**
      * Permission to create user
      */
-    public static final int CREATE_USER = 131072;
+    public static final int CREATE_USER = 1 << 22;
     
     /**
      * Permission to create workspace file under any user
      */
-    public static final int CREATE_ANY_WORKSPACEFILE = 262144;
+    public static final int CREATE_ANY_WORKSPACEFILE = 1 << 23;
     
     /**
      * Permission to delete their workflows
      */
-    public static final int DELETE_THEIR_WORKFLOWS = 524288;
+    public static final int DELETE_THEIR_WORKFLOWS = 1 << 24;
     
     /**
      * Permission to delete all workflows
      */
-    public static final int DELETE_ALL_WORKFLOWS = 1048576;
+    public static final int DELETE_ALL_WORKFLOWS = 1 << 25;
     
     /**
      * Permission to delete their jobs
      */
-    public static final int DELETE_THEIR_JOBS = 2097152;
+    public static final int DELETE_THEIR_JOBS = 1 << 26;
     
     /**
      * Permission to delete all jobs
      */
-     public static final int DELETE_ALL_JOBS = 4194304;
+     public static final int DELETE_ALL_JOBS = 1 << 27;
      
     /**
      * Permission to delete their WorkspaceFiles
      */
-    public static final int DELETE_THEIR_WORKSPACEFILES = 8388608;
+    public static final int DELETE_THEIR_WORKSPACEFILES = 1 << 28;
     
     /**
      * Permission to delete all WorkspaceFiles
      */
-     public static final int DELETE_ALL_WORKSPACEFILES = 16777216;
-
+     public static final int DELETE_ALL_WORKSPACEFILES = 1 << 29;
 }
 
