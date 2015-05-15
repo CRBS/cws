@@ -43,13 +43,24 @@ import java.util.List;
 import java.util.logging.Logger;
 
 /**
- *
+ * Provides methods to store and retreive {@link User} objects from 
+ * GAO datastore
  * @author Christopher Churas <churas@ncmir.ucsd.edu>
  */
 public class UserObjectifyDAOImpl implements UserDAO {
 
     private static final Logger _log = Logger.getLogger(UserObjectifyDAOImpl.class.getName());
     
+    /**
+     * Inserts a new {@link User} passed in via <b>u</b> parameter into the
+     * data store.  During successful insert {@link User#getId()} will be set
+     * and if {@link User#getCreateDate()} is null in <b>u</b> then 
+     * {@link User#getCreateDate()} will be set with current time.
+     * @param u {@link User} to add to data store
+     * @return {@link User}  
+     * @throws Exception if <b>u</b> is null or there is an error storing
+     * the <b>u</b> into the datastore
+     */
     @Override
     public User insert(User u) throws Exception {
         if (u == null){
@@ -63,21 +74,30 @@ public class UserObjectifyDAOImpl implements UserDAO {
         return u;
     }
 
-    
+    /**
+     * Gets {@link User} matching <b>login</b> 
+     * <b>token</b> parameters.  If multiple 
+     * {@link User} objects are found the first one found is returned.
+     * @param login value to match {@link User#getLogin()} 
+     * @param token value to match {@link User#getToken()}
+     * @return <code>null</code> if either parameter <b>login</b>,<b>token</b> 
+     * is <b>null</b> or if no {@link User} matches otherwise {@link User}
+     * object
+     * @throws Exception If there is an error querying the data store
+     */
     @Override
-    public User getUserByLoginAndToken(String login, String token) throws Exception {
-        if (login == null && token == null){
-            _log.warning("Login and Token are null");
+    public User getUserByLoginAndToken(final String login,
+            final String token) throws Exception {
+        
+        if (login == null || token == null){
+            _log.warning("Login and or Token are null");
             return null;
         }
+        
         Query<User> q = ofy().load().type(User.class);
         
-        if (login != null){
-            q = q.filter("_login ==",login);
-        }
-        if (token != null){
-            q = q.filter("_token ==",token);
-        }
+        q = q.filter("_login ==",login);
+        q = q.filter("_token ==",token);
         
         //hide deleted users
         q = q.filter("_deleted",false);
