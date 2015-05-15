@@ -111,7 +111,7 @@ public class TestAuthStringDecoderImpl {
      * @param theStr
      * @return 
      */
-    private String encodeString(final String theStr) {
+    public static String encodeString(final String theStr) {
         byte[] ha = Base64.encodeBase64(theStr.getBytes());
         return new String(ha, StandardCharsets.UTF_8);
     }
