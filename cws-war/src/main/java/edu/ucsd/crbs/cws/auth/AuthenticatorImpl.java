@@ -23,6 +23,37 @@ public class AuthenticatorImpl implements Authenticator {
     
     UserDAO _userDAO = new UserObjectifyDAOImpl();
     UserIpAddressValidator _ipAddressValidator;
+    AuthStringDecoder _decoder;
+    
+    public AuthenticatorImpl(){
+        _ipAddressValidator = new UserIpAddressValidatorImpl();
+        _decoder = new AuthStringDecoderImpl();
+    }
+
+    /**
+     * Sets {@link UserIpAddressValidator} replacing existing one
+     * @param validator 
+     */
+    public void setUserIpAddressValidator(UserIpAddressValidator validator){
+        _ipAddressValidator = validator;
+    }
+    
+    /**
+     * Sets {@link UserDAO} replacing existing one
+     * @param userDAO 
+     */
+    public void setUserDAO(UserDAO userDAO){
+        _userDAO = userDAO;
+    }
+    
+    /**
+     * Sets {@link AuthStringDecoder} replacing existing one
+     * @param decoder 
+     */
+    public void setAuthStringDecoder(AuthStringDecoder decoder){
+        _decoder = decoder;
+    }
+    
     
     private User createInvalidUser(HttpServletRequest request){
         User invalidUser = new User();
@@ -110,12 +141,12 @@ public class AuthenticatorImpl implements Authenticator {
                     request.getParameter(Constants.USER_TOKEN_PARAM),
                     request.getParameter(Constants.USER_LOGIN_TO_RUN_AS_PARAM));
         }
-        String[] userPass = this.decodeAuthString(auth);
-        if (userPass == null || userPass.length != 2) {
+        User decodedUser = _decoder.decodeAuthString(auth);
+        if (decodedUser == null) {
             return createInvalidUser(request);
         }
-        return authenticate(request, userPass[0],
-                userPass[1],
+        return authenticate(request, decodedUser.getLogin(),
+                decodedUser.getToken(),
                 request.getParameter(Constants.USER_LOGIN_TO_RUN_AS_PARAM));
     }
 
@@ -125,13 +156,28 @@ public class AuthenticatorImpl implements Authenticator {
                                          final String userToken,
                                          final String loginToRunAs){
         if (ipAddress == null){
-            _log.log(Level.INFO,"Unable to get ip address");
+            _log.log(Level.WARNING,"Unable to get ip address");
             return null;
         }
 
         if (userToken == null || userLogin == null){
             _log.log(Level.INFO,"User token or login is null");
             return null;
+        }
+        
+        //if remote address is local then let it through no questions
+        if (ipAddress.equals("127.0.0.1") ||
+            ipAddress.equals("::1") ||
+            ipAddress.equals("0:0:0:0:0:0:0:1")){
+            _log.log(Level.INFO,"Request comes from local ip {0}.  "+
+                    "Giving super powers",ipAddress);
+            User user = new User();
+            user.setLogin(userLogin);
+            user.setToken(userToken);
+            user.setIpAddress(ipAddress);
+            user.setPermissions(Permission.ALL);
+            user.setLoginToRunJobAs(loginToRunAs);
+            return user;
         }
         
         // @TODO REMOVE THIS AT SOME POINT and replace with Google's user 
@@ -152,37 +198,5 @@ public class AuthenticatorImpl implements Authenticator {
             return user;
         }
         return null;
-    }
-
-    /**
-     * Takes Basic HTTP Authentication string via <b>auth</b> parameter in format:<p/>
-     * 
-     *  Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ== <p/>
-     * 
-     * and extracts login and password token from value to right of <b>Basic</b> 
-     * above
-     * which should be in format of <b>login:pass</b> once decoded via 
-     * {@link DatatypeConverter#parseBase64Binary(java.lang.String)}
-     * method
-     * 
-     * @param auth Basic Http Authentication string in format above
-     * @return String array of length two with first element being login value 
-     *         and second being password upon success or <b>null</b> upon error
-     */
-    private String[] decodeAuthString(final String auth){
-        
-        if (auth == null){
-            return null;
-        }
-        String authWithBasicRemoved = auth.replaceFirst("[B|b]asic ", "");
-        byte[] decodedBytes = DatatypeConverter.parseBase64Binary(authWithBasicRemoved);
-        if (decodedBytes == null || decodedBytes.length == 0){
-            return null;
-        }
-        String decodedUserPass = new String(decodedBytes);
-        if (!decodedUserPass.contains(":")){
-            return null;
-        }
-        return decodedUserPass.split(":");
     }
 }
