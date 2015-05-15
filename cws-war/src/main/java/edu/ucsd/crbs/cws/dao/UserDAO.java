@@ -50,7 +50,8 @@ public interface UserDAO {
      * @return
      * @throws Exception 
      */
-    public User getUserByLoginAndToken(final String login,final String token) throws Exception;
+    public User getUserByLoginAndToken(final String login,
+            final String token) throws Exception;
     
     /**
      * Adds a new User
