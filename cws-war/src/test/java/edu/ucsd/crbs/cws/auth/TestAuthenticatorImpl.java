@@ -33,6 +33,16 @@
 
 package edu.ucsd.crbs.cws.auth;
 
+import com.google.api.client.util.Base64;
+import com.google.appengine.tools.development.testing.LocalBlobstoreServiceTestConfig;
+import com.google.appengine.tools.development.testing.LocalDatastoreServiceTestConfig;
+import com.google.appengine.tools.development.testing.LocalServiceTestHelper;
+import static edu.ucsd.crbs.cws.dao.objectify.OfyService.ofy;
+import edu.ucsd.crbs.cws.dao.objectify.UserObjectifyDAOImpl;
+import edu.ucsd.crbs.cws.rest.Constants;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import javax.servlet.http.HttpServletRequest;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -41,6 +51,9 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 
 
@@ -51,6 +64,10 @@ import org.junit.runners.JUnit4;
 @RunWith(JUnit4.class)
 public class TestAuthenticatorImpl {
 
+    private final LocalServiceTestHelper _helper
+            = new LocalServiceTestHelper(new LocalDatastoreServiceTestConfig(),
+                    new LocalBlobstoreServiceTestConfig());
+    
     public TestAuthenticatorImpl() {
     }
 
@@ -64,10 +81,13 @@ public class TestAuthenticatorImpl {
 
     @Before
     public void setUp() {
+        _helper.setUp();
+        ofy().clear();
     }
 
     @After
     public void tearDown() {
+         _helper.tearDown();
     }
 
     @Test
@@ -81,5 +101,224 @@ public class TestAuthenticatorImpl {
             assertTrue(ex.getMessage().startsWith("Request is null"));
         }
     }
-   
+    
+    // test Authenticate null getHeader and no such user
+    @Test
+    public void testAuthenticateWithNullHeaderAndNoQueryParametersAndNullIp() throws Exception {
+         
+         AuthenticatorImpl auth = new AuthenticatorImpl();
+         HttpServletRequest request = mock(HttpServletRequest.class);
+         when(request.getParameter(AuthenticatorImpl.AUTHORIZATION_HEADER)).thenReturn(null);
+         when(request.getParameter(Constants.USER_LOGIN_PARAM)).thenReturn(null);
+         when(request.getParameter(Constants.USER_TOKEN_PARAM)).thenReturn(null);
+         when(request.getParameter(Constants.USER_LOGIN_TO_RUN_AS_PARAM)).thenReturn(null);
+         
+         User u = auth.authenticate(request);
+         assertTrue(u != null);
+         assertTrue(u.getPermissions() == Permission.NONE);
+         assertTrue(u.getIpAddress() == null);
+         
+         verify(request).getHeader(AuthenticatorImpl.AUTHORIZATION_HEADER);
+         verify(request).getParameter(Constants.USER_LOGIN_PARAM);
+         verify(request).getParameter(Constants.USER_TOKEN_PARAM);
+         verify(request).getParameter(Constants.USER_LOGIN_TO_RUN_AS_PARAM);
+    }
+    
+    @Test
+    public void testAuthenticateWithNullHeaderAndNoQueryParametersAndValidIp() throws Exception {
+         
+         AuthenticatorImpl auth = new AuthenticatorImpl();
+         HttpServletRequest request = mock(HttpServletRequest.class);
+         when(request.getRemoteAddr()).thenReturn("192.168.1.1");
+         when(request.getHeader(AuthenticatorImpl.AUTHORIZATION_HEADER)).thenReturn(null);
+         when(request.getParameter(Constants.USER_LOGIN_PARAM)).thenReturn(null);
+         when(request.getParameter(Constants.USER_TOKEN_PARAM)).thenReturn(null);
+         when(request.getParameter(Constants.USER_LOGIN_TO_RUN_AS_PARAM)).thenReturn(null);
+         
+         User u = auth.authenticate(request);
+         assertTrue(u != null);
+         assertTrue(u.getPermissions() == Permission.NONE);
+         assertTrue(u.getIpAddress().equals("192.168.1.1"));
+         
+         verify(request).getHeader(AuthenticatorImpl.AUTHORIZATION_HEADER);
+         verify(request).getParameter(Constants.USER_LOGIN_PARAM);
+         verify(request).getParameter(Constants.USER_TOKEN_PARAM);
+         verify(request).getParameter(Constants.USER_LOGIN_TO_RUN_AS_PARAM);
+    }
+    
+    // test Authenticate invalid decode of authString empty string
+    @Test
+    public void testAuthenticateInvalidAuthInHeader() throws Exception {
+         AuthenticatorImpl auth = new AuthenticatorImpl();
+         HttpServletRequest request = mock(HttpServletRequest.class);
+         when(request.getRemoteAddr()).thenReturn("192.168.1.1");
+         when(request.getHeader(AuthenticatorImpl.AUTHORIZATION_HEADER)).thenReturn("Basic ");
+         
+
+         User u = auth.authenticate(request);
+         assertTrue(u != null);
+         assertTrue(u.getPermissions() == Permission.NONE);
+         assertTrue(u.getIpAddress().equals("192.168.1.1"));
+         
+         verify(request).getHeader(AuthenticatorImpl.AUTHORIZATION_HEADER);
+        
+    }
+
+    // test Authenticate invalid decode of authString no colon
+    @Test
+    public void testAuthenticateInvalidAuthNoColon() throws Exception {
+         AuthenticatorImpl auth = new AuthenticatorImpl();
+         HttpServletRequest request = mock(HttpServletRequest.class);
+         when(request.getRemoteAddr()).thenReturn("192.168.1.1");
+         when(request.getHeader(AuthenticatorImpl.AUTHORIZATION_HEADER)).thenReturn("Basic "+encodeString("ha"));
+         User u = auth.authenticate(request);
+         assertTrue(u != null);
+         assertTrue(u.getPermissions() == Permission.NONE);
+         assertTrue(u.getIpAddress().equals("192.168.1.1"));
+         
+         verify(request).getHeader(AuthenticatorImpl.AUTHORIZATION_HEADER);
+        
+    }
+
+    @Test
+    public void testAuthenticateValidAuthInHeaderAndUserInDataStore() throws Exception {
+        UserObjectifyDAOImpl userDAO = new UserObjectifyDAOImpl();
+       
+        User dbuser = new User();
+        dbuser.setLogin("bob");
+        dbuser.setToken("smith");
+        dbuser.setPermissions(Permission.LIST_ALL_JOBS);
+        dbuser = userDAO.insert(dbuser);
+      
+         AuthenticatorImpl auth = new AuthenticatorImpl();
+         HttpServletRequest request = mock(HttpServletRequest.class);
+         when(request.getRemoteAddr()).thenReturn("192.168.1.1");
+         when(request.getHeader(AuthenticatorImpl.AUTHORIZATION_HEADER)).thenReturn("Basic "+encodeString("bob:smith"));
+         
+         User u = auth.authenticate(request);
+         assertTrue(u != null);
+         assertTrue(u.getLogin().equals("bob"));
+         assertTrue(u.getToken().equals("smith"));
+         assertTrue(u.getPermissions() == Permission.LIST_ALL_JOBS);
+         assertTrue(u.getIpAddress().equals("192.168.1.1"));
+         assertTrue(u.getId() == dbuser.getId().longValue());
+         
+        verify(request).getHeader(AuthenticatorImpl.AUTHORIZATION_HEADER);
+
+    }
+    
+    @Test
+    public void testAuthenticateValidAuthButNoUser() throws Exception {
+        UserObjectifyDAOImpl userDAO = new UserObjectifyDAOImpl();
+      
+         AuthenticatorImpl auth = new AuthenticatorImpl();
+         HttpServletRequest request = mock(HttpServletRequest.class);
+         when(request.getRemoteAddr()).thenReturn("192.168.1.1");
+         when(request.getHeader(AuthenticatorImpl.AUTHORIZATION_HEADER)).thenReturn("Basic "+encodeString("bob:smith"));
+         
+         User u = auth.authenticate(request);
+         assertTrue(u != null);
+         assertTrue(u.getPermissions() == Permission.NONE);
+         assertTrue(u.getIpAddress().equals("192.168.1.1"));
+         
+        verify(request).getHeader(AuthenticatorImpl.AUTHORIZATION_HEADER);
+
+    }
+    
+    //test valid User, but invalid ip 
+    @Test
+    public void testAuthenticateValidAuthButInvalidIp() throws Exception {
+        UserObjectifyDAOImpl userDAO = new UserObjectifyDAOImpl();
+       
+        User dbuser = new User();
+        dbuser.setLogin("bob");
+        dbuser.setToken("smith");
+        dbuser.setPermissions(Permission.LIST_ALL_JOBS);
+        ArrayList<String> allowedIps = new ArrayList<String>();
+        allowedIps.add("192.168.1.2");
+        dbuser.setAllowedIpAddresses(allowedIps);
+        dbuser = userDAO.insert(dbuser);
+      
+         AuthenticatorImpl auth = new AuthenticatorImpl();
+         HttpServletRequest request = mock(HttpServletRequest.class);
+         when(request.getRemoteAddr()).thenReturn("192.168.1.1");
+         when(request.getHeader(AuthenticatorImpl.AUTHORIZATION_HEADER)).thenReturn("Basic "+encodeString("bob:smith"));
+         
+         User u = auth.authenticate(request);
+         assertTrue(u.getLogin() == null);
+         assertTrue(u.getToken() == null);
+         assertTrue(u.getPermissions() == Permission.NONE);
+         assertTrue(u.getIpAddress().equals("192.168.1.1"));
+         
+        verify(request).getHeader(AuthenticatorImpl.AUTHORIZATION_HEADER);
+
+    }
+    
+     @Test
+    public void testAuthenticateUserFromLocal127ip() throws Exception {
+        UserObjectifyDAOImpl userDAO = new UserObjectifyDAOImpl();
+      
+         AuthenticatorImpl auth = new AuthenticatorImpl();
+         HttpServletRequest request = mock(HttpServletRequest.class);
+         when(request.getRemoteAddr()).thenReturn("127.0.0.1");
+         when(request.getHeader(AuthenticatorImpl.AUTHORIZATION_HEADER)).thenReturn("Basic "+encodeString("bob:smith"));
+         
+         User u = auth.authenticate(request);
+         assertTrue(u != null);
+         assertTrue(u.getLogin().equals("bob"));
+         assertTrue(u.getToken().equals("smith"));
+         assertTrue(u.getPermissions() == Permission.ALL);
+         assertTrue(u.getIpAddress().equals("127.0.0.1"));
+         
+        verify(request).getHeader(AuthenticatorImpl.AUTHORIZATION_HEADER);
+
+    }
+    
+    @Test
+    public void testAuthenticateUserFromLocalipv6shortip() throws Exception {
+      
+         AuthenticatorImpl auth = new AuthenticatorImpl();
+         HttpServletRequest request = mock(HttpServletRequest.class);
+         when(request.getRemoteAddr()).thenReturn("::1");
+         when(request.getHeader(AuthenticatorImpl.AUTHORIZATION_HEADER)).thenReturn("Basic "+encodeString("bob:smith"));
+         
+         User u = auth.authenticate(request);
+         assertTrue(u != null);
+         assertTrue(u.getLogin().equals("bob"));
+         assertTrue(u.getToken().equals("smith"));
+         assertTrue(u.getPermissions() == Permission.ALL);
+         assertTrue(u.getIpAddress().equals("::1"));
+         
+        verify(request).getHeader(AuthenticatorImpl.AUTHORIZATION_HEADER);
+
+    }
+    
+    @Test
+    public void testAuthenticateUserFromLocalipv6ip() throws Exception {
+      
+         AuthenticatorImpl auth = new AuthenticatorImpl();
+         HttpServletRequest request = mock(HttpServletRequest.class);
+         when(request.getRemoteAddr()).thenReturn("0:0:0:0:0:0:0:1");
+         when(request.getHeader(AuthenticatorImpl.AUTHORIZATION_HEADER)).thenReturn("Basic "+encodeString("bob:smith"));
+         
+         User u = auth.authenticate(request);
+         assertTrue(u != null);
+         assertTrue(u.getLogin().equals("bob"));
+         assertTrue(u.getToken().equals("smith"));
+         assertTrue(u.getPermissions() == Permission.ALL);
+         assertTrue(u.getIpAddress().equals("0:0:0:0:0:0:0:1"));
+         
+        verify(request).getHeader(AuthenticatorImpl.AUTHORIZATION_HEADER);
+
+    }
+    
+    /**
+     * Helper method to encode a string in Base64
+     * @param theStr
+     * @return 
+     */
+    public static String encodeString(final String theStr) {
+        byte[] ha = Base64.encodeBase64(theStr.getBytes());
+        return new String(ha, StandardCharsets.UTF_8);
+    }
 }
