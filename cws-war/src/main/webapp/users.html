@@ -36,13 +36,38 @@ RIGHTS.
         <title>Users</title>
         <meta charset="UTF-8">
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
-       
+       <style>
+
+
+         table {
+            width: 100%;
+         }
+
+         th {
+            text-align: left;
+         }
+         </style>
         <script>
+           var toggle = false;
+           function createUser(login,token,permissions,ipAddresses){
+               var res = null;
+               if (ipAddresses !== ""){
+                  res = ipAddresses.split(",");
+              }
+               var u = {
+                 id: null,     
+                 permissions: permissions,
+                 deleted: false,
+                 createDate: null,
+                 login: login,
+                 token: token,
+                 allowedIpAddresses: res
+               }
+               return u;
+           }
+           
            $(document).ready(function() {
              var theurl = $(location).attr('protocol')+"//"+$(location).attr('host');
-             var line = "<br>theurl = "+theurl+"</br>";
-             $(line).appendTo("#pageinfo");
-             
              
               $( "#submitbutton" ).click(function(event){
                  var permissionVal = 0;
@@ -51,43 +76,32 @@ RIGHTS.
                         permissionVal += Number($(boxy).val());
                     }
                  });
-                 var line = "<br>Permission = "+permissionVal+"</br>";
+                 var login = $( "#inputlogin" ).val();
+                 var ip = $( "#iptext" ).val();
+                 var newUser = createUser(login,"haha",permissionVal,ip)
+                 
+                 var line = "<br>"+JSON.stringify(newUser)+"<br/>";
                  $(line).appendTo("#pageinfo");
+                 
+                 
+                 $.ajax({
+                    type: "POST",
+                    url: theurl+"/rest/users",
+                    data: JSON.stringify(newUser),
+                    contentType: "application/json; charset=utf-8",
+                    dataType: "json"
+                 });
+                 
                  event.preventDefault();
               });
 
-              $( "#addip" ).click(function(event){
-                 event.preventDefault();
-                 var ip = $( "#iptext" ).val();
-                 var data = "<br id=\"iplist\">"+ip+"</br>";
-                 $( data ).appendTo("#ipadds");
-              });  
-              $( "#iptext" ).keypress(function(event){
-                 if (event.which == 13){
-                    event.preventDefault();
-                    var ip = $( "#iptext" ).val();
-                    var data = "<br id=\"iplist\">"+ip+"</br>";
-                    $( data ).appendTo("#ipadds");
-                }
-              });  
-              
-              
               $( "#checkall" ).click(function(event){
                  event.preventDefault();
+                 toggle = !toggle;
                  $( 'input[type="checkbox"]').each(function(index,boxy){
-                    $(boxy).prop('checked',true);
+                    $(boxy).prop('checked',toggle);
                  });
               });  
-              
-              $( "#uncheckall" ).click(function(event){
-                 event.preventDefault();
-                 $( 'input[type="checkbox"]').each(function(index,boxy){
-                    $(boxy).prop('checked',false);
-                 });
-              });  
-
-              // look into thishttp://stackoverflow.com/questions/11078324/how-to-create-json-object-using-jquery
-
            });
         </script>
     </head>
@@ -95,17 +109,28 @@ RIGHTS.
        <p>Add User Form</p>
        <form id="adduser" action="users.html">
            <div id="pageinfo"></div>
-          User Login: <input type="text" value=""/><p/>
-         
+          User Login: <input id="inputlogin" type="text" value=""/><p/>
+          IP Address: <input id="iptext" type="text" value="255.255.255.255/32"/><p/>
           <b>Permissions: </b><p/>
          
-          <button type="button" id="checkall" name="checkall">check all</button> <button type="button" id="uncheckall" name="uncheckall">uncheck all</button><br/>
-          
-          <input type="checkbox" name="permission" value="1">List all jobs</input><br/>
-          <input type="checkbox" name="permission" value="2">List their jobs</input><br/>
-          <input type="checkbox" name="permission" value="4">Update all jobs</input><br/>
-          <input type="checkbox" name="permission" value="8">Update their jobs</input><br/>
-          <input type="checkbox" name="permission" value="16">Create job</input><br/>
+          <button type="button" id="checkall" name="checkall">Check/Uncheck all</button>
+          <button type="button" id="defaultuser" name="checkall">Default User</button>
+          <button type="button" id="daemonuser" name="checkall">Daemon User</button>
+          <br/>
+          <div class="perms">
+              <h3>Jobs</h3>
+              <table>
+                  <tr><td><input type="checkbox" name="permission" value="16">Create job</input></td></tr>
+                  <tr><td><input type="checkbox" name="permission" value="134217728">Delete all jobs</input></td></tr>
+                  <tr><td><input type="checkbox" name="permission" value="67108864">Delete their jobs</input></td></tr>
+                  <tr><td><input type="checkbox" name="permission" value="1">List all jobs</input></td></tr>
+                  <tr><td><input type="checkbox" name="permission" value="2">List their jobs</input></td></tr>
+                  <tr><td><input type="checkbox" name="permission" value="4">Update all jobs</input></td></tr>
+                  <tr><td><input type="checkbox" name="permission" value="8">Update their jobs</input></td></tr>                      
+              </table> 
+            
+              
+              <h3>Workflows</h3>
           <input type="checkbox" name="permission" value="32">List all workflows</input><br/>
           <input type="checkbox" name="permission" value="64">List their workflows</input><br/>
           <input type="checkbox" name="permission" value="128">Update all workflows</input><br/>
@@ -113,7 +138,10 @@ RIGHTS.
           <input type="checkbox" name="permission" value="512">Create workflow</input><br/>
           <input type="checkbox" name="permission" value="1024">Download all workflows</input><br/>
           <input type="checkbox" name="permission" value="2048">Download their workflows</input><br/>
-          <input type="checkbox" name="permission" value="4096">Run as another user</input><br/>
+          <input type="checkbox" name="permission" value="16777216">Delete their workflows</input><br/>
+          <input type="checkbox" name="permission" value="33554432">Delete all workflows</input><br/>
+
+          
           <input type="checkbox" name="permission" value="8192">List all workspacefiles</input><br/>
           <input type="checkbox" name="permission" value="16384">List their workspacefiles</input><br/>
           <input type="checkbox" name="permission" value="32768">Create workspacefile</input><br/>
@@ -121,20 +149,17 @@ RIGHTS.
           <input type="checkbox" name="permission" value="131072">Update their workspacefiles</input><br/>
           <input type="checkbox" name="permission" value="262144">Download all workspacefiles</input><br/>
           <input type="checkbox" name="permission" value="524288">Download their workspacefiles</input><br/>
+          <input type="checkbox" name="permission" value="8388608">Create any workspace file</input><br/>
+          <input type="checkbox" name="permission" value="268435456">Delete their workspacefiles</input><br/>
+          <input type="checkbox" name="permission" value="536870912">Delete all workspace files</input><br/>
+
+          <h3>Users</h3>
+          <input type="checkbox" name="permission" value="4096">Run as another user</input><br/>
           <input type="checkbox" name="permission" value="1048576">List all users</input><br/>
           <input type="checkbox" name="permission" value="2097152">List their users</input><br/>
           <input type="checkbox" name="permission" value="4194304">Create user</input><br/>
-          <input type="checkbox" name="permission" value="8388608">Create any workspace file</input><br/>
-          <input type="checkbox" name="permission" value="16777216">Delete their workflows</input><br/>
-          <input type="checkbox" name="permission" value="33554432">Delete all workflows</input><br/>
-          <input type="checkbox" name="permission" value="67108864">Delete their jobs</input><br/>
-          <input type="checkbox" name="permission" value="134217728">Delete all jobs</input><br/>
-          <input type="checkbox" name="permission" value="268435456">Delete their workspacefiles</input><br/>
-          <input type="checkbox" name="permission" value="536870912">Delete all workspace files</input><br/>
+          </div>
           <p/>
-          
-          Add IP Address: <input id="iptext" type="text" value=""/> <button id="addip" value="">Add</button><p/>
-          <div id="ipadds" class="ipaddresses"></div>
           <button id="submitbutton" type="submit" form="adduser" value="Add">Add User</button>
        </form>
 
