@@ -151,6 +151,17 @@ public class AuthenticatorImpl implements Authenticator {
     }
 
     
+    /**
+     * Returns a super {@link User} ie {@link Permission#ALL} if request 
+     * originates from localhost
+     * @param ipAddress ip address of request
+     * @param userLogin login of request
+     * @param userToken token of request
+     * @param loginToRunAs login to run as
+     * @return <code>null</code> unless <b>ipAddress</b> is localhost then 
+     * a super {@link User} is returned with {@link User#getLoginToRunJobAs() }
+     * set to <b>loginToRunAs</b>
+     */
     private User getUserIfTheyAreSpecial(final String ipAddress,
                                          final String userLogin,
                                          final String userToken,
@@ -171,24 +182,6 @@ public class AuthenticatorImpl implements Authenticator {
             ipAddress.equals("0:0:0:0:0:0:0:1")){
             _log.log(Level.INFO,"Request comes from local ip {0}.  "+
                     "Giving super powers",ipAddress);
-            User user = new User();
-            user.setLogin(userLogin);
-            user.setToken(userToken);
-            user.setIpAddress(ipAddress);
-            user.setPermissions(Permission.ALL);
-            user.setLoginToRunJobAs(loginToRunAs);
-            return user;
-        }
-        
-        // @TODO REMOVE THIS AT SOME POINT and replace with Google's user 
-        // services
-        // so that only users that logged into google can have this crazy 
-        // privilege
-        // https://developers.google.com/appengine/docs/java/users/
-        if ((userLogin.equals("mikechiu") && 
-                userToken.equals("67cecab615914b2494830ef116a4580a")) ||
-             (userLogin.equals("chris") && 
-                userToken.equals("dc5902078cfa40b980229662c2e0c226"))){
             User user = new User();
             user.setLogin(userLogin);
             user.setToken(userToken);
