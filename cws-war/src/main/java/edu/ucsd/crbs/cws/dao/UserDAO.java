@@ -34,6 +34,7 @@
 package edu.ucsd.crbs.cws.dao;
 
 import edu.ucsd.crbs.cws.auth.User;
+import java.util.List;
 
 /**
  * Defines methods to retrieve and persist User objects to some persistent store
@@ -70,4 +71,35 @@ public interface UserDAO {
      */
     public User getUserById(final String userId) throws Exception;
     
+    /**
+     * Gets list of {@link User}s.
+     * @param login If <b>not</b> <code>null</code> only {@link User} with
+     * {@link User#getLogin()} matching this value 
+     * (supports comma separated list) will be returned.
+     * @param showDeleted If <b>not</b> <code>null</code> and set to 
+     * <code>true</b> then {@link User} objects with {@link User#isDeleted()} set
+     * to <code>true</code> will also be returned.
+     * @return List of {@link User} objects or empty list or null if none found
+     * @throws Exception 
+     */
+    public List<User> getUsers(final String login,
+            final Boolean showDeleted) throws Exception;
+    
+    
+    /**
+     * Updates {@link User} with <b>u</b>.  Note: {@link User#getId()} must
+     * be set.
+     * @param u 
+     * @return Updated {@link User}
+     * @throws Exception 
+     */
+    public User update(User u) throws Exception;
+    
+    /**
+     * Resaves {@link User} with {@link User#getId} matching <b>userId</b> 
+     * @param userId
+     * @return
+     * @throws Exception 
+     */
+    public User resave(long userId) throws Exception;
 }

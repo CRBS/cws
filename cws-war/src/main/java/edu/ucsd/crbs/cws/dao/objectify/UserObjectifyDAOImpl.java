@@ -33,13 +33,15 @@
 
 package edu.ucsd.crbs.cws.dao.objectify;
 
-import com.googlecode.objectify.Key;
+import com.googlecode.objectify.Work;
 import com.googlecode.objectify.cmd.Query;
 import edu.ucsd.crbs.cws.auth.User;
 import edu.ucsd.crbs.cws.dao.UserDAO;
 import static edu.ucsd.crbs.cws.dao.objectify.OfyService.ofy;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -70,10 +72,25 @@ public class UserObjectifyDAOImpl implements UserDAO {
         if (u.getCreateDate() == null){
             u.setCreateDate(new Date());
         }
-        Key<User> uKey = ofy().save().entity(u).now();
+        ofy().save().entity(u).now();
         return u;
     }
 
+    @Override
+    public User update(User u) throws Exception {
+        if (u == null){
+            throw new NullPointerException("User is null");
+        }
+        if (u.getId() == null){
+            throw new Exception("Id of User cannot be null");
+        }
+        ofy().save().entity(u).now();
+        return u;
+    }
+
+    
+    
+    
     /**
      * Gets {@link User} matching <b>login</b> 
      * <b>token</b> parameters.  If multiple 
@@ -120,6 +137,74 @@ public class UserObjectifyDAOImpl implements UserDAO {
         return ofy().load().type(User.class).id(userIdAsLong).now();
     }
 
+    /**
+     * Gets list of {@link User}s.
+     * @param login If <b>not</b> <code>null</code> only {@link User} with
+     * {@link User#getLogin()} matching this value 
+     * (supports comma separated list) will be returned.
+     * @param showDeleted If <b>not</b> <code>null</code> and set to 
+     * <code>true</b> then {@link User} objects with {@link User#isDeleted()} set
+     * to <code>true</code> will also be returned.
+     * @return List of {@link User} objects or empty list or null if none found
+     * @throws Exception 
+     */
+    @Override
+    public List<User> getUsers(String login, Boolean showDeleted) throws Exception {
+        Query<User> q = ofy().load().type(User.class);
+        
+        if (login != null){
+            q = q.filter("_login in",generateListFromCommaSeparatedString(login));
+        }
+        
+        if (showDeleted == null || showDeleted == false){
+            q = q.filter("_deleted",false);
+        }
+        return q.list();
+    }
+
+    @Override
+    public User resave(final long userId) throws Exception {
+          User resUser = ofy().transact(new Work<User>() {
+            @Override
+            public User run() {
+                User user;
+                try {
+                    user = getUserById(Long.toString(userId));
+                } catch (Exception ex) {
+                    _log.log(Level.WARNING,
+                            "Caught exception attempting to load User {0} : {1}",
+                            new Object[]{userId,ex.getMessage()});
+                    return null;
+                }
+                if (user == null) {
+                    _log.log(Level.WARNING,"User {0} not found",userId);
+                    return null;
+                }
+
+                ofy().save().entity(user).now();
+                return user;
+            }
+        });
+
+        if (resUser == null){
+            throw new Exception("There was an error resaving User with id: "+userId);
+        }
+        return resUser;
+    }
+    
+    
+    
+
+    /**
+     * Splits <b>val</b> by comma storing the values into a List
+     * @param val
+     * @return 
+     */
+    private List<String> generateListFromCommaSeparatedString(final String val) {
+        return Arrays.asList(val.split(","));
+    }
+
+    
     
     
 }

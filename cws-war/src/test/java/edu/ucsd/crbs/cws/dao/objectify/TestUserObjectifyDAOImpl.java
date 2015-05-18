@@ -39,6 +39,7 @@ import com.google.appengine.tools.development.testing.LocalServiceTestHelper;
 import edu.ucsd.crbs.cws.auth.User;
 import static edu.ucsd.crbs.cws.dao.objectify.OfyService.ofy;
 import java.util.Date;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.junit.After;
@@ -196,5 +197,131 @@ public class TestUserObjectifyDAOImpl {
         assertTrue(userDAO.getUserById(u.getId().toString()).getId() ==
                 u.getId().longValue());
     }
+    
+    @Test
+    public void testGetUsers() throws Exception {
+        UserObjectifyDAOImpl userDAO = new UserObjectifyDAOImpl();
+        List<User> uList = userDAO.getUsers(null, null);
+        assertTrue(uList.isEmpty());
+        uList = userDAO.getUsers("bob", null);
+        assertTrue(uList.isEmpty());
+        uList = userDAO.getUsers(null,Boolean.FALSE);
+        assertTrue(uList.isEmpty());
+        uList = userDAO.getUsers(null, Boolean.TRUE);
+        assertTrue(uList.isEmpty());
+        
+        User u = new User();
+        u.setLogin("bob");
+        u.setToken("token");
+        u = userDAO.insert(u);
+        assertTrue(u.getId() != null);
+        uList = userDAO.getUsers("bob", null);
+        assertTrue(uList.size() == 1);
+        assertTrue(uList.get(0).getId() == u.getId().longValue());
+        
+        uList = userDAO.getUsers("bob,ted", null);
+        assertTrue(uList.size() == 1);
+        
+        uList = userDAO.getUsers("billy,bob", null);
+        assertTrue(uList.size() == 1);
+        
+        uList = userDAO.getUsers("asdf,bob,harold", null);
+        assertTrue(uList.size() == 1);
+        
+        uList = userDAO.getUsers("bob", Boolean.FALSE);
+        assertTrue(uList.size() == 1);
+
+        uList = userDAO.getUsers("bob", Boolean.TRUE);
+        assertTrue(uList.size() == 1);
+        
+        User du = new User();
+        du.setLogin("ted");
+        du.setToken("token2");
+        du.setDeleted(true);
+        du = userDAO.insert(du);
+        
+        uList = userDAO.getUsers("bob,ted", null);
+        assertTrue(uList.size() == 1);
+        uList = userDAO.getUsers("bob,ted", Boolean.FALSE);
+        assertTrue(uList.size() == 1);
+        
+        uList = userDAO.getUsers("bob,ted", Boolean.TRUE);
+        assertTrue(uList.size() == 2);
+        assertTrue(uList.get(0).getId() == u.getId().longValue() ||
+                   uList.get(0).getId() == du.getId().longValue());
+        
+    }
+    
+    @Test
+    public void testUpdateNullUser() throws Exception {
+       UserObjectifyDAOImpl userDAO = new UserObjectifyDAOImpl();
+       try {
+           userDAO.update(null);
+           fail("Expected exception");
+       } 
+       catch(NullPointerException npe){
+           assertTrue(npe.getMessage().contains("User is null"));
+       }
+    }
+    
+    @Test
+    public void testUpdateNullUserId() throws Exception {
+       UserObjectifyDAOImpl userDAO = new UserObjectifyDAOImpl();
+       User u = new User();
+       
+       try {
+           userDAO.update(u);
+           fail("Expected exception");
+       } 
+       catch(Exception ex){
+           assertTrue(ex.getMessage().contains("Id of User cannot be null"));
+       }
+    }
+    
+    @Test
+    public void testUpdate() throws Exception {
+        UserObjectifyDAOImpl userDAO = new UserObjectifyDAOImpl();
+       User u = new User();
+       u.setLogin("joe");
+       u.setToken("token");
+       u.setDeleted(false);
+       u = userDAO.insert(u);
+       
+       assertTrue(u.getLogin().equals("joe"));
+       assertTrue(u.isDeleted() == false);
+       u.setDeleted(true);
+       u.setToken("hodor");
+       u = userDAO.update(u);
+       assertTrue(u.isDeleted() == true);
+       
+       u = userDAO.getUserById(u.getId().toString());
+       assertTrue(u.isDeleted() == true);
+       assertTrue(u.getLogin().equals("joe"));
+       assertTrue(u.getToken().equals("hodor"));
+    }
+
+    @Test
+    public void testResaveNonExistingUser() throws Exception {
+        UserObjectifyDAOImpl userDAO = new UserObjectifyDAOImpl();
+        try {
+            userDAO.resave(1L);
+            fail("Expected exception");
+        }
+        catch(Exception ex){
+            assertTrue(ex.getMessage().contains("There was an error resaving User with id: 1"));
+        }
+    }
+    
+    @Test
+    public void testResaveValidUser() throws Exception {
+        UserObjectifyDAOImpl userDAO = new UserObjectifyDAOImpl();
+         User u = new User();
+       u.setLogin("joe");
+       u.setToken("token");
+       u = userDAO.insert(u);
+       u = userDAO.resave(u.getId());
+       assertTrue(u.getId() != null);
+    }
+
     
 }
