@@ -207,6 +207,55 @@ public class TestAuthenticatorImpl {
 
     }
     
+     @Test
+    public void testAuthenticateValidAuthInHeaderAndUserInDataStoreButNotAuthorizedToRunAsAnotherUser() throws Exception {
+        UserObjectifyDAOImpl userDAO = new UserObjectifyDAOImpl();
+       
+        User dbuser = new User();
+        dbuser.setLogin("bob");
+        dbuser.setToken("smith");
+        dbuser.setPermissions(Permission.LIST_ALL_JOBS);
+        dbuser = userDAO.insert(dbuser);
+      
+         AuthenticatorImpl auth = new AuthenticatorImpl();
+         HttpServletRequest request = mock(HttpServletRequest.class);
+         when(request.getRemoteAddr()).thenReturn("192.168.1.1");
+         when(request.getHeader(AuthenticatorImpl.AUTHORIZATION_HEADER)).
+                 thenReturn("Basic "+encodeString("bob:smith"));
+         when(request.getParameter(Constants.USER_LOGIN_TO_RUN_AS_PARAM)).
+                 thenReturn("joe");
+         
+         try {
+            auth.authenticate(request);
+         }
+         catch(Exception ex){
+             assertTrue(ex.getMessage().equals("User does not have permission to run as another user"));
+         }
+    }
+    
+     @Test
+    public void testAuthenticateValidAuthInHeaderAndUserInDataStoreWithRunAsPerm() throws Exception {
+        UserObjectifyDAOImpl userDAO = new UserObjectifyDAOImpl();
+       
+        User dbuser = new User();
+        dbuser.setLogin("bob");
+        dbuser.setToken("smith");
+        dbuser.setPermissions(Permission.LIST_ALL_JOBS | Permission.RUN_AS_ANOTHER_USER);
+        dbuser = userDAO.insert(dbuser);
+      
+         AuthenticatorImpl auth = new AuthenticatorImpl();
+         HttpServletRequest request = mock(HttpServletRequest.class);
+         when(request.getRemoteAddr()).thenReturn("192.168.1.1");
+         when(request.getHeader(AuthenticatorImpl.AUTHORIZATION_HEADER)).
+                 thenReturn("Basic "+encodeString("bob:smith"));
+         when(request.getParameter(Constants.USER_LOGIN_TO_RUN_AS_PARAM)).
+                 thenReturn("joe");
+         
+         User u = auth.authenticate(request);
+         assertTrue(u.getLogin().equals("bob"));
+         assertTrue(u.getLoginToRunJobAs().equals("joe"));
+    }
+    
     @Test
     public void testAuthenticateValidAuthButNoUser() throws Exception {
         UserObjectifyDAOImpl userDAO = new UserObjectifyDAOImpl();
@@ -254,7 +303,7 @@ public class TestAuthenticatorImpl {
 
     }
     
-     @Test
+    @Test
     public void testAuthenticateUserFromLocal127ip() throws Exception {
         UserObjectifyDAOImpl userDAO = new UserObjectifyDAOImpl();
       
