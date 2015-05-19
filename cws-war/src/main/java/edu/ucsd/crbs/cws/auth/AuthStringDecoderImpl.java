@@ -78,7 +78,6 @@ public class AuthStringDecoderImpl implements AuthStringDecoder {
             return null;
         }
         String decodedUserPass = new String(decodedBytes);
-        _log.log(Level.INFO, "Decoded string: {0}", decodedUserPass);
         
         if (!decodedUserPass.contains(":")) {
             _log.log(Level.INFO, "Decoded auth information does not contain a colon");
