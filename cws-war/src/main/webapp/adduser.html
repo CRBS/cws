@@ -49,52 +49,7 @@ RIGHTS.
          </style>
         <script>
            var toggle = false;
-           function createUser(login,token,permissions,ipAddresses){
-               var res = null;
-               if (ipAddresses !== ""){
-                  res = ipAddresses.split(",");
-              }
-               var u = {
-                 id: null,     
-                 permissions: permissions,
-                 deleted: false,
-                 createDate: null,
-                 login: login,
-                 token: token,
-                 allowedIpAddresses: res
-               }
-               return u;
-           }
-           
            $(document).ready(function() {
-             var theurl = $(location).attr('protocol')+"//"+$(location).attr('host');
-             
-              $( "#submitbutton" ).click(function(event){
-                 var permissionVal = 0;
-                 $( 'input[type="checkbox"]').each(function(index,boxy){
-                    if ($(boxy).is(':checked')){
-                        permissionVal += Number($(boxy).val());
-                    }
-                 });
-                 var login = $( "#inputlogin" ).val();
-                 var ip = $( "#iptext" ).val();
-                 var newUser = createUser(login,"haha",permissionVal,ip)
-                 
-                 var line = "<br>"+JSON.stringify(newUser)+"<br/>";
-                 $(line).appendTo("#pageinfo");
-                 
-                 
-                 $.ajax({
-                    type: "POST",
-                    url: theurl+"/rest/users",
-                    data: JSON.stringify(newUser),
-                    contentType: "application/json; charset=utf-8",
-                    dataType: "json"
-                 });
-                 
-                 event.preventDefault();
-              });
-
               $( "#checkall" ).click(function(event){
                  event.preventDefault();
                  toggle = !toggle;
@@ -107,10 +62,10 @@ RIGHTS.
     </head>
     <body>
        <p>Add User Form</p>
-       <form id="adduser" action="users.html">
+       <form id="adduser" method="post" action="../users/users.html">
            <div id="pageinfo"></div>
-          User Login: <input id="inputlogin" type="text" value=""/><p/>
-          IP Address: <input id="iptext" type="text" value="255.255.255.255/32"/><p/>
+          User Login: <input id="inputlogin" name="login" type="text" value=""/><p/>
+          IP Address: <input id="iptext" type="text" name="ipaddress" value="255.255.255.255/32"/><p/>         
           <b>Permissions: </b><p/>
          
           <button type="button" id="checkall" name="checkall">Check/Uncheck all</button>
