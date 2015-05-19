@@ -11,6 +11,7 @@
         <include path="/favicon.ico" />
     </static-files>
     <admin-console>
-        <page name="Users" url="/users.html"/>
+        <page name="Add User" url="/adduser.html"/>
+        <page name="User List" url="/users/user.html"/>
     </admin-console>
 </appengine-web-app>
