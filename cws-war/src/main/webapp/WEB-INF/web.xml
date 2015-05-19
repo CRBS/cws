@@ -17,12 +17,14 @@
         <web-resource-collection>
             <web-resource-name>admin</web-resource-name>
             <url-pattern>/rest/users/*</url-pattern>
+            <url-pattern>/users/*</url-pattern>
+            <url-pattern>/adduser.html</url-pattern> 
         </web-resource-collection>
         <auth-constraint>
             <role-name>admin</role-name>
         </auth-constraint>
     </security-constraint>
-    
+            
     <!-- Enables Jersey REST Service and Jackson JSON pojo mapping -->
     <servlet>
         <servlet-name>jersey-serlvet</servlet-name>
@@ -83,6 +85,16 @@
     <servlet-mapping>
         <servlet-name>fakedropdown</servlet-name>
         <url-pattern>/fakedropdown/*</url-pattern>
+    </servlet-mapping>
+   
+   <!-- Any requests going to /users/* should be handled by UsersServlet -->
+    <servlet>
+        <servlet-name>users</servlet-name>
+        <servlet-class>edu.ucsd.crbs.cws.servlet.UsersServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>users</servlet-name>
+        <url-pattern>/users/*</url-pattern>
     </servlet-mapping>
    
 </web-app>
