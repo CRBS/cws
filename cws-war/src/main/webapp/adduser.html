@@ -35,85 +35,167 @@ RIGHTS.
     <head>
         <title>Users</title>
         <meta charset="UTF-8">
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
-       <style>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+        <link rel="stylesheet" href="https://appengine.google.com/css/compiled.css"/>
+        <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/themes/smoothness/jquery-ui.css">
+        <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
 
-
-         table {
-            width: 100%;
-         }
-
-         th {
-            text-align: left;
-         }
-         </style>
         <script>
-           var toggle = false;
-           $(document).ready(function() {
-              $( "#checkall" ).click(function(event){
-                 event.preventDefault();
-                 toggle = !toggle;
-                 $( 'input[type="checkbox"]').each(function(index,boxy){
-                    $(boxy).prop('checked',toggle);
+            
+           function toggleCheckBoxes(newVal){
+               $( 'input[type="checkbox"]').each(function(index,boxy){
+                    $(boxy).prop('checked',newVal);
                  });
+           }
+           
+           function checkBoxesInArray(valArray){
+               var i = valArray.length - 1;
+               $( 'input[type="checkbox"]').each(function(index,boxy){
+                   var curVal = $(boxy).prop('value');
+                   $(boxy).prop('checked',false);
+                   while(i >= 0){
+                     if (curVal === valArray[i]){
+                       $(boxy).prop('checked',true);
+                       break;
+                     }
+                     i--;
+                   }
+                   i = valArray.length - 1;
+                 });
+           }
+            
+           $(document).ready(function() {
+              $( "#superuser" ).click(function(event){
+                 event.preventDefault();
+                 toggleCheckBoxes(true);
+                 $("#superuser").css('font-weight','bold');
+                 $("#defaultuser").css('font-weight','normal');
+                 $("#daemonuser").css('font-weight','normal');
+                 
               });  
+           });
+           
+           var defaultUserArray = ["16","67108864","2","8","32","64","256","2048","16777216","16384","32768","131072","524288","268435456"];
+          
+    
+           var daemonUserArray = ["1","4","32","1024","8192","262144","8388608"];
+
+    
+           $(document).ready(function() {
+              $( "#defaultuser" ).click(function(event){
+                 event.preventDefault();
+                 checkBoxesInArray(defaultUserArray);
+                 $("#superuser").css('font-weight','normal');
+                 $("#defaultuser").css('font-weight','bold');
+                 $("#daemonuser").css('font-weight','normal');
+
+              });  
+           });
+           
+           $(document).ready(function() {
+              $( "#daemonuser" ).click(function(event){
+                 event.preventDefault();
+                  checkBoxesInArray(daemonUserArray);
+                 $("#superuser").css('font-weight','normal');
+                 $("#defaultuser").css('font-weight','normal');
+                 $("#daemonuser").css('font-weight','bold');
+              });  
+           });
+
+           function unBoldButtons(){
+                 $("#superuser").css('font-weight','normal');
+                 $("#defaultuser").css('font-weight','normal');
+                 $("#daemonuser").css('font-weight','normal');
+           }
+           
+           $(function(){
+              $( "#permsection").accordion({
+                 collapsible: true,
+                 active: false
+              });
+           });
+           
+           $(function() {
+               $( document ).tooltip();
            });
         </script>
     </head>
     <body>
-       <p>Add User Form</p>
+       
+       <h1>Add User Form</h1>
+
        <form id="adduser" method="post" action="../users/users.html">
            <div id="pageinfo"></div>
-          User Login: <input id="inputlogin" name="login" type="text" value=""/><p/>
-          IP Address: <input id="iptext" type="text" name="ipaddress" value="255.255.255.255/32"/><p/>         
-          <b>Permissions: </b><p/>
+       
+           <b>User Login:</b> <input id="inputlogin" name="login" type="text" value="" title="Login to set for user.  No funny characters or spaces"/><p/>
+           <b>IP Address:</b> 
+            <input id="iptext" type="text" style="width: 50%;" name="ipaddress" value="255.255.255.255/32" title="Comma delimited list of IP addresses this user can connect from.  Supports Ipv4, Ipv6, and Ipv4 CIDR notation."/><p/>         
+           
+          <h2>Permissions: </h2>
          
-          <button type="button" id="checkall" name="checkall">Check/Uncheck all</button>
-          <button type="button" id="defaultuser" name="checkall">Default User</button>
-          <button type="button" id="daemonuser" name="checkall">Daemon User</button>
-          <br/>
-          <div class="perms">
-              <h3>Jobs</h3>
-              <table>
-                  <tr><td><input type="checkbox" name="permission" value="16">Create job</input></td></tr>
-                  <tr><td><input type="checkbox" name="permission" value="134217728">Delete all jobs</input></td></tr>
-                  <tr><td><input type="checkbox" name="permission" value="67108864">Delete their jobs</input></td></tr>
-                  <tr><td><input type="checkbox" name="permission" value="1">List all jobs</input></td></tr>
-                  <tr><td><input type="checkbox" name="permission" value="2">List their jobs</input></td></tr>
-                  <tr><td><input type="checkbox" name="permission" value="4">Update all jobs</input></td></tr>
-                  <tr><td><input type="checkbox" name="permission" value="8">Update their jobs</input></td></tr>                      
-              </table> 
-            
-              
-              <h3>Workflows</h3>
-          <input type="checkbox" name="permission" value="32">List all workflows</input><br/>
-          <input type="checkbox" name="permission" value="64">List their workflows</input><br/>
-          <input type="checkbox" name="permission" value="128">Update all workflows</input><br/>
-          <input type="checkbox" name="permission" value="256">Update their workflows</input><br/>
-          <input type="checkbox" name="permission" value="512">Create workflow</input><br/>
-          <input type="checkbox" name="permission" value="1024">Download all workflows</input><br/>
-          <input type="checkbox" name="permission" value="2048">Download their workflows</input><br/>
-          <input type="checkbox" name="permission" value="16777216">Delete their workflows</input><br/>
-          <input type="checkbox" name="permission" value="33554432">Delete all workflows</input><br/>
-
+          <button type="button" id="superuser" title="Enables all permissions" name="supercheck">Super User</button>
+          <button type="button" id="defaultuser" title="Enables permissions for user to interact with their jobs" name="defaultcheck">Default User</button>
+          <button type="button" id="daemonuser" title="Enables permissions necessary for daemon that runs on cluster" name="daemoncheck">Daemon User</button>
+          <p/>
           
-          <input type="checkbox" name="permission" value="8192">List all workspacefiles</input><br/>
-          <input type="checkbox" name="permission" value="16384">List their workspacefiles</input><br/>
-          <input type="checkbox" name="permission" value="32768">Create workspacefile</input><br/>
-          <input type="checkbox" name="permission" value="65536">Update all workspacefiles</input><br/>
-          <input type="checkbox" name="permission" value="131072">Update their workspacefiles</input><br/>
-          <input type="checkbox" name="permission" value="262144">Download all workspacefiles</input><br/>
-          <input type="checkbox" name="permission" value="524288">Download their workspacefiles</input><br/>
-          <input type="checkbox" name="permission" value="8388608">Create any workspace file</input><br/>
-          <input type="checkbox" name="permission" value="268435456">Delete their workspacefiles</input><br/>
-          <input type="checkbox" name="permission" value="536870912">Delete all workspace files</input><br/>
-
-          <h3>Users</h3>
-          <input type="checkbox" name="permission" value="4096">Run as another user</input><br/>
-          <input type="checkbox" name="permission" value="1048576">List all users</input><br/>
-          <input type="checkbox" name="permission" value="2097152">List their users</input><br/>
-          <input type="checkbox" name="permission" value="4194304">Create user</input><br/>
+          <p/>
+          <h3>Custom permissions</h3>
+          
+          <div class="perms" id="permsection">
+          <h3>Job Permissions</h3>
+          <div>    
+              <table>
+                  <tr><td><input type="checkbox" name="permission" onclick="unBoldButtons()" value="16">Create job</input></td></tr>
+                  <tr><td><input type="checkbox" name="permission" onclick="unBoldButtons()" value="134217728">Delete all jobs</input></td></tr>
+                  <tr><td><input type="checkbox" name="permission" onclick="unBoldButtons()" value="67108864">Delete their jobs</input></td></tr>
+                  <tr><td><input type="checkbox" name="permission" onclick="unBoldButtons()" value="1">List all jobs</input></td></tr>
+                  <tr><td><input type="checkbox" name="permission" onclick="unBoldButtons()" value="2">List their jobs</input></td></tr>
+                  <tr><td><input type="checkbox" name="permission" onclick="unBoldButtons()" value="4">Update all jobs</input></td></tr>
+                  <tr><td><input type="checkbox" name="permission" onclick="unBoldButtons()" value="8">Update their jobs</input></td></tr>                      
+              </table> 
           </div>
+              
+          <h3>Workflow Permissions</h3>
+          <div>
+               <table>
+          <tr><td><input type="checkbox" name="permission" onclick="unBoldButtons()" value="32">List all workflows</input></td></tr>
+          <tr><td><input type="checkbox" name="permission" onclick="unBoldButtons()" value="64">List their workflows</input></td></tr>
+          <tr><td><input type="checkbox" name="permission" onclick="unBoldButtons()" value="128">Update all workflows</input></td></tr>
+          <tr><td><input type="checkbox" name="permission" onclick="unBoldButtons()" value="256">Update their workflows</input></td></tr>
+          <tr><td><input type="checkbox" name="permission" onclick="unBoldButtons()" value="512">Create workflow</input></td></tr>
+          <tr><td><input type="checkbox" name="permission" onclick="unBoldButtons()" value="1024">Download all workflows</input></td></tr>
+          <tr><td><input type="checkbox" name="permission" onclick="unBoldButtons()" value="2048">Download their workflows</input></td></tr>
+          <tr><td><input type="checkbox" name="permission" onclick="unBoldButtons()" value="16777216">Delete their workflows</input></td></tr>
+          <tr><td><input type="checkbox" name="permission" onclick="unBoldButtons()" value="33554432">Delete all workflows</input></td></tr>
+               </table>
+          </div>
+          
+         <h3>WorkspaceFile Permissions</h3>
+          <div>
+              <table>
+          <tr><td><input type="checkbox" name="permission" onclick="unBoldButtons()" value="8192">List all workspacefiles</input></td></tr>
+          <tr><td><input type="checkbox" name="permission" onclick="unBoldButtons()" value="16384">List their workspacefiles</input></td></tr>
+          <tr><td><input type="checkbox" name="permission" onclick="unBoldButtons()" value="32768">Create workspacefile</input></td></tr>
+          <tr><td><input type="checkbox" name="permission" onclick="unBoldButtons()" value="65536">Update all workspacefiles</input></td></tr>
+          <tr><td><input type="checkbox" name="permission" onclick="unBoldButtons()" value="131072">Update their workspacefiles</input></td></tr>
+          <tr><td><input type="checkbox" name="permission" onclick="unBoldButtons()" value="262144">Download all workspacefiles</input></td></tr>
+          <tr><td><input type="checkbox" name="permission" onclick="unBoldButtons()" value="524288">Download their workspacefiles</input></td></tr>
+          <tr><td><input type="checkbox" name="permission" onclick="unBoldButtons()" value="8388608">Create any workspacefile</input></td></tr>
+          <tr><td><input type="checkbox" name="permission" onclick="unBoldButtons()" value="268435456">Delete their workspacefiles</input></td></tr>
+          <tr><td><input type="checkbox" name="permission" onclick="unBoldButtons()" value="536870912">Delete all workspace files</input></td></tr>
+            </table>
+          </div>
+          <h3>User Permissions</h3>
+          <div>
+              <table>
+          <tr><td><input type="checkbox" name="permission" onclick="unBoldButtons()" value="4096">Run as another user</input></td></tr>
+          <tr><td><input type="checkbox" name="permission" onclick="unBoldButtons()" value="1048576">List all users</input></td></tr>
+          <tr><td><input type="checkbox" name="permission" onclick="unBoldButtons()" value="2097152">List their users</input></td></tr>
+          <tr><td><input type="checkbox" name="permission" onclick="unBoldButtons()" value="4194304">Create user</input></td></tr>
+              </table>
+          </div> 
+         </div>
+          <p/>
           <p/>
           <button id="submitbutton" type="submit" form="adduser" value="Add">Add User</button>
        </form>
