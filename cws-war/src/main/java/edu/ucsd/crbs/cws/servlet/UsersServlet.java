@@ -34,6 +34,8 @@
 package edu.ucsd.crbs.cws.servlet;
 
 import edu.ucsd.crbs.cws.auth.User;
+import edu.ucsd.crbs.cws.auth.UserIpAddressValidator;
+import edu.ucsd.crbs.cws.auth.UserIpAddressValidatorImpl;
 import edu.ucsd.crbs.cws.dao.UserDAO;
 import edu.ucsd.crbs.cws.dao.objectify.UserObjectifyDAOImpl;
 import java.io.IOException;
@@ -60,13 +62,22 @@ public class UsersServlet extends HttpServlet {
     
     private UserDAO _userDAO = new UserObjectifyDAOImpl();
     
+    private UserIpAddressValidator _ipAddressValidator = new UserIpAddressValidatorImpl();
+    
     public static final String USER_ID_QUERY_PARAM = "userid";
+
+    public static final String TEST_IP_QUERY_PARAM = "testip";
+    
+    public static final String UPDATE_USER_QUERY_PARAM = "updateuser";
     
     public static final String GAE_CSS_LINK = "<link rel=\"stylesheet\" href=\"https://appengine.google.com/css/compiled.css\"/>";
     
     public static final String STRIKE_THROUGH_STYLE_ATTRIBUTE = "style=\"text-decoration: line-through;\"";
+    public static final String STRIKE_THROUGH_STYLE_INLINE_BLOCK_ATTRIBUTE = "style=\"text-decoration: line-through; display: inline-block;\"";
     
     public static final String JQUERY_INCLUDE = "<script src=\"https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js\"></script>";
+    public static final String JQUERY_UI_INCLUDE = " <script src=\"https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js\"></script>";
+    public static final String JQUERY_UI_CSS_LINK = "<link rel=\"stylesheet\" href=\"https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/themes/smoothness/jquery-ui.css\">";
     
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -77,67 +88,173 @@ public class UsersServlet extends HttpServlet {
             return;
         }
         else {
+            String testip = req.getParameter(TEST_IP_QUERY_PARAM);
+            if (testip != null){
+                handleTestIp(userId,testip,req,resp);
+                return;
+            }
+            if (req.getParameter(UPDATE_USER_QUERY_PARAM) != null){
+                handleUpdateUser(userId,req,resp);
+            }
             handleUserView(userId,req,resp);
             return;
         }
+    }
+    
+    private String getTestIpResponse(boolean success,final String errorMsg) {
+
+        if (success == true){
+            return "Valid";
+        }
+
+        if (success == false && errorMsg == null){
+            return "Invalid";
+        }
+        return errorMsg;
+    }
+    
+    protected void handleTestIp(final String userId,final String testIp,HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        try {
+             User u = _userDAO.getUserById(userId);
+             if (u == null){
+                 _log.log(Level.INFO,"No user found for id {0}",userId);
+                 resp.getWriter().print(getTestIpResponse(false,"No User Found"));
+                 return;
+             }
+             if (u.getAllowedIpAddresses() == null || u.getAllowedIpAddresses().isEmpty()){
+                 _log.log(Level.INFO,"ip address list is null or empty for user {0} so all ip addresses are valid",
+                         userId);
+                 resp.getWriter().print(getTestIpResponse(true,null));
+                 return;
+             }
+             u.setIpAddress(testIp);
+             if (_ipAddressValidator.isUserRequestFromValidIpAddress(u)){
+                 _log.log(Level.INFO,"Ip {0} is valid for user {1}",
+                         new Object[]{testIp,userId});
+                 resp.getWriter().print(getTestIpResponse(true,null));
+                 return;
+             }
+             _log.log(Level.INFO,"Ip {0} is NOT valid for user {1}",
+                         new Object[]{testIp,userId});
+                 
+             resp.getWriter().print(getTestIpResponse(false,null));
+        }
+        catch(Exception ex){
+            throw new ServletException(ex);
+        }
+        
+    }
+    
+    protected void handleUpdateUser(final String userId,HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        try {
+            User u = _userDAO.getUserById(userId);
+            if (u == null){
+                resp.getWriter().write("<html>\n<head>\n"+GAE_CSS_LINK+"\n</head>\n<body>\nNo User with Id: "+userId+
+                        " found\n</body>\n</html>\n");
+                return;
+            }
+            User updatedUser = generateUserFromRequest(req,resp,false,false);
+            u.setLogin(updatedUser.getLogin());
+            u.setToken(updatedUser.getToken());
+            u.setAllowedIpAddresses(updatedUser.getAllowedIpAddresses());
+            u.setDeleted(updatedUser.isDeleted());
+            u = _userDAO.update(u);
+        }
+        catch(Exception ex){
+            throw new ServletException(ex);
+        }
+        
     }
     
     protected void handleUserView(final String userId,HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
          try {
             User u = _userDAO.getUserById(userId);
             if (u == null){
-                resp.getWriter().write("<html><head><style>"+GAE_CSS_LINK+"</style></head><body>No User with Id: "+userId+
-                        " found</body></html>\n");
+                resp.getWriter().write("<html>\n<head>\n"+GAE_CSS_LINK+"\n</head>\n<body>\nNo User with Id: "+userId+
+                        " found\n</body>\n</html>\n");
                 return;
             }
             PrintWriter pw = resp.getWriter();
             pw.write("<html>\n");
             pw.write("  <head>\n");
             pw.write("     "+JQUERY_INCLUDE+"\n");
-            pw.write("     <style>\n");
-            pw.write("        "+GAE_CSS_LINK+"\n");
-            pw.write("     </style>");
+            pw.write("      "+GAE_CSS_LINK+"\n");
+            pw.write("      "+JQUERY_UI_CSS_LINK+"\n");
+            pw.write("     "+JQUERY_UI_INCLUDE+"\n");
+
+            pw.write("     <script>\n");
+            pw.write("            $(function() {\n" 
+                    + "               $( document ).tooltip();\n" 
+                    + "           });\n"
+                    + "           function enableDisableEdit(enableFlag){\n"
+                    + "               $( \"#login\" ).prop('disabled',enableFlag);\n"
+                    + "               $( \"#token\" ).prop('disabled',enableFlag);\n"
+                    + "               $( \"#ipaddress\" ).prop('disabled',enableFlag);\n"
+                    + "               $( \"#deletecheckbox\" ).prop('disabled',enableFlag);\n"
+                    + "               $( \"#submitbutton\" ).prop('disabled',enableFlag);\n"
+                    + "               //$( \"#testipbutton\" ).prop('disabled',!enableFlag);\n"
+                    + "               $( \"#testipfield\" ).prop('disabled',!enableFlag);\n"
+                    + "           }\n");
+            pw.write("            function editClick(){\n"
+                    + "                enableDisableEdit(!$( \"#editchecky\").prop('checked'));\n"
+                    + "           }\n");
+            pw.write("            $(document).ready(function() {\n"
+                    + "                editClick();\n"
+                    + "                $( \"#testipbutton\").click(function(event){\n"
+                    + "                    event.preventDefault();\n"
+                    + "                    alert(\"test ip clicked\");\n"
+                    + "                    $.ajax({"
+                    + "                       method: \"POST\","
+                    + "                       url: \"../users/users.html?userid="+u.getId()+"&testip=127.0.0.1\","
+                    + "                    })"
+                    + "                      .done(function(msg){"
+                    + "                          alert(\" Done \" + msg);"
+                    + "                    });\n"
+                    + "                });\n"
+                    + "           });\n"
+                    + "   </script>\n");
             pw.write("  </head>\n");
             
             
             pw.write("  <body>\n");
             pw.write("<h1>Edit/View User</h1>\n");
-            pw.write("<input type=\"checkbox\" name=\"editchecky\" id=\"editchecky\">Edit User</input><p/>");
-            pw.write("    <form id=\"edituser\" method=\"post\" action=\"../users/users.html\">\n");
+            pw.write("<input type=\"checkbox\" name=\"editchecky\" onclick=\"editClick()\" id=\"editchecky\" title=\"Click to Edit User\">Edit User</input><p/>");
+            pw.write("    <form id=\"edituser\" method=\"post\" action=\"../users/users.html?userid="+u.getId()+"\" >\n");
+            pw.write("       <div id=\"formcontents\">\n");
             pw.write("      <b>Login:</b> <input id=\"login\" "
                     + "name=\"login\" type=\"text\" value=\""+u.getLogin()+"\" "
                     + "title=\"Login for user. No funny characters or spaces\""
-                    + "/><p/>\n");
+                    + " disabled /><p/>\n");
             pw.write("      <b>Token:</b> <input id=\"token\" "
                     + "name=\"token\" type=\"text\" value=\""+u.getToken()+"\" "
+                    + " style=\"width: 40%;\" "
                     + "title=\"Token for user\""
-                    + "/><p/>\n");
+                    + "disabled /><p/>\n");
             pw.write("      <b>Allowed IP Addresses:</b> <input id=\"ipaddress\" "
                     + "style=\"width: 50%;\""
                     + "name=\"ipaddress\" type=\"text\" value=\""
                     +getIpAddresses(u)+"\" "
-                    + "title=\"Comma delimited list of ip addresses allowed or null for all. "
+                    + "title=\"Comma delimited list of ip addresses allowed or all for all addresses. "
                     + "Supports Ipv4, Ipv6 and Ipv4 CIDR\""
-                    + "/><p/>\n");
-            pw.write("      <input type=\"checkbox\" name=\"deleted\" ");
+                    + " disabled /><p/>\n");
+            pw.write("      <input type=\"checkbox\" id=\"deletecheckbox\" disabled name=\"deleted\" ");
             if (u.isDeleted()){
                 pw.write("checked ");   
             }
                     
-            pw.write(" value=\"deleted\">Deleted</input><p/>\n");
-            
+            pw.write(" value=\"deleted\" title=\"Logically deletes or undeletes User\">Deleted</input><p/>\n");
+            pw.write("   <div id=\"buttongroup\" style=\"display: inline-block;\">\n");
             pw.write("      <button id=\"submitbutton\" type=\"submit\" "
                     + "title=\"Updates User with Changes\" "
                     + "form=\"edituser\" value=\"update\">Update</button>");
             
-            pw.write("      <button id=\"testip\" type=\"submit\" "
-                    + "title=\"Tests Request Ip Address to see if valid for this User\" "
-                    + "form=\"edituser\" value=\"testip\">Test Request IP</button>");
+            pw.write("      <button id=\"testipbutton\" type=\"submit\" "
+                    + "title=\"Tests Request Ip Address to see if valid for this User. NOT IMPLEMENTED YET\" "
+                    + "form=\"edituser\" value=\"testip\" disabled>Test Request IP</button>\n"
+                    + "     </div>\n");
             
-             pw.write(" <input id=\"testip\" "
-                    + "name=\"testipaddress\" type=\"text\" value=\"\" "
-                    + "title=\"Ip to test with this user to see if its valid\""
-                    + "/><p/>\n");
+            pw.write("      <input type=\"hidden\" name=\"updateuser\" value=\"true\"/>\n");
+            pw.write("       </div>\n");
             
             pw.write("    </form>\n");
             pw.write("  </body>\n");
@@ -159,44 +276,16 @@ public class UsersServlet extends HttpServlet {
      * @throws IOException 
      */
     protected void handleAddUser(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        String login = req.getParameter("login");
-        
-        if (login == null || login.isEmpty()){
-            _log.log(Level.WARNING, "Login passed in is empty or null");
-            resp.getWriter().write("<html><head><style>"+GAE_CSS_LINK+"</style></head><body>Unable to add.  Login is empty or null</body></html>\n");
-            return;
-        }
-        
-        String ipAddress = req.getParameter("ipaddress");
-        
-        Map<String,String[]> paramMap = req.getParameterMap();
-        String[] values = paramMap.get("permission");
-
-        int perm = 0;
-        if (values != null){
-            for (String v : values) {
-                perm += Integer.parseInt(v);
-            }
-        }
-        
-        User u = new User();
-        u.setLogin(login);
-        u.setToken(java.util.UUID.randomUUID().toString().replaceAll("-",""));
-        u.setPermissions(perm);
-        
-        if (ipAddress != null && ipAddress.isEmpty() == false && ipAddress.trim().length() > 0){
-            u.setAllowedIpAddresses(Arrays.asList(ipAddress));
-        }
-        
         try {
+            User u = generateUserFromRequest(req,resp,true,true);
             u = _userDAO.insert(u);
             PrintWriter pw = resp.getWriter();
             ArrayList<User> uList = new ArrayList<User>();
             uList.add(u);
-            pw.write("<html><head><style> table,th,td { border: 1px solid black; }\n"+GAE_CSS_LINK+"\n</style></head><body>\n");
+            pw.write("<html>\n<head>\n"+GAE_CSS_LINK+"\n<style>\n table,th,td { border: 1px solid black; }\n</style>\n</head>\n<body>\n");
             pw.write("<h3>User Added</h3>\n");
             pw.write(renderUsersInTable(uList));
-            pw.write("</body></html>\n");
+            pw.write("</body>\n</html>\n");
         }
         catch(Exception ex){
             _log.log(Level.WARNING, "Caught Exception: "+ex.getMessage(), ex);
@@ -204,6 +293,59 @@ public class UsersServlet extends HttpServlet {
         } 
     }
 
+    private User generateUserFromRequest(HttpServletRequest req,HttpServletResponse resp,boolean createToken,boolean updatePermFromMap) throws Exception,IOException {
+        String login = req.getParameter("login");
+        
+        if (login == null || login.isEmpty()){
+            _log.log(Level.WARNING, "Login passed in is empty or null");
+            resp.getWriter().write("<html>\n<head>\n"+GAE_CSS_LINK+"\n</head>\n<body>\nUnable to add.  Login is empty or null\n</body>\n</html>\n");
+            return null;
+        }
+        
+        String ipAddress = req.getParameter("ipaddress");
+        
+        int perm = 0;
+        if (updatePermFromMap == true) {
+
+            Map<String, String[]> paramMap = req.getParameterMap();
+            String[] values = paramMap.get("permission");
+
+            if (values != null) {
+                for (String v : values) {
+                    perm += Integer.parseInt(v);
+                }
+            }
+        }
+        User u = new User();
+        u.setLogin(login);
+        if (createToken == true){
+            u.setToken(java.util.UUID.randomUUID().toString().replaceAll("-",""));
+        }
+        else {
+            u.setToken(req.getParameter("token"));
+        }
+        if (updatePermFromMap == true){
+            u.setPermissions(perm);
+        }
+        
+        if (ipAddress != null && ipAddress.isEmpty() == false && ipAddress.trim().length() > 0){
+            if (ipAddress.trim().equalsIgnoreCase("all") || 
+                ipAddress.trim().equalsIgnoreCase("null")){
+                u.setAllowedIpAddresses(null);
+            }
+            else {
+                u.setAllowedIpAddresses(Arrays.asList(ipAddress));
+            }
+        }
+        else {
+            u.setAllowedIpAddresses(null);
+        }
+        if (req.getParameter("deleted") != null){
+            u.setDeleted(true);
+        }
+        return u;
+    }
+    
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         
@@ -218,9 +360,10 @@ public class UsersServlet extends HttpServlet {
             PrintWriter pw = resp.getWriter();
             
             pw.write("<html>\n");
-            pw.write("<head><style>\n");
+            pw.write("<head>\n"
+                    + "       "+GAE_CSS_LINK+"\n"
+                    + "<style>\n");
             pw.write(" table,th,td { border: 1px solid black; }\n");
-            pw.write("   "+GAE_CSS_LINK+"\n");
             pw.write("</style></head>\n");
             
             pw.write("<body>\n<h3>List of Users</h3>\n");
@@ -242,11 +385,17 @@ public class UsersServlet extends HttpServlet {
         }
     }
     
+    /**
+     * Given a {@link User} function generates a comma delimited list of
+     * allowed ip addresses extracted from {@link User#getAllowedIpAddresses()}
+     * @param u
+     * @return comma delimited list of allowed ip addresses
+     */
     private String getIpAddresses(User u){
         
         if (u == null || u.getAllowedIpAddresses() == null || 
                 u.getAllowedIpAddresses().isEmpty()){
-            return "null";
+            return "all";
         }
         StringBuilder sb = new StringBuilder();
         for (String ip : u.getAllowedIpAddresses()){
@@ -293,8 +442,8 @@ public class UsersServlet extends HttpServlet {
             }
             sb.append(" </table>\n");
             sb.append("<div ");
-            sb.append(STRIKE_THROUGH_STYLE_ATTRIBUTE);
-            sb.append(">Strike through denotes deleted User(s)</div>\n");
+            sb.append(STRIKE_THROUGH_STYLE_INLINE_BLOCK_ATTRIBUTE);
+            sb.append(">Strike through</div> denotes deleted User(s)\n");
             return sb.toString();
     }
     
