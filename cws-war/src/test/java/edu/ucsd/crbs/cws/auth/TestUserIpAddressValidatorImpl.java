@@ -223,4 +223,14 @@ public class TestUserIpAddressValidatorImpl {
         u.setAllowedIpAddresses(Arrays.asList("100.10.0.0/32"));
         assertTrue(validator.isUserRequestFromValidIpAddress(u) == false);
     }
+    
+    
+    @Test
+    public void testIpv4AddressAgainstCidrOfAlmostAllIpAddresses() throws Exception {
+        UserIpAddressValidator validator = new UserIpAddressValidatorImpl();
+        User u = new User();
+        u.setIpAddress("100.10.10.10");
+        u.setAllowedIpAddresses(Arrays.asList("0.0.0.0/1"));
+        assertTrue(validator.isUserRequestFromValidIpAddress(u) == true);
+    }
 }
