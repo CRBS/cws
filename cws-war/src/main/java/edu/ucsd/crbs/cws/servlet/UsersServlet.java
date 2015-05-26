@@ -137,7 +137,6 @@ public class UsersServlet extends HttpServlet {
     public static final String PERMISSION_PARAM = "permission";
 
     public static final String RAW_PERMISSION_PARAM = "rawpermission";
-
     
     public static final String TOKEN_PARAM = "token";
     
@@ -609,7 +608,7 @@ public class UsersServlet extends HttpServlet {
                     || ipAddress.trim().equalsIgnoreCase("null")) {
                 u.setAllowedIpAddresses(null);
             } else {
-                u.setAllowedIpAddresses(Arrays.asList(ipAddress));
+                u.setAllowedIpAddresses(Arrays.asList(ipAddress.split(",")));
             }
         } else {
             u.setAllowedIpAddresses(null);
