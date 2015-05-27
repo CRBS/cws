@@ -354,7 +354,4 @@ public class TestUsersServlet {
         assertTrue(ipAddress.get(0).equals("1.1.1.1/1") || ipAddress.get(0).equals("192.168.1.1"));
         assertTrue(ipAddress.get(1).equals("1.1.1.1/1") || ipAddress.get(1).equals("192.168.1.1"));
     }
-    
-    
-
 }
