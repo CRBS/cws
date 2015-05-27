@@ -324,7 +324,7 @@ public class UsersServlet extends HttpServlet {
             u.setPermissions(updatedUser.getPermissions());
             u.setAllowedIpAddresses(updatedUser.getAllowedIpAddresses());
             u.setDeleted(updatedUser.isDeleted());
-            u = _userDAO.update(u);
+            _userDAO.update(u);
         } catch (Exception ex) {
             throw new ServletException(ex);
         }
