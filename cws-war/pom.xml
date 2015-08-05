@@ -3,14 +3,14 @@
 
     <modelVersion>4.0.0</modelVersion>
     <packaging>war</packaging>
-    <version>1.29-SNAPSHOT</version>
+    <version>1.30-SNAPSHOT</version>
     <groupId>edu.ucsd.crbs.cws</groupId>
     <artifactId>cws-war</artifactId>
 
     <parent>
         <groupId>edu.ucsd.crbs.cws</groupId>
         <artifactId>cws</artifactId>
-        <version>1.29-SNAPSHOT</version>
+        <version>1.30-SNAPSHOT</version>
     </parent>
 
     <properties>
