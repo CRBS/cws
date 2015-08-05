@@ -120,6 +120,8 @@ public class App {
     
     public static final String GET_WORKSPACE_FILE_ARG = "getworkspacefile";
     
+    public static final String GET_WORKFLOW_ARG = "getworkflow";
+    
     public static final String MD5_ARG = "md5";
     
     public static final String SIZE_ARG = "size";
@@ -216,6 +218,7 @@ public class App {
                     accepts(UPLOAD_FILE_ARG,"Registers and uploads Workspace file to REST service").withRequiredArg().ofType(File.class);
                     accepts(REGISTER_FILE_ARG,"Registers Workspace file to REST service (DOES NOT UPLOAD FILE TO REST SERVICE)").withRequiredArg().ofType(File.class);
                     accepts(GET_WORKSPACE_FILE_INFO_ARG,"Outputs JSON of specified workspace file(s)").withRequiredArg().ofType(String.class).describedAs("workspace file id");
+                    accepts(GET_WORKFLOW_ARG,"Outputs JSON of specified Workflow").withRequiredArg().ofType(Long.class).describedAs("Workflow Id");
                     accepts(DOWNLOAD_FILE_ARG,"Downloads Workspace file").withRequiredArg().ofType(String.class).describedAs("workspace file id");
                     accepts(UPDATE_PATH_ARG,"Updates Workspace file path").withRequiredArg().ofType(String.class).describedAs("workspace file id");
                     accepts(PATH_ARG,"Sets WorkspaceFile file path.  Used in coordination with --"+UPDATE_PATH_ARG).withRequiredArg().ofType(String.class).describedAs("file path");
@@ -278,7 +281,8 @@ public class App {
                      !optionSet.has(PREVIEW_WORKFLOW_ARG) &&
                      !optionSet.has(GEN_OLD_KEPLER_XML_ARG) &&
                      !optionSet.has(GET_JOB_ARG) &&
-                     !optionSet.has(GET_WORKSPACE_FILE_ARG)) {
+                     !optionSet.has(GET_WORKSPACE_FILE_ARG) &&
+                     !optionSet.has(GET_WORKFLOW_ARG)) {
                 System.out.println(PROGRAM_HELP + "\n");
                 parser.printHelpOn(System.out);
                 System.exit(0);
@@ -298,6 +302,11 @@ public class App {
             if (optionSet.has(GET_WORKSPACE_FILE_ARG)){
                 failIfOptionSetMissingURLOrLoginOrToken(optionSet,"--"+GET_WORKSPACE_FILE_ARG+" flag");
                 getWorkspaceFileAsJson(optionSet);
+                System.exit(0);
+            }
+            if (optionSet.has(GET_WORKFLOW_ARG)){
+                failIfOptionSetMissingURLOrLoginOrToken(optionSet,"--"+GET_WORKFLOW_ARG+" flag");
+                getWorkflowAsJson(optionSet);
                 System.exit(0);
             }
 
@@ -727,6 +736,26 @@ public class App {
         }
         return;
         
+    }
+    
+    public static void getWorkflowAsJson(OptionSet optionSet) throws Exception {
+        WorkflowRestDAOImpl workflowDAO = new WorkflowRestDAOImpl();
+        workflowDAO.setRestURL((String)optionSet.valueOf(URL_ARG));
+        User u = getUserFromOptionSet(optionSet);
+        workflowDAO.setUser(u);
+       
+        Long wfid = (Long)optionSet.valueOf(GET_WORKFLOW_ARG);
+        Workflow w = workflowDAO.getWorkflowById(wfid.toString(), u);
+        if (w != null){
+            ObjectMapper om = new ObjectMapper();
+            ObjectWriter ow = om.writerWithDefaultPrettyPrinter();
+            System.out.println(ow.writeValueAsString(w));
+        }
+        else {
+            System.err.println("Unable to retreive WorkspaceFile with id: "+
+                    wfid.toString());
+            System.exit(1);
+        }
     }
     
     public static JobEmailNotificationData getJobEmailNotificationData(OptionSet optionSet) throws Exception {
